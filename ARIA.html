@@ -363,6 +363,10 @@
   .wo-loading { text-align:center; padding:40px; font-family:var(--font-mono); font-size:12px; color:var(--cyan); }
   .wo-loading::after { content:'...'; animation:dots 1.5s infinite; }
   @keyframes dots { 0%{content:'.'} 33%{content:'..'} 66%{content:'...'} }
+  .wo-download-btn { background:var(--green-dim); border:1px solid var(--green); color:var(--green); padding:6px 14px; font-family:var(--font-mono); font-size:10px; letter-spacing:1px; cursor:pointer; transition:all 0.2s; }
+  .wo-download-btn:hover { background:var(--green); color:var(--bg); }
+  .wo-sop-banner { background:rgba(0,212,255,0.06); border:1px solid var(--cyan); padding:8px 12px; font-family:var(--font-mono); font-size:9px; color:var(--cyan); letter-spacing:1px; margin-bottom:16px; line-height:1.8; }
+  .wo-sop-banner-label { color:var(--text3); display:block; margin-bottom:2px; }
 
   .severity-badge { display:inline-block; padding:3px 10px; font-family:var(--font-mono); font-size:11px; font-weight:bold; letter-spacing:1px; }
   .severity-badge.HIGH { background:var(--amber-dim); color:var(--amber); border:1px solid var(--amber); }
@@ -516,7 +520,10 @@
   <div class="modal">
     <div class="modal-header">
       <div class="modal-title">WORK ORDER — AUTO GENERATED</div>
-      <button class="modal-close" onclick="closeModal()">✕</button>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button class="wo-download-btn" id="wo-download-btn" onclick="downloadWO()" style="display:none">⬇ DOWNLOAD WO</button>
+        <button class="modal-close" onclick="closeModal()">✕</button>
+      </div>
     </div>
     <div class="modal-body" id="wo-modal-body">
       <div class="wo-loading">ARIA generating work order</div>
@@ -653,6 +660,8 @@ let playInterval = null;
 let selectedAsset = null;
 let activeAlerts = [];
 let alertLog = [];
+let woCounter = 2000; // auto-increments; existing history uses WO-010xx
+function nextWONumber() { return 'WO-' + String(++woCounter).padStart(5,'0'); }
 let apiKey = false; // true = key configured server-side, false = demo mode
 let shownAlertHours = new Set();
 
@@ -1332,14 +1341,18 @@ function updateAlertCount() {
 // ============================================================
 async function generateWO(alertIdx) {
   const alert = alertLog[alertIdx];
+  const woNumber = nextWONumber();
   document.getElementById("wo-modal").style.display = "flex";
-  document.getElementById("wo-modal-body").innerHTML = `<div class="wo-loading">ARIA generating work order</div>`;
+  document.getElementById("wo-download-btn").style.display = "none";
+  document.getElementById("wo-modal-body").innerHTML = `<div class="wo-loading">ARIA generating work order ${woNumber}</div>`;
 
   if(!apiKey) {
-    // Render a demo WO
-    renderDemoWO(alert);
+    renderDemoWO(alert, woNumber);
     return;
   }
+
+  const sopIds = (alert.sop||"").split(/[\/,]/).map(s=>s.trim()).filter(Boolean);
+  const sopDocs = sopIds.map(id => RAG_DOCS[id] ? `[${id}] ${RAG_DOCS[id].title}\n${RAG_DOCS[id].content}` : "").filter(Boolean);
 
   try {
     const resp = await fetch("/api/chat", {
@@ -1347,18 +1360,16 @@ async function generateWO(alertIdx) {
       headers:{"Content-Type":"application/json"},
       body: JSON.stringify({
         model:"gpt-4o",
-        max_tokens:1000,
+        max_tokens:1200,
         messages:[
-          {role:"system", content:`You are ARIA, an industrial AI agent for North Sea Platform Alpha, an offshore oil and gas platform. Generate a structured maintenance work order in JSON format based on the alert and context provided. Return ONLY valid JSON, no markdown, no preamble.
-${(()=>{
-  const ids = (alert.sop||"").split(/[\/,]/).map(s=>s.trim()).filter(Boolean);
-  const docs = ids.map(id => RAG_DOCS[id] ? `[${id}] ${RAG_DOCS[id].title}\n${RAG_DOCS[id].content}` : "").filter(Boolean);
-  return docs.length ? "\n\nRELEVANT PROCEDURE DOCUMENTS:\n\n" + docs.join("\n\n---\n\n") : "";
-})()}
+          {role:"system", content:`You are ARIA, an industrial AI agent for North Sea Platform Alpha. Generate a maintenance work order in JSON format. Return ONLY valid JSON, no markdown, no preamble.
+${sopDocs.length ? "\n\nRELEVANT PROCEDURE DOCUMENTS (cite specific sections/steps in your output):\n\n" + sopDocs.join("\n\n---\n\n") : ""}
+
+Use WO number: ${woNumber}
 
 JSON schema:
 {
-  "wo_number": "WO-XXXXX",
+  "wo_number": "${woNumber}",
   "title": "...",
   "priority": "EMERGENCY|HIGH|MEDIUM|LOW",
   "asset_tag": "...",
@@ -1369,11 +1380,12 @@ JSON schema:
   "permit_required": "...",
   "ppe_required": ["..."],
   "immediate_actions": ["step 1", "step 2", ...],
-  "procedure_steps": [{"step": 1, "action": "..."}, ...],
-  "parts_required": ["..."],
+  "procedure_steps": [{"step": 1, "action": "cite specific SOP step where applicable"}, ...],
+  "parts_required": ["include part numbers where known"],
   "safety_notes": "...",
   "estimated_hours": 0,
-  "sop_reference": "..."
+  "sop_reference": "e.g. SOP-MAINT-001 Rev 6",
+  "sop_sections_used": ["e.g. SOP-MAINT-001 Rev 6 — Step 3 Lubrication Procedure", "MAN-MECH-001 Issue 3 — Bearing Replacement"]
 }`},
           {role:"user", content: alert.woPrompt + `\n\nTimestamp: ${alert.timestamp}\nSensor reading: ${alert.sensorVal} ${alert.sensorUnit}`}
         ]
@@ -1390,11 +1402,12 @@ JSON schema:
   }
 }
 
-function renderDemoWO(alert) {
+function renderDemoWO(alert, woNumber) {
+  woNumber = woNumber || nextWONumber();
   // Hardcoded demo WO for P-101 failure
   const demos = {
     "AL-P101-VIB-ZONE-C": {
-      wo_number:"WO-01005", title:"P-101A Pump Bearing Inspection & Lubrication — Zone C Vibration Alert",
+      wo_number:woNumber, title:"P-101A Pump Bearing Inspection & Lubrication — Zone C Vibration Alert",
       priority:"HIGH", asset_tag:"P-101", asset_name:"HP Sep Drain Pump A",
       failure_mode:"Bearing fatigue — insufficient lubrication, possible grease nipple blockage",
       raised_by:"ARIA — Automated Detection", raised_at: alert.timestamp,
@@ -1412,10 +1425,11 @@ function renderDemoWO(alert) {
       ],
       parts_required:["Shell Gadus S2 V220 2 grease (standby: SKF 6316-2RS1 bearing x2)"],
       safety_notes:"Pump casing may reach 80°C. Hearing protection mandatory. Do NOT over-grease.",
-      estimated_hours:2, sop_reference:"SOP-MAINT-001 Rev 6, MAN-MECH-001 Issue 3"
+      estimated_hours:2, sop_reference:"SOP-MAINT-001 Rev 6, MAN-MECH-001 Issue 3",
+      sop_sections_used:["SOP-MAINT-001 Rev 6 — Lubrication Procedure (Steps 2–6)","SOP-MAINT-001 Rev 6 — Vibration Measurement & Acceptance Criteria (ISO 10816-3)","MAN-MECH-001 Issue 3 — Relubrication Quantity (DE: 15g / NDE: 10g)"]
     },
     "AL-P101-FAIL": {
-      wo_number:"WO-01006", title:"EMERGENCY: P-101A Complete Bearing Failure — Replacement Required",
+      wo_number:woNumber, title:"EMERGENCY: P-101A Complete Bearing Failure — Replacement Required",
       priority:"EMERGENCY", asset_tag:"P-101", asset_name:"HP Sep Drain Pump A",
       failure_mode:"Complete Drive End bearing spalling — metal fatigue on inner race",
       raised_by:"ARIA — Automated Detection", raised_at: alert.timestamp,
@@ -1436,11 +1450,12 @@ function renderDemoWO(alert) {
       ],
       parts_required:["SKF 6316-2RS1 bearing (DE) x1","SKF 6312-2RS1 bearing (NDE) x1","Bearing housing seal x1","Shell Gadus S2 V220 2 grease"],
       safety_notes:"CRITICAL: Full LOTO required. Pump casing >80°C — allow to cool before work. Production loss tracking: 180 bbl estimated.",
-      estimated_hours:12, sop_reference:"SOP-MAINT-001 Rev 6, MAN-MECH-001 Issue 3, SOP-MAINT-002"
+      estimated_hours:12, sop_reference:"SOP-MAINT-001 Rev 6, MAN-MECH-001 Issue 3, SOP-MAINT-002",
+      sop_sections_used:["MAN-MECH-001 Issue 3 — Bearing Replacement Procedure (Steps 1–9)","MAN-MECH-001 Issue 3 — Bearing Spec: SKF 6316-2RS1 DE / SKF 6312-2RS1 NDE","SOP-MAINT-001 Rev 6 — Post-replacement 30-min Run-in Check","MAN-MECH-001 Issue 3 — Grease: Shell Gadus S2 V220 2, 50% cavity fill"]
     }
   };
   const wo = demos[alert.id] || {
-    wo_number:"WO-DEMO", title:alert.title, priority:alert.severity,
+    wo_number:woNumber, title:alert.title, priority:alert.severity,
     asset_tag:alert.sensor.split('-')[0]+'-'+alert.sensor.split('-')[1],
     asset_name:"See asset register", failure_mode:alert.failureMode,
     raised_by:"ARIA — Automated Detection", raised_at:alert.timestamp,
@@ -1457,7 +1472,14 @@ function renderDemoWO(alert) {
 
 function renderWOFromJSON(wo, alert) {
   const sev = wo.priority || alert.severity;
+  const sopBanner = wo.sop_sections_used && wo.sop_sections_used.length
+    ? `<div class="wo-sop-banner">
+        <span class="wo-sop-banner-label">GENERATED USING:</span>
+        ${wo.sop_sections_used.map(s => `▸ ${s}`).join('<br>')}
+       </div>` : '';
+  document.getElementById("wo-download-btn").style.display = "inline-block";
   document.getElementById("wo-modal-body").innerHTML = `
+    ${sopBanner}
     <div class="wo-section">
       <div class="wo-section-title">Work Order Header</div>
       <div class="wo-field"><span class="wo-field-label">WO NUMBER</span><span class="wo-field-val" style="font-family:var(--font-mono);color:var(--cyan)">${wo.wo_number}</span></div>
@@ -1498,6 +1520,45 @@ function renderWOFromJSON(wo, alert) {
 }
 
 function closeModal() { document.getElementById("wo-modal").style.display = "none"; }
+
+function downloadWO() {
+  const body = document.getElementById("wo-modal-body").innerHTML;
+  const woNum = body.match(/WO-\d{5}/)?.[0] || 'WO';
+  const html = `<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><title>${woNum} — North Sea Platform Alpha</title>
+<style>
+  body { font-family: 'Segoe UI', sans-serif; background:#fff; color:#111; margin:0; padding:24px; font-size:12px; }
+  .wo-section { margin-bottom:20px; page-break-inside:avoid; }
+  .wo-section-title { font-family:monospace; font-size:10px; color:#0077aa; letter-spacing:2px; text-transform:uppercase; border-bottom:1px solid #ccc; padding-bottom:5px; margin-bottom:10px; }
+  .wo-field { display:grid; grid-template-columns:140px 1fr; gap:8px; margin-bottom:6px; }
+  .wo-field-label { font-family:monospace; color:#666; font-size:10px; }
+  .wo-field-val { color:#111; }
+  .wo-steps { list-style:none; padding:0; margin:0; }
+  .wo-steps li { padding:6px 0; border-bottom:1px solid #eee; display:flex; gap:10px; }
+  .wo-step-num { font-family:monospace; color:#0077aa; min-width:24px; }
+  .severity-badge { padding:2px 8px; font-family:monospace; font-size:10px; font-weight:bold; }
+  .severity-badge.EMERGENCY,.severity-badge.CRITICAL { background:#ffe0e0; color:#cc0000; }
+  .severity-badge.HIGH   { background:#fff3cd; color:#aa6600; }
+  .severity-badge.MEDIUM { background:#e0f0ff; color:#0066aa; }
+  .severity-badge.LOW    { background:#f0f0f0; color:#555; }
+  .wo-sop-banner { background:#e8f4ff; border:1px solid #0077aa; padding:8px 12px; font-family:monospace; font-size:9px; color:#0055aa; letter-spacing:1px; margin-bottom:16px; line-height:1.8; }
+  .wo-sop-banner-label { color:#666; display:block; margin-bottom:2px; }
+  @media print { body { padding:0; } }
+</style></head>
+<body>
+  <div style="border-bottom:2px solid #0077aa;padding-bottom:10px;margin-bottom:20px;">
+    <div style="font-size:9px;color:#666;font-family:monospace;letter-spacing:2px">NORTH SEA PLATFORM ALPHA — MAINTENANCE WORK ORDER</div>
+    <div style="font-size:20px;font-weight:700;color:#0077aa;margin-top:4px">${woNum}</div>
+  </div>
+  ${body}
+</body></html>`;
+  const blob = new Blob([html], {type:'text/html'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `${woNum}.html`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
 
 // ============================================================
 // PLAYBACK CONTROLS
