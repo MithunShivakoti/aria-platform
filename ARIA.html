@@ -1,0 +1,2047 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ARIA — Autonomous Risk Intelligence Agent | North Sea Platform Alpha</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&family=Exo+2:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #040d14;
+    --bg2: #071520;
+    --bg3: #0a1e2e;
+    --panel: #0d2236;
+    --panel2: #0f2840;
+    --border: #1a3a55;
+    --border2: #1e4060;
+    --cyan: #00d4ff;
+    --cyan2: #00a8cc;
+    --cyan-dim: rgba(0,212,255,0.12);
+    --green: #00ff88;
+    --green2: #00cc6a;
+    --green-dim: rgba(0,255,136,0.1);
+    --amber: #ffaa00;
+    --amber-dim: rgba(255,170,0,0.12);
+    --red: #ff3355;
+    --red2: #cc2244;
+    --red-dim: rgba(255,51,85,0.12);
+    --text: #c8e4f0;
+    --text2: #7aaabb;
+    --text3: #4a7080;
+    --font-mono: 'Share Tech Mono', monospace;
+    --font-ui: 'Rajdhani', sans-serif;
+    --font-body: 'Exo 2', sans-serif;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html, body { height:100%; background:var(--bg); color:var(--text); font-family:var(--font-body); overflow:hidden; }
+
+  /* SCANLINE OVERLAY */
+  body::before {
+    content:''; position:fixed; inset:0; pointer-events:none; z-index:9999;
+    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 4px);
+  }
+
+  /* LAYOUT */
+  .app { display:grid; grid-template-rows:56px 1fr; height:100vh; }
+  .main { display:grid; grid-template-columns:260px 1fr 320px; overflow:hidden; }
+
+  /* HEADER */
+  header {
+    background: linear-gradient(90deg, #071a28 0%, #0a2035 50%, #071a28 100%);
+    border-bottom: 1px solid var(--border2);
+    display:flex; align-items:center; padding:0 20px; gap:20px;
+    position:relative; overflow:hidden;
+  }
+  header::after {
+    content:''; position:absolute; bottom:0; left:0; right:0; height:1px;
+    background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+    animation: scanH 4s linear infinite;
+  }
+  @keyframes scanH { 0%{transform:translateX(-100%)} 100%{transform:translateX(100%)} }
+
+  .logo { display:flex; align-items:center; gap:10px; }
+  .logo-icon { width:32px; height:32px; position:relative; }
+  .logo-icon svg { width:100%; height:100%; }
+  .logo-text { font-family:var(--font-ui); font-size:22px; font-weight:700; letter-spacing:4px; color:var(--cyan); }
+  .logo-sub { font-family:var(--font-mono); font-size:9px; color:var(--text3); letter-spacing:2px; margin-top:-2px; }
+
+  .header-divider { width:1px; height:30px; background:var(--border2); }
+
+  .platform-name { font-family:var(--font-mono); font-size:11px; color:var(--text2); letter-spacing:1px; }
+  .platform-name span { color:var(--cyan); }
+
+  .header-stats { display:flex; gap:24px; margin-left:auto; }
+  .hstat { text-align:center; }
+  .hstat-val { font-family:var(--font-mono); font-size:16px; font-weight:bold; }
+  .hstat-val.green { color:var(--green); }
+  .hstat-val.amber { color:var(--amber); }
+  .hstat-val.red { color:var(--red); animation: pulse 1s ease-in-out infinite; }
+  .hstat-label { font-size:9px; color:var(--text3); letter-spacing:1px; text-transform:uppercase; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+
+  .time-display { font-family:var(--font-mono); font-size:12px; color:var(--cyan); text-align:right; }
+  .time-display .date { font-size:9px; color:var(--text3); }
+
+  /* LEFT PANEL — ASSET TREE */
+  .left-panel {
+    background:var(--bg2); border-right:1px solid var(--border);
+    display:flex; flex-direction:column; overflow:hidden;
+  }
+  .panel-header {
+    padding:12px 16px; border-bottom:1px solid var(--border);
+    font-family:var(--font-ui); font-size:11px; letter-spacing:2px;
+    color:var(--text3); text-transform:uppercase; display:flex; align-items:center; gap:8px;
+  }
+  .panel-header::before { content:''; width:6px; height:6px; background:var(--cyan); border-radius:50%; }
+
+  .asset-list { flex:1; overflow-y:auto; padding:8px 0; }
+  .asset-list::-webkit-scrollbar { width:3px; }
+  .asset-list::-webkit-scrollbar-thumb { background:var(--border2); }
+
+  .area-group { margin-bottom:4px; }
+  .area-header {
+    padding:8px 16px; font-family:var(--font-ui); font-size:12px; font-weight:600;
+    letter-spacing:1px; color:var(--text2); cursor:pointer;
+    display:flex; align-items:center; gap:8px;
+    transition:background 0.2s;
+  }
+  .area-header:hover { background:var(--cyan-dim); }
+  .area-chevron { font-size:9px; color:var(--text3); margin-left:auto; transition:transform 0.25s ease; flex-shrink:0; }
+  .area-chevron.open { transform:rotate(90deg); }
+  .area-assets { overflow:hidden; transition:max-height 0.3s ease; max-height:0; }
+  .area-assets.open { max-height:2000px; }
+  .area-indicator { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+  .area-indicator.green { background:var(--green); box-shadow:0 0 6px var(--green); }
+  .area-indicator.amber { background:var(--amber); box-shadow:0 0 6px var(--amber); }
+  .area-indicator.red { background:var(--red); box-shadow:0 0 6px var(--red); animation:pulse 1s infinite; }
+
+  .asset-item {
+    padding:6px 16px 6px 32px; font-family:var(--font-mono); font-size:10px;
+    color:var(--text3); cursor:pointer; display:flex; align-items:center; gap:8px;
+    transition:all 0.2s; border-left:2px solid transparent;
+  }
+  .asset-item:hover { color:var(--text); background:var(--cyan-dim); }
+  .asset-item.active { color:var(--cyan); border-left-color:var(--cyan); background:var(--cyan-dim); }
+  .asset-item.alert { color:var(--amber); }
+  .asset-item.critical { color:var(--red); }
+  .asset-dot { width:5px; height:5px; border-radius:50%; flex-shrink:0; }
+  .asset-dot.green { background:var(--green); }
+  .asset-dot.amber { background:var(--amber); }
+  .asset-dot.red { background:var(--red); animation:pulse 1s infinite; }
+  .asset-dot.grey { background:var(--text3); }
+
+  /* CENTER — MAIN VIEW */
+  .center-panel { display:flex; flex-direction:column; overflow:hidden; background:var(--bg); }
+
+  /* TIME CONTROLS */
+  .time-controls {
+    padding:10px 20px; background:var(--bg2); border-bottom:1px solid var(--border);
+    display:flex; align-items:center; gap:16px;
+  }
+  .tc-label { font-family:var(--font-mono); font-size:10px; color:var(--text3); letter-spacing:1px; white-space:nowrap; }
+  .time-slider { flex:1; height:3px; -webkit-appearance:none; appearance:none; background:var(--border2); border-radius:2px; outline:none; cursor:pointer; }
+  .time-slider::-webkit-slider-thumb { -webkit-appearance:none; width:14px; height:14px; border-radius:50%; background:var(--cyan); cursor:pointer; box-shadow:0 0 8px var(--cyan); }
+  .tc-time { font-family:var(--font-mono); font-size:11px; color:var(--cyan); min-width:160px; }
+  .btn {
+    padding:5px 14px; border:1px solid var(--border2); background:transparent;
+    color:var(--text2); font-family:var(--font-ui); font-size:11px; letter-spacing:1px;
+    cursor:pointer; transition:all 0.2s; text-transform:uppercase;
+  }
+  .btn:hover { border-color:var(--cyan); color:var(--cyan); background:var(--cyan-dim); }
+  .btn.active { border-color:var(--cyan); color:var(--cyan); background:var(--cyan-dim); }
+  .btn.danger { border-color:var(--red); color:var(--red); }
+  .speed-btns { display:flex; gap:4px; }
+
+  /* SENSOR GRID */
+  .sensor-grid { flex:1; overflow-y:auto; padding:16px 20px; display:grid; grid-template-columns:repeat(auto-fill, minmax(180px, 1fr)); gap:12px; align-content:start; }
+  .sensor-grid::-webkit-scrollbar { width:3px; }
+  .sensor-grid::-webkit-scrollbar-thumb { background:var(--border2); }
+
+  .sensor-card {
+    background:var(--panel); border:1px solid var(--border);
+    padding:12px; position:relative; overflow:hidden;
+    transition:all 0.3s; cursor:pointer;
+  }
+  .sensor-card::before {
+    content:''; position:absolute; top:0; left:0; right:0; height:2px;
+    background:var(--green); transition:background 0.3s;
+  }
+  .sensor-card.amber::before { background:var(--amber); }
+  .sensor-card.red::before { background:var(--red); }
+  .sensor-card.red { border-color:var(--red); background: linear-gradient(135deg, var(--panel), var(--red-dim)); }
+  .sensor-card.amber { border-color:var(--amber); background: linear-gradient(135deg, var(--panel), var(--amber-dim)); }
+  .sensor-card:hover { transform:translateY(-1px); box-shadow:0 4px 20px rgba(0,212,255,0.1); }
+
+  .sc-asset { font-family:var(--font-mono); font-size:9px; color:var(--text3); letter-spacing:1px; margin-bottom:4px; }
+  .sc-name { font-family:var(--font-ui); font-size:11px; color:var(--text2); margin-bottom:8px; line-height:1.3; }
+  .sc-value { font-family:var(--font-mono); font-size:22px; font-weight:bold; color:var(--green); line-height:1; }
+  .sc-value.amber { color:var(--amber); }
+  .sc-value.red { color:var(--red); }
+  .sc-unit { font-family:var(--font-mono); font-size:10px; color:var(--text3); margin-top:2px; }
+  .sc-bar { margin-top:8px; height:3px; background:var(--border); border-radius:2px; overflow:hidden; }
+  .sc-bar-fill { height:100%; background:var(--green); border-radius:2px; transition:width 0.5s ease; }
+  .sc-bar-fill.amber { background:var(--amber); }
+  .sc-bar-fill.red { background:var(--red); }
+  .sc-limits { display:flex; justify-content:space-between; margin-top:3px; font-family:var(--font-mono); font-size:8px; color:var(--text3); }
+
+  /* SELECTED ASSET DETAIL VIEW */
+  .asset-detail { flex:1; overflow-y:auto; padding:16px 20px; }
+  .asset-detail::-webkit-scrollbar { width:3px; }
+
+  .detail-header { margin-bottom:16px; }
+  .detail-tag { font-family:var(--font-mono); font-size:10px; color:var(--text3); letter-spacing:2px; }
+  .detail-name { font-family:var(--font-ui); font-size:24px; font-weight:700; color:var(--cyan); margin:4px 0; }
+  .detail-meta { display:flex; gap:16px; font-family:var(--font-mono); font-size:10px; color:var(--text3); }
+  .detail-meta span { color:var(--text2); }
+
+  /* RIGHT PANEL — ALERTS & AI */
+  .right-panel {
+    background:var(--bg2); border-left:1px solid var(--border);
+    display:flex; flex-direction:column; overflow:hidden;
+  }
+
+  .tabs { display:flex; border-bottom:1px solid var(--border); }
+  .tab {
+    flex:1; padding:10px; text-align:center; font-family:var(--font-ui); font-size:11px;
+    letter-spacing:1px; text-transform:uppercase; cursor:pointer; color:var(--text3);
+    transition:all 0.2s; border-bottom:2px solid transparent;
+  }
+  .tab:hover { color:var(--text2); }
+  .tab.active { color:var(--cyan); border-bottom-color:var(--cyan); }
+
+  .tab-content { flex:1; overflow:hidden; display:flex; flex-direction:column; }
+
+  /* CORRELATION PANEL */
+  .corr-panel-inner { padding:8px; overflow-y:auto; flex:1; }
+  .corr-card { background:var(--panel); border:1px solid var(--border); padding:12px; margin-bottom:8px; position:relative; transition:all 0.3s; }
+  .corr-card.corr-critical { border-color:var(--red); background:linear-gradient(135deg,var(--panel),var(--red-dim)); }
+  .corr-card.corr-warn     { border-color:var(--amber); background:linear-gradient(135deg,var(--panel),var(--amber-dim)); }
+  .corr-card::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; background:var(--green); }
+  .corr-card.corr-critical::before { background:var(--red); }
+  .corr-card.corr-warn::before     { background:var(--amber); }
+  .corr-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:6px; }
+  .corr-count  { font-family:var(--font-mono); font-size:22px; font-weight:bold; line-height:1; }
+  .corr-table  { width:100%; border-collapse:collapse; }
+  .corr-table th { text-align:left; font-family:var(--font-mono); font-size:8px; color:var(--text3); padding:3px 6px; letter-spacing:1px; border-bottom:1px solid var(--border); }
+  .corr-table td { padding:4px 6px; font-size:10px; }
+  .corr-confidence { margin-top:8px; padding:6px 10px; font-family:var(--font-mono); font-size:9px; letter-spacing:2px; text-align:center; font-weight:bold; border-radius:1px; }
+  .conf-high   { background:var(--red-dim);              color:var(--red);   border:1px solid var(--red);    animation: pulse-red 1.5s infinite; }
+  .conf-medium { background:var(--amber-dim);            color:var(--amber); border:1px solid var(--amber); }
+  .conf-low    { background:rgba(255,170,0,0.05);        color:var(--amber); border:1px solid var(--border); }
+  @keyframes pulse-red { 0%,100%{opacity:1} 50%{opacity:0.6} }
+
+  /* CENTER TABS */
+  .center-tabs { display:flex; border-bottom:1px solid var(--border); background:var(--bg2); flex-shrink:0; }
+  .center-tab { padding:8px 16px; font-family:var(--font-ui); font-size:10px; letter-spacing:1px; text-transform:uppercase; cursor:pointer; color:var(--text3); border-bottom:2px solid transparent; transition:all 0.2s; }
+  .center-tab:hover { color:var(--text2); }
+  .center-tab.active { color:var(--cyan); border-bottom-color:var(--cyan); }
+
+  /* HISTORY PANEL */
+  .history-panel { flex:1; overflow-y:auto; padding:12px; display:none; flex-direction:column; gap:10px; }
+  .history-event { background:var(--panel); border:1px solid var(--border); padding:14px; position:relative; }
+  .history-event::before { content:''; position:absolute; top:0; left:0; bottom:0; width:3px; }
+  .history-event.sev-HIGH    { border-color:var(--amber); } .history-event.sev-HIGH::before    { background:var(--amber); }
+  .history-event.sev-CRITICAL{ border-color:var(--red);   } .history-event.sev-CRITICAL::before{ background:var(--red);   }
+  .history-event.sev-MEDIUM  { border-color:var(--cyan);  } .history-event.sev-MEDIUM::before  { background:var(--cyan);  }
+  .history-event.sev-LOW     { border-color:var(--border);} .history-event.sev-LOW::before     { background:var(--text3); }
+  .history-event.sev-PLANNED { border-color:var(--green); } .history-event.sev-PLANNED::before { background:var(--green); }
+  .history-sev { display:inline-block; padding:2px 7px; font-family:var(--font-mono); font-size:8px; letter-spacing:1px; font-weight:bold; margin-bottom:6px; }
+  .history-sev.sev-HIGH     { background:var(--amber-dim); color:var(--amber); }
+  .history-sev.sev-CRITICAL { background:var(--red-dim);   color:var(--red);   }
+  .history-sev.sev-MEDIUM   { background:var(--cyan-dim);  color:var(--cyan);  }
+  .history-sev.sev-LOW      { background:rgba(255,255,255,0.04); color:var(--text3); }
+  .history-row { display:flex; gap:6px; margin-bottom:4px; font-size:10px; line-height:1.5; }
+  .history-label { color:var(--text3); font-family:var(--font-mono); font-size:9px; letter-spacing:1px; min-width:110px; flex-shrink:0; }
+  .history-val   { color:var(--text2); font-family:var(--font-ui); }
+  .history-stats { display:flex; gap:12px; margin-top:8px; padding-top:8px; border-top:1px solid var(--border); }
+  .history-stat  { text-align:center; }
+  .history-stat-val { font-family:var(--font-mono); font-size:16px; font-weight:bold; }
+  .history-stat-lbl { font-family:var(--font-mono); font-size:8px; color:var(--text3); letter-spacing:1px; }
+  .history-pattern-match { margin-top:8px; padding:6px 10px; background:var(--red-dim); border:1px solid var(--red); color:var(--red); font-family:var(--font-mono); font-size:9px; letter-spacing:1px; }
+  .history-empty { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; color:var(--text3); font-family:var(--font-mono); font-size:11px; gap:8px; }
+
+  /* ALERTS */
+  .alerts-list { flex:1; overflow-y:auto; padding:8px; }
+  .alerts-list::-webkit-scrollbar { width:3px; }
+  .alerts-list::-webkit-scrollbar-thumb { background:var(--border2); }
+
+  .alert-card {
+    background:var(--panel); border:1px solid var(--border);
+    padding:12px; margin-bottom:8px; position:relative;
+    border-left:3px solid var(--amber); animation:slideIn 0.3s ease;
+    cursor:pointer; transition:all 0.2s;
+  }
+  .alert-card:hover { background:var(--panel2); }
+  .alert-card.critical { border-left-color:var(--red); }
+  .alert-card.info { border-left-color:var(--cyan); }
+  @keyframes slideIn { from{opacity:0;transform:translateX(20px)} to{opacity:1;transform:translateX(0)} }
+
+  .alert-header { display:flex; align-items:center; gap:8px; margin-bottom:6px; }
+  .alert-sev {
+    font-family:var(--font-mono); font-size:9px; padding:2px 6px;
+    border-radius:2px; font-weight:bold; letter-spacing:1px;
+  }
+  .alert-sev.HIGH { background:var(--amber-dim); color:var(--amber); border:1px solid var(--amber); }
+  .alert-sev.CRITICAL { background:var(--red-dim); color:var(--red); border:1px solid var(--red); }
+  .alert-sev.MEDIUM { background:var(--cyan-dim); color:var(--cyan); border:1px solid var(--cyan); }
+  .alert-sev.LOW { background:rgba(100,100,100,0.2); color:var(--text2); border:1px solid var(--border2); }
+  .alert-tag { font-family:var(--font-mono); font-size:10px; color:var(--cyan); }
+  .alert-time { font-family:var(--font-mono); font-size:9px; color:var(--text3); margin-left:auto; }
+  .alert-title { font-family:var(--font-ui); font-size:12px; font-weight:600; color:var(--text); margin-bottom:4px; }
+  .alert-desc { font-size:10px; color:var(--text2); line-height:1.5; }
+  .alert-sensor { font-family:var(--font-mono); font-size:9px; color:var(--text3); margin-top:6px; }
+  .alert-sensor span { color:var(--amber); }
+  .alert-sensor span.red { color:var(--red); }
+
+  .gen-wo-btn {
+    margin-top:8px; width:100%; padding:6px; background:transparent;
+    border:1px solid var(--cyan); color:var(--cyan); font-family:var(--font-ui);
+    font-size:10px; letter-spacing:1px; cursor:pointer; transition:all 0.2s;
+    text-transform:uppercase;
+  }
+  .gen-wo-btn:hover { background:var(--cyan-dim); }
+  .gen-wo-btn:disabled { opacity:0.4; cursor:not-allowed; }
+
+  /* AI CHAT */
+  .chat-area { flex:1; overflow-y:auto; padding:12px; display:flex; flex-direction:column; gap:8px; }
+  .chat-area::-webkit-scrollbar { width:3px; }
+  .chat-area::-webkit-scrollbar-thumb { background:var(--border2); }
+
+  .chat-msg { max-width:90%; }
+  .chat-msg.user { align-self:flex-end; }
+  .chat-msg.ai { align-self:flex-start; }
+  .chat-bubble {
+    padding:8px 12px; font-size:11px; line-height:1.6;
+    border-radius:2px; font-family:var(--font-body);
+  }
+  .chat-msg.user .chat-bubble { background:var(--cyan-dim); border:1px solid var(--cyan2); color:var(--text); }
+  .chat-msg.ai .chat-bubble { background:var(--panel); border:1px solid var(--border); color:var(--text2); }
+  .chat-label { font-family:var(--font-mono); font-size:8px; color:var(--text3); margin-bottom:3px; letter-spacing:1px; }
+
+  .chat-input-area { padding:10px 12px; border-top:1px solid var(--border); display:flex; gap:8px; }
+  .chat-input {
+    flex:1; background:var(--panel); border:1px solid var(--border2); color:var(--text);
+    padding:8px 10px; font-family:var(--font-body); font-size:11px; outline:none;
+    transition:border 0.2s;
+  }
+  .chat-input:focus { border-color:var(--cyan); }
+  .chat-input::placeholder { color:var(--text3); }
+  .send-btn {
+    padding:8px 14px; background:var(--cyan-dim); border:1px solid var(--cyan);
+    color:var(--cyan); font-family:var(--font-ui); font-size:11px; cursor:pointer;
+    transition:all 0.2s; letter-spacing:1px;
+  }
+  .send-btn:hover { background:var(--cyan); color:var(--bg); }
+  .send-btn:disabled { opacity:0.4; cursor:not-allowed; }
+
+  /* WORK ORDER MODAL */
+  .modal-overlay {
+    position:fixed; inset:0; background:rgba(4,13,20,0.92); z-index:1000;
+    display:flex; align-items:center; justify-content:center; padding:20px;
+    backdrop-filter:blur(4px);
+  }
+  .modal {
+    background:var(--bg2); border:1px solid var(--border2); max-width:700px; width:100%;
+    max-height:90vh; overflow-y:auto; position:relative;
+  }
+  .modal::-webkit-scrollbar { width:4px; }
+  .modal::-webkit-scrollbar-thumb { background:var(--border2); }
+  .modal-header {
+    padding:16px 20px; border-bottom:1px solid var(--border);
+    display:flex; align-items:center; justify-content:space-between;
+    background: linear-gradient(90deg, var(--panel), transparent);
+  }
+  .modal-title { font-family:var(--font-ui); font-size:16px; font-weight:700; color:var(--cyan); letter-spacing:2px; }
+  .modal-close { background:none; border:1px solid var(--border2); color:var(--text2); width:28px; height:28px; cursor:pointer; font-size:16px; transition:all 0.2s; }
+  .modal-close:hover { border-color:var(--red); color:var(--red); }
+  .modal-body { padding:20px; }
+
+  .wo-section { margin-bottom:20px; }
+  .wo-section-title { font-family:var(--font-mono); font-size:10px; color:var(--cyan); letter-spacing:2px; text-transform:uppercase; margin-bottom:10px; border-bottom:1px solid var(--border); padding-bottom:6px; }
+  .wo-field { display:grid; grid-template-columns:140px 1fr; gap:8px; margin-bottom:8px; font-size:11px; }
+  .wo-field-label { font-family:var(--font-mono); color:var(--text3); font-size:10px; }
+  .wo-field-val { color:var(--text); font-family:var(--font-body); }
+  .wo-steps { list-style:none; }
+  .wo-steps li { padding:8px 0; border-bottom:1px solid var(--border); font-size:11px; color:var(--text2); line-height:1.6; display:flex; gap:10px; }
+  .wo-step-num { font-family:var(--font-mono); color:var(--cyan); min-width:24px; }
+  .wo-loading { text-align:center; padding:40px; font-family:var(--font-mono); font-size:12px; color:var(--cyan); }
+  .wo-loading::after { content:'...'; animation:dots 1.5s infinite; }
+  @keyframes dots { 0%{content:'.'} 33%{content:'..'} 66%{content:'...'} }
+
+  .severity-badge { display:inline-block; padding:3px 10px; font-family:var(--font-mono); font-size:11px; font-weight:bold; letter-spacing:1px; }
+  .severity-badge.HIGH { background:var(--amber-dim); color:var(--amber); border:1px solid var(--amber); }
+  .severity-badge.CRITICAL { background:var(--red-dim); color:var(--red); border:1px solid var(--red); }
+  .severity-badge.MEDIUM { background:var(--cyan-dim); color:var(--cyan); border:1px solid var(--cyan); }
+
+  /* TOOLTIP */
+  .empty-state { text-align:center; padding:40px 20px; font-family:var(--font-mono); font-size:11px; color:var(--text3); }
+  .empty-state div { font-size:24px; margin-bottom:12px; }
+
+  /* FLICKER ANIMATION FOR NEW ALERTS */
+  @keyframes flicker { 0%,100%{opacity:1} 50%{opacity:0.7} }
+  .flicker { animation:flicker 0.5s ease 3; }
+
+  /* GRID BACKGROUND */
+  .center-panel { background-image: linear-gradient(var(--border) 1px, transparent 1px), linear-gradient(90deg, var(--border) 1px, transparent 1px); background-size:40px 40px; background-color:var(--bg); }
+
+  /* TYPING INDICATOR */
+  .typing { display:flex; gap:4px; padding:8px; align-items:center; }
+  .typing span { width:5px; height:5px; background:var(--cyan); border-radius:50%; animation:bounce 0.8s infinite; }
+  .typing span:nth-child(2) { animation-delay:0.1s; }
+  .typing span:nth-child(3) { animation-delay:0.2s; }
+  @keyframes bounce { 0%,80%,100%{transform:translateY(0)} 40%{transform:translateY(-6px)} }
+
+  .no-alerts { text-align:center; padding:30px 15px; }
+  .no-alerts .icon { font-size:28px; margin-bottom:8px; opacity:0.4; }
+  .no-alerts p { font-family:var(--font-mono); font-size:10px; color:var(--text3); }
+
+  .api-key-notice {
+    padding:8px 12px; background:rgba(255,170,0,0.08); border:1px solid var(--amber);
+    margin:8px; font-family:var(--font-mono); font-size:9px; color:var(--amber); line-height:1.5;
+  }
+
+  .progress-bar-outer { height:2px; background:var(--border); margin-top:2px; }
+  .progress-bar-inner { height:100%; background:var(--cyan); transition:width 1s linear; }
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- HEADER -->
+<header>
+  <div class="logo">
+    <div class="logo-icon">
+      <svg viewBox="0 0 32 32" fill="none">
+        <circle cx="16" cy="16" r="14" stroke="#00d4ff" stroke-width="1.5" opacity="0.4"/>
+        <circle cx="16" cy="16" r="9" stroke="#00d4ff" stroke-width="1.5" opacity="0.7"/>
+        <circle cx="16" cy="16" r="3" fill="#00d4ff"/>
+        <line x1="16" y1="2" x2="16" y2="7" stroke="#00d4ff" stroke-width="1.5"/>
+        <line x1="16" y1="25" x2="16" y2="30" stroke="#00d4ff" stroke-width="1.5"/>
+        <line x1="2" y1="16" x2="7" y2="16" stroke="#00d4ff" stroke-width="1.5"/>
+        <line x1="25" y1="16" x2="30" y2="16" stroke="#00d4ff" stroke-width="1.5"/>
+      </svg>
+    </div>
+    <div>
+      <div class="logo-text">ARIA</div>
+      <div class="logo-sub">AUTONOMOUS RISK INTELLIGENCE AGENT</div>
+    </div>
+  </div>
+  <div class="header-divider"></div>
+  <div class="platform-name">PLATFORM: <span>NORTH SEA ALPHA</span> &nbsp;|&nbsp; BLOCK: <span>14/29</span></div>
+  <div class="header-stats">
+    <div class="hstat"><div class="hstat-val green" id="hstat-normal">--</div><div class="hstat-label">Normal</div></div>
+    <div class="hstat"><div class="hstat-val amber" id="hstat-warn">--</div><div class="hstat-label">Warning</div></div>
+    <div class="hstat"><div class="hstat-val red" id="hstat-crit">--</div><div class="hstat-label">Critical</div></div>
+    <div class="hstat"><div class="hstat-val" style="color:var(--text2)" id="hstat-total">--</div><div class="hstat-label">Sensors</div></div>
+  </div>
+  <div class="header-divider"></div>
+  <div class="time-display">
+    <div id="sim-clock">--</div>
+    <div class="date">SIMULATION TIME</div>
+  </div>
+</header>
+
+<!-- MAIN -->
+<div class="main">
+
+<!-- LEFT: ASSET TREE -->
+<div class="left-panel">
+  <div class="panel-header">Asset Hierarchy</div>
+  <div class="asset-list" id="asset-tree"></div>
+</div>
+
+<!-- CENTER: SENSOR GRID / DETAIL -->
+<div class="center-panel">
+  <div class="time-controls">
+    <span class="tc-label">TIMELINE</span>
+    <input type="range" class="time-slider" id="time-slider" min="0" max="100" value="0">
+    <span class="tc-time" id="tc-time-label">--</span>
+    <div class="speed-btns">
+      <button class="btn" onclick="setSpeed(1)" id="spd1">1×</button>
+      <button class="btn active" onclick="setSpeed(5)" id="spd5">5×</button>
+      <button class="btn" onclick="setSpeed(20)" id="spd20">20×</button>
+    </div>
+    <button class="btn" id="play-btn" onclick="togglePlay()">▶ PLAY</button>
+    <button class="btn danger" onclick="jumpToFailure()">⚡ JUMP TO FAILURE</button>
+  </div>
+  <div class="center-tabs">
+    <div class="center-tab active" id="ctab-sensors" onclick="switchCenterTab('sensors')">⊙ Sensors</div>
+    <div class="center-tab" id="ctab-history" onclick="switchCenterTab('history')">◎ Asset History</div>
+  </div>
+  <div id="center-content" style="flex:1;overflow:hidden;display:flex;flex-direction:column;">
+    <div class="sensor-grid" id="sensor-grid">
+      <div class="empty-state"><div>⊙</div>Select an asset to view sensors</div>
+    </div>
+    <div class="history-panel" id="history-panel"></div>
+  </div>
+</div>
+
+<!-- RIGHT: ALERTS + AI -->
+<div class="right-panel">
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('alerts')" id="tab-alerts">🔔 Alerts <span id="alert-count" style="color:var(--red)"></span></div>
+    <div class="tab" onclick="switchTab('correlation')" id="tab-correlation">⚡ Correlation</div>
+    <div class="tab" onclick="switchTab('chat')" id="tab-chat">🤖 AI Assistant</div>
+  </div>
+
+  <!-- ALERTS TAB -->
+  <div class="tab-content" id="content-alerts">
+    <div class="alerts-list" id="alerts-list">
+      <div class="no-alerts"><div class="icon">✓</div><p>No active alerts.<br>System nominal.</p></div>
+    </div>
+  </div>
+
+  <!-- CORRELATION TAB -->
+  <div class="tab-content" id="content-correlation" style="display:none">
+    <div class="corr-panel-inner" id="corr-panel"></div>
+  </div>
+
+  <!-- CHAT TAB -->
+  <div class="tab-content" id="content-chat" style="display:none">
+    <div class="api-key-notice" id="api-key-notice"></div>
+    <div class="chat-area" id="chat-area">
+      <div class="chat-msg ai">
+        <div class="chat-label">ARIA</div>
+        <div class="chat-bubble">Hello. I'm ARIA, your Autonomous Risk Intelligence Agent for North Sea Platform Alpha. I have full access to all SOPs, equipment manuals, and maintenance history.<br><br>Ask me anything: equipment status, failure diagnostics, SOP steps, or what to do when an alert fires.</div>
+      </div>
+    </div>
+    <div class="chat-input-area">
+      <input type="text" class="chat-input" id="chat-input" placeholder="Ask ARIA anything..." onkeydown="if(event.key==='Enter')sendChat()">
+      <button class="send-btn" id="send-btn" onclick="sendChat()">ASK</button>
+    </div>
+  </div>
+</div>
+
+</div>
+</div>
+
+<!-- WORK ORDER MODAL -->
+<div class="modal-overlay" id="wo-modal" style="display:none">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">WORK ORDER — AUTO GENERATED</div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body" id="wo-modal-body">
+      <div class="wo-loading">ARIA generating work order</div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// DATA — Embedded sensor metadata & failure scenarios
+// ============================================================
+let ZSCORE_DATA = {};
+let PITCH_DATA = {};
+let RAG_DOCS = {};
+let RAG_SYSTEM_PROMPT = "";
+const SENSOR_META = {
+  // === HP SEPARATION TRAIN ===
+  "V-101-PRESS":   {name:"V-101 Pressure",               type:"PRESSURE",     unit:"bar",    nmin:30,  nmax:70,   al:25.5, ah:80.5, asset:"AREA-HP-SEP:V-101"},
+  "V-101-LEVEL":   {name:"V-101 Level",                  type:"LEVEL",        unit:"%",      nmin:30,  nmax:70,   al:25.5, ah:80.5, asset:"AREA-HP-SEP:V-101"},
+  "V-101-TEMP":    {name:"V-101 Temperature",            type:"TEMPERATURE",  unit:"°C",     nmin:40,  nmax:90,   al:34,   ah:103,  asset:"AREA-HP-SEP:V-101"},
+  "V-101-GAS_FLOW":{name:"V-101 Gas Flow",               type:"FLOW",         unit:"MMscfd", nmin:2,   nmax:20,   al:1.7,  ah:23,   asset:"AREA-HP-SEP:V-101"},
+  "V-101-OIL_FLOW":{name:"V-101 Oil Flow",               type:"FLOW",         unit:"m³/h",   nmin:20,  nmax:200,  al:17,   ah:230,  asset:"AREA-HP-SEP:V-101"},
+  "V-102-PRESS":   {name:"V-102 Pressure",               type:"PRESSURE",     unit:"bar",    nmin:30,  nmax:70,   al:25.5, ah:80.5, asset:"AREA-HP-SEP:V-102"},
+  "V-102-LEVEL":   {name:"V-102 Level",                  type:"LEVEL",        unit:"%",      nmin:30,  nmax:70,   al:25.5, ah:80.5, asset:"AREA-HP-SEP:V-102"},
+  "V-102-TEMP":    {name:"V-102 Temperature",            type:"TEMPERATURE",  unit:"°C",     nmin:40,  nmax:90,   al:34,   ah:103.5,asset:"AREA-HP-SEP:V-102"},
+  "V-102-GAS_FLOW":{name:"V-102 Gas Flow",               type:"FLOW",         unit:"MMscfd", nmin:2,   nmax:20,   al:1.7,  ah:23,   asset:"AREA-HP-SEP:V-102"},
+  "V-102-OIL_FLOW":{name:"V-102 Oil Flow",               type:"FLOW",         unit:"m³/h",   nmin:20,  nmax:200,  al:17,   ah:230,  asset:"AREA-HP-SEP:V-102"},
+  "E-101-TINLET":  {name:"E-101 Inlet Temp",             type:"TEMPERATURE",  unit:"°C",     nmin:50,  nmax:120,  al:42.5, ah:138,  asset:"AREA-HP-SEP:E-101"},
+  "E-101-TOUTLET": {name:"E-101 Outlet Temp",            type:"TEMPERATURE",  unit:"°C",     nmin:30,  nmax:70,   al:25.5, ah:80.5, asset:"AREA-HP-SEP:E-101"},
+  "E-101-PSHELL":  {name:"E-101 Shell Pressure",         type:"PRESSURE",     unit:"bar",    nmin:3,   nmax:15,   al:2.55, ah:17.25,asset:"AREA-HP-SEP:E-101"},
+  "E-101-FLOW":    {name:"E-101 Flow",                   type:"FLOW",         unit:"m³/h",   nmin:30,  nmax:150,  al:25.5, ah:172.5,asset:"AREA-HP-SEP:E-101"},
+  "E-102-TINLET":  {name:"E-102 Inlet Temp",             type:"TEMPERATURE",  unit:"°C",     nmin:50,  nmax:120,  al:42.5, ah:138,  asset:"AREA-HP-SEP:E-102"},
+  "E-102-TOUTLET": {name:"E-102 Outlet Temp",            type:"TEMPERATURE",  unit:"°C",     nmin:30,  nmax:70,   al:25.5, ah:80.5, asset:"AREA-HP-SEP:E-102"},
+  "E-102-PSHELL":  {name:"E-102 Shell Pressure",         type:"PRESSURE",     unit:"bar",    nmin:3,   nmax:15,   al:2.55, ah:17.25,asset:"AREA-HP-SEP:E-102"},
+  "E-102-FLOW":    {name:"E-102 Flow",                   type:"FLOW",         unit:"m³/h",   nmin:30,  nmax:150,  al:25.5, ah:172.5,asset:"AREA-HP-SEP:E-102"},
+  "P-101-VIB":     {name:"Pump P-101 Vibration DE",      type:"VIBRATION",    unit:"mm/s",   nmin:0,   nmax:4.5,  al:4.5,  ah:7.1,  asset:"AREA-HP-SEP:P-101"},
+  "P-101-TEMP":    {name:"Pump P-101 Bearing Temp",      type:"TEMPERATURE",  unit:"°C",     nmin:20,  nmax:70,   al:10,   ah:80,   asset:"AREA-HP-SEP:P-101"},
+  "P-101-FLOW":    {name:"Pump P-101 Flow",              type:"FLOW",         unit:"m³/h",   nmin:50,  nmax:300,  al:42.5, ah:345,  asset:"AREA-HP-SEP:P-101"},
+  "P-101-CURR":    {name:"Pump P-101 Motor Current",     type:"CURRENT",      unit:"A",      nmin:25,  nmax:50,   al:20,   ah:58,   asset:"AREA-HP-SEP:P-101"},
+  "P-101-PRESS":   {name:"Pump P-101 Pressure",          type:"PRESSURE",     unit:"bar",    nmin:3,   nmax:12,   al:2.55, ah:13.8, asset:"AREA-HP-SEP:P-101"},
+  "P-102-FLOW":    {name:"Pump P-102 Flow",              type:"FLOW",         unit:"m³/h",   nmin:50,  nmax:300,  al:42.5, ah:345,  asset:"AREA-HP-SEP:P-102"},
+  "P-102-PRESS":   {name:"Pump P-102 Pressure",          type:"PRESSURE",     unit:"bar",    nmin:3,   nmax:12,   al:2.55, ah:13.8, asset:"AREA-HP-SEP:P-102"},
+  "P-102-VIB":     {name:"Pump P-102 Vibration",         type:"VIBRATION",    unit:"mm/s",   nmin:0,   nmax:3,    al:0,    ah:3.45, asset:"AREA-HP-SEP:P-102"},
+  "P-102-CURR":    {name:"Pump P-102 Current",           type:"CURRENT",      unit:"A",      nmin:15,  nmax:55,   al:12.75,ah:63.25,asset:"AREA-HP-SEP:P-102"},
+  "P-102-TEMP":    {name:"Pump P-102 Temperature",       type:"TEMPERATURE",  unit:"°C",     nmin:30,  nmax:65,   al:25.5, ah:74.75,asset:"AREA-HP-SEP:P-102"},
+  "FT-101-PV":     {name:"HP Sep Gas Flow Meter",        type:"FLOW",         unit:"m³/h",   nmin:50,  nmax:300,  al:42.5, ah:345,  asset:"AREA-HP-SEP:FT-101"},
+  "FT-102-PV":     {name:"HP Sep Oil Flow Meter",        type:"FLOW",         unit:"m³/h",   nmin:50,  nmax:300,  al:42.5, ah:345,  asset:"AREA-HP-SEP:FT-102"},
+  "PT-101-PV":     {name:"HP Sep Pressure Tx A",         type:"PRESSURE",     unit:"bar",    nmin:30,  nmax:70,   al:25.5, ah:80.5, asset:"AREA-HP-SEP:PT-101"},
+  "PT-102-PV":     {name:"HP Sep Pressure Tx B",         type:"PRESSURE",     unit:"bar",    nmin:30,  nmax:70,   al:25.5, ah:80.5, asset:"AREA-HP-SEP:PT-102"},
+  "LT-101-PV":     {name:"HP Sep Level Tx A",            type:"LEVEL",        unit:"%",      nmin:20,  nmax:80,   al:17,   ah:92,   asset:"AREA-HP-SEP:LT-101"},
+  "LT-102-PV":     {name:"HP Sep Level Tx B",            type:"LEVEL",        unit:"%",      nmin:20,  nmax:80,   al:17,   ah:92,   asset:"AREA-HP-SEP:LT-102"},
+  "TT-101-PV":     {name:"HP Sep Temperature Tx A",      type:"TEMPERATURE",  unit:"°C",     nmin:40,  nmax:100,  al:34,   ah:115,  asset:"AREA-HP-SEP:TT-101"},
+  "TT-102-PV":     {name:"HP Sep Temperature Tx B",      type:"TEMPERATURE",  unit:"°C",     nmin:40,  nmax:100,  al:34,   ah:115,  asset:"AREA-HP-SEP:TT-102"},
+  // === LP COMPRESSION TRAIN ===
+  "K-201-SPRESS":  {name:"K-201 Suction Pressure",       type:"PRESSURE",     unit:"bar",    nmin:5,   nmax:25,   al:4.25, ah:28.75,asset:"AREA-LP-COMP:K-201"},
+  "K-201-DPRESS":  {name:"K-201 Discharge Pressure",     type:"PRESSURE",     unit:"bar",    nmin:30,  nmax:80,   al:25.5, ah:92,   asset:"AREA-LP-COMP:K-201"},
+  "K-201-FLOW":    {name:"K-201 Flow",                   type:"FLOW",         unit:"MMscfd", nmin:1,   nmax:8,    al:0.85, ah:9.2,  asset:"AREA-LP-COMP:K-201"},
+  "K-201-VIBDE":   {name:"K-201 Vibration DE",           type:"VIBRATION",    unit:"mm/s",   nmin:0,   nmax:4.5,  al:4.5,  ah:7.1,  asset:"AREA-LP-COMP:K-201"},
+  "K-201-VIBNDE":  {name:"K-201 Vibration NDE",          type:"VIBRATION",    unit:"mm/s",   nmin:0,   nmax:4.5,  al:3.5,  ah:7.1,  asset:"AREA-LP-COMP:K-201"},
+  "K-201-DTEMP":   {name:"K-201 Discharge Temp",         type:"TEMPERATURE",  unit:"°C",     nmin:60,  nmax:115,  al:50,   ah:120,  asset:"AREA-LP-COMP:K-201"},
+  "K-202-SPRESS":  {name:"K-202 Suction Pressure",       type:"PRESSURE",     unit:"bar",    nmin:5,   nmax:25,   al:4.25, ah:28.75,asset:"AREA-LP-COMP:K-202"},
+  "K-202-DPRESS":  {name:"K-202 Discharge Pressure",     type:"PRESSURE",     unit:"bar",    nmin:30,  nmax:80,   al:25.5, ah:92,   asset:"AREA-LP-COMP:K-202"},
+  "K-202-FLOW":    {name:"K-202 Flow",                   type:"FLOW",         unit:"MMscfd", nmin:1,   nmax:8,    al:0.85, ah:9.2,  asset:"AREA-LP-COMP:K-202"},
+  "K-202-VIBDE":   {name:"K-202 Vibration DE",           type:"VIBRATION",    unit:"mm/s",   nmin:0,   nmax:5,    al:0,    ah:5.75, asset:"AREA-LP-COMP:K-202"},
+  "K-202-VIBNDE":  {name:"K-202 Vibration NDE",          type:"VIBRATION",    unit:"mm/s",   nmin:0,   nmax:5,    al:0,    ah:5.75, asset:"AREA-LP-COMP:K-202"},
+  "K-202-DTEMP":   {name:"K-202 Discharge Temp",         type:"TEMPERATURE",  unit:"°C",     nmin:60,  nmax:120,  al:51,   ah:138,  asset:"AREA-LP-COMP:K-202"},
+  "V-201-PRESS":   {name:"V-201 Pressure",               type:"PRESSURE",     unit:"bar",    nmin:5,   nmax:30,   al:4.25, ah:34.5, asset:"AREA-LP-COMP:V-201"},
+  "V-201-LEVEL":   {name:"V-201 Scrubber Level",         type:"LEVEL",        unit:"%",      nmin:10,  nmax:50,   al:5,    ah:60,   asset:"AREA-LP-COMP:V-201"},
+  "V-201-TEMP":    {name:"V-201 Temperature",            type:"TEMPERATURE",  unit:"°C",     nmin:20,  nmax:50,   al:17,   ah:57.5, asset:"AREA-LP-COMP:V-201"},
+  "V-202-PRESS":   {name:"V-202 Pressure",               type:"PRESSURE",     unit:"bar",    nmin:5,   nmax:30,   al:4.25, ah:34.5, asset:"AREA-LP-COMP:V-202"},
+  "V-202-LEVEL":   {name:"V-202 Level",                  type:"LEVEL",        unit:"%",      nmin:10,  nmax:40,   al:8.5,  ah:46,   asset:"AREA-LP-COMP:V-202"},
+  "V-202-TEMP":    {name:"V-202 Temperature",            type:"TEMPERATURE",  unit:"°C",     nmin:20,  nmax:50,   al:17,   ah:57.5, asset:"AREA-LP-COMP:V-202"},
+  "E-201-TINLET":  {name:"E-201 Inlet Temp",             type:"TEMPERATURE",  unit:"°C",     nmin:80,  nmax:140,  al:68,   ah:161,  asset:"AREA-LP-COMP:E-201"},
+  "E-201-TOUTLET": {name:"E-201 Outlet Temp",            type:"TEMPERATURE",  unit:"°C",     nmin:40,  nmax:70,   al:34,   ah:80.5, asset:"AREA-LP-COMP:E-201"},
+  "E-201-PRESS":   {name:"E-201 Pressure",               type:"PRESSURE",     unit:"bar",    nmin:30,  nmax:80,   al:25.5, ah:92,   asset:"AREA-LP-COMP:E-201"},
+  "E-202-TINLET":  {name:"E-202 Inlet Temp",             type:"TEMPERATURE",  unit:"°C",     nmin:80,  nmax:140,  al:68,   ah:161,  asset:"AREA-LP-COMP:E-202"},
+  "E-202-TOUTLET": {name:"E-202 Outlet Temp",            type:"TEMPERATURE",  unit:"°C",     nmin:40,  nmax:70,   al:34,   ah:80.5, asset:"AREA-LP-COMP:E-202"},
+  "E-202-PRESS":   {name:"E-202 Pressure",               type:"PRESSURE",     unit:"bar",    nmin:30,  nmax:80,   al:25.5, ah:92,   asset:"AREA-LP-COMP:E-202"},
+  "PT-201-PV":     {name:"LP Suction Pressure Tx A",     type:"PRESSURE",     unit:"bar",    nmin:30,  nmax:70,   al:25.5, ah:80.5, asset:"AREA-LP-COMP:PT-201"},
+  "PT-202-PV":     {name:"LP Suction Pressure Tx B",     type:"PRESSURE",     unit:"bar",    nmin:30,  nmax:70,   al:25.5, ah:80.5, asset:"AREA-LP-COMP:PT-202"},
+  "PT-203-PV":     {name:"LP Discharge Pressure Tx A",   type:"PRESSURE",     unit:"bar",    nmin:30,  nmax:70,   al:25.5, ah:80.5, asset:"AREA-LP-COMP:PT-203"},
+  "PT-204-PV":     {name:"LP Discharge Pressure Tx B",   type:"PRESSURE",     unit:"bar",    nmin:30,  nmax:70,   al:25.5, ah:80.5, asset:"AREA-LP-COMP:PT-204"},
+  "FT-201-PV":     {name:"LP Compressor Suction Flow",   type:"FLOW",         unit:"m³/h",   nmin:50,  nmax:300,  al:42.5, ah:345,  asset:"AREA-LP-COMP:FT-201"},
+  "VT-201-PV":     {name:"K-201 Vibration Sensor DE",    type:"VIBRATION",    unit:"mm/s",   nmin:0,   nmax:5,    al:0,    ah:5.75, asset:"AREA-LP-COMP:VT-201"},
+  "VT-202-PV":     {name:"K-201 Vibration Sensor NDE",   type:"VIBRATION",    unit:"mm/s",   nmin:0,   nmax:5,    al:0,    ah:5.75, asset:"AREA-LP-COMP:VT-202"},
+  "VT-203-PV":     {name:"K-202 Vibration Sensor DE",    type:"VIBRATION",    unit:"mm/s",   nmin:0,   nmax:5,    al:0,    ah:5.75, asset:"AREA-LP-COMP:VT-203"},
+  "TT-201-PV":     {name:"LP Comp A Discharge Temp",     type:"TEMPERATURE",  unit:"°C",     nmin:40,  nmax:100,  al:34,   ah:115,  asset:"AREA-LP-COMP:TT-201"},
+  "TT-202-PV":     {name:"LP Comp B Discharge Temp",     type:"TEMPERATURE",  unit:"°C",     nmin:40,  nmax:100,  al:34,   ah:115,  asset:"AREA-LP-COMP:TT-202"},
+  "LT-201-PV":     {name:"LP Scrubber A Level Tx",       type:"LEVEL",        unit:"%",      nmin:20,  nmax:80,   al:17,   ah:92,   asset:"AREA-LP-COMP:LT-201"},
+  // === WATER TREATMENT ===
+  "V-301-LEVEL":   {name:"PW Vessel Level",              type:"LEVEL",        unit:"%",      nmin:25,  nmax:75,   al:21.25,ah:86.25,asset:"AREA-WATER:V-301"},
+  "V-301-PRESS":   {name:"PW Vessel Pressure",           type:"PRESSURE",     unit:"bar",    nmin:2,   nmax:8,    al:1.7,  ah:9.2,  asset:"AREA-WATER:V-301"},
+  "V-301-TEMP":    {name:"PW Vessel Temperature",        type:"TEMPERATURE",  unit:"°C",     nmin:30,  nmax:60,   al:25.5, ah:69,   asset:"AREA-WATER:V-301"},
+  "V-302-DPRES":   {name:"Hydrocyclone Diff Pressure",   type:"PRESSURE",     unit:"bar",    nmin:2,   nmax:6,    al:1.7,  ah:6.9,  asset:"AREA-WATER:V-302"},
+  "V-302-FLOW":    {name:"Hydrocyclone Flow",            type:"FLOW",         unit:"m³/h",   nmin:20,  nmax:100,  al:17,   ah:115,  asset:"AREA-WATER:V-302"},
+  "E-301-TINLET":  {name:"E-301 PW Inlet Temp",          type:"TEMPERATURE",  unit:"°C",     nmin:40,  nmax:80,   al:34,   ah:92,   asset:"AREA-WATER:E-301"},
+  "E-301-TOUTLET": {name:"E-301 PW Outlet Temp",         type:"TEMPERATURE",  unit:"°C",     nmin:20,  nmax:45,   al:17,   ah:52,   asset:"AREA-WATER:E-301"},
+  "E-301-PSHELL":  {name:"E-301 Shell Pressure",         type:"PRESSURE",     unit:"bar",    nmin:3,   nmax:15,   al:2.55, ah:17.25,asset:"AREA-WATER:E-301"},
+  "E-301-FLOW":    {name:"E-301 Flow",                   type:"FLOW",         unit:"m³/h",   nmin:30,  nmax:150,  al:25.5, ah:172.5,asset:"AREA-WATER:E-301"},
+  "P-301-FLOW":    {name:"PW Transfer Pump A Flow",      type:"FLOW",         unit:"m³/h",   nmin:50,  nmax:300,  al:42.5, ah:345,  asset:"AREA-WATER:P-301"},
+  "P-301-PRESS":   {name:"PW Transfer Pump A Pressure",  type:"PRESSURE",     unit:"bar",    nmin:3,   nmax:12,   al:2.55, ah:13.8, asset:"AREA-WATER:P-301"},
+  "P-301-VIB":     {name:"PW Transfer Pump A Vibration", type:"VIBRATION",    unit:"mm/s",   nmin:0,   nmax:3,    al:0,    ah:3.45, asset:"AREA-WATER:P-301"},
+  "P-301-CURR":    {name:"PW Transfer Pump A Current",   type:"CURRENT",      unit:"A",      nmin:15,  nmax:55,   al:12.75,ah:63.25,asset:"AREA-WATER:P-301"},
+  "P-301-TEMP":    {name:"PW Transfer Pump A Temp",      type:"TEMPERATURE",  unit:"°C",     nmin:30,  nmax:65,   al:25.5, ah:74.75,asset:"AREA-WATER:P-301"},
+  "P-302-FLOW":    {name:"PW Transfer Pump B Flow",      type:"FLOW",         unit:"m³/h",   nmin:50,  nmax:300,  al:42.5, ah:345,  asset:"AREA-WATER:P-302"},
+  "P-302-PRESS":   {name:"PW Transfer Pump B Pressure",  type:"PRESSURE",     unit:"bar",    nmin:3,   nmax:12,   al:2.55, ah:13.8, asset:"AREA-WATER:P-302"},
+  "P-302-VIB":     {name:"PW Transfer Pump B Vibration", type:"VIBRATION",    unit:"mm/s",   nmin:0,   nmax:3,    al:0,    ah:3.45, asset:"AREA-WATER:P-302"},
+  "P-302-CURR":    {name:"PW Transfer Pump B Current",   type:"CURRENT",      unit:"A",      nmin:15,  nmax:55,   al:12.75,ah:63.25,asset:"AREA-WATER:P-302"},
+  "P-302-TEMP":    {name:"PW Transfer Pump B Temp",      type:"TEMPERATURE",  unit:"°C",     nmin:30,  nmax:65,   al:25.5, ah:74.75,asset:"AREA-WATER:P-302"},
+  "P-303-FLOW":    {name:"CW Pump A Flow",               type:"FLOW",         unit:"m³/h",   nmin:50,  nmax:300,  al:42.5, ah:345,  asset:"AREA-WATER:P-303"},
+  "P-303-PRESS":   {name:"CW Pump A Pressure",           type:"PRESSURE",     unit:"bar",    nmin:3,   nmax:12,   al:2.55, ah:13.8, asset:"AREA-WATER:P-303"},
+  "P-303-VIB":     {name:"CW Pump A Vibration",          type:"VIBRATION",    unit:"mm/s",   nmin:0,   nmax:3,    al:0,    ah:3.45, asset:"AREA-WATER:P-303"},
+  "P-303-CURR":    {name:"CW Pump A Current",            type:"CURRENT",      unit:"A",      nmin:15,  nmax:55,   al:12.75,ah:63.25,asset:"AREA-WATER:P-303"},
+  "P-303-TEMP":    {name:"CW Pump A Temperature",        type:"TEMPERATURE",  unit:"°C",     nmin:30,  nmax:65,   al:25.5, ah:74.75,asset:"AREA-WATER:P-303"},
+  "P-304-FLOW":    {name:"CW Pump B Flow",               type:"FLOW",         unit:"m³/h",   nmin:50,  nmax:300,  al:42.5, ah:345,  asset:"AREA-WATER:P-304"},
+  "P-304-PRESS":   {name:"CW Pump B Pressure",           type:"PRESSURE",     unit:"bar",    nmin:3,   nmax:12,   al:2.55, ah:13.8, asset:"AREA-WATER:P-304"},
+  "P-304-VIB":     {name:"CW Pump B Vibration",          type:"VIBRATION",    unit:"mm/s",   nmin:0,   nmax:3,    al:0,    ah:3.45, asset:"AREA-WATER:P-304"},
+  "P-304-CURR":    {name:"CW Pump B Current",            type:"CURRENT",      unit:"A",      nmin:15,  nmax:55,   al:12.75,ah:63.25,asset:"AREA-WATER:P-304"},
+  "P-304-TEMP":    {name:"CW Pump B Temperature",        type:"TEMPERATURE",  unit:"°C",     nmin:30,  nmax:65,   al:25.5, ah:74.75,asset:"AREA-WATER:P-304"},
+  "FT-301-PV":     {name:"PW Transfer Flow Meter",       type:"FLOW",         unit:"m³/h",   nmin:50,  nmax:300,  al:42.5, ah:345,  asset:"AREA-WATER:FT-301"},
+  "PT-301-PV":     {name:"PW Vessel Pressure Tx",        type:"PRESSURE",     unit:"bar",    nmin:30,  nmax:70,   al:25.5, ah:80.5, asset:"AREA-WATER:PT-301"},
+  "LT-301-PV":     {name:"PW Vessel Level Tx A",         type:"LEVEL",        unit:"%",      nmin:20,  nmax:80,   al:17,   ah:92,   asset:"AREA-WATER:LT-301"},
+  "LT-302-PV":     {name:"PW Vessel Level Tx B",         type:"LEVEL",        unit:"%",      nmin:20,  nmax:80,   al:17,   ah:92,   asset:"AREA-WATER:LT-302"},
+  "TT-301-PV":     {name:"PW Cooler Outlet Temp A",      type:"TEMPERATURE",  unit:"°C",     nmin:40,  nmax:100,  al:34,   ah:115,  asset:"AREA-WATER:TT-301"},
+  "TT-302-PV":     {name:"PW Cooler Outlet Temp B",      type:"TEMPERATURE",  unit:"°C",     nmin:40,  nmax:100,  al:34,   ah:115,  asset:"AREA-WATER:TT-302"},
+  "TT-303-PV":     {name:"PW Cooler Inlet Temp",         type:"TEMPERATURE",  unit:"°C",     nmin:40,  nmax:100,  al:34,   ah:115,  asset:"AREA-WATER:TT-303"},
+  "VT-301-PV":     {name:"P-301 Pump Vibration",         type:"VIBRATION",    unit:"mm/s",   nmin:0,   nmax:5,    al:0,    ah:5.75, asset:"AREA-WATER:VT-301"},
+  "VT-302-PV":     {name:"P-303 CW Pump Vibration",      type:"VIBRATION",    unit:"mm/s",   nmin:0,   nmax:5,    al:0,    ah:5.75, asset:"AREA-WATER:VT-302"},
+  "AT-301-PV":     {name:"PW Oil-in-Water Analyser",     type:"CONCENTRATION",unit:"mg/L",   nmin:5,   nmax:50,   al:4.25, ah:57.5, asset:"AREA-WATER:AT-301"},
+  // === UTILITIES ===
+  "K-401-PRESS":   {name:"IA Compressor A Pressure",     type:"PRESSURE",     unit:"bar",    nmin:6,   nmax:10,   al:5.1,  ah:11.5, asset:"AREA-UTIL:K-401"},
+  "K-401-VIB":     {name:"IA Compressor A Vibration",    type:"VIBRATION",    unit:"mm/s",   nmin:0,   nmax:8,    al:0,    ah:9.2,  asset:"AREA-UTIL:K-401"},
+  "K-401-TEMP":    {name:"IA Compressor A Temperature",  type:"TEMPERATURE",  unit:"°C",     nmin:40,  nmax:90,   al:34,   ah:103.5,asset:"AREA-UTIL:K-401"},
+  "K-402-PRESS":   {name:"IA Compressor B Pressure",     type:"PRESSURE",     unit:"bar",    nmin:6,   nmax:10,   al:5.1,  ah:11.5, asset:"AREA-UTIL:K-402"},
+  "K-402-VIB":     {name:"IA Compressor B Vibration",    type:"VIBRATION",    unit:"mm/s",   nmin:0,   nmax:8,    al:0,    ah:9.2,  asset:"AREA-UTIL:K-402"},
+  "K-402-TEMP":    {name:"IA Compressor B Temperature",  type:"TEMPERATURE",  unit:"°C",     nmin:40,  nmax:90,   al:34,   ah:103.5,asset:"AREA-UTIL:K-402"},
+  "V-401-PRESS":   {name:"IA Receiver Pressure",         type:"PRESSURE",     unit:"bar",    nmin:7,   nmax:9,    al:5.95, ah:10.35,asset:"AREA-UTIL:V-401"},
+  "V-402-PRESS":   {name:"Fuel Gas Scrubber Pressure",   type:"PRESSURE",     unit:"bar",    nmin:5,   nmax:30,   al:4.25, ah:34.5, asset:"AREA-UTIL:V-402"},
+  "V-402-LEVEL":   {name:"Fuel Gas Scrubber Level",      type:"LEVEL",        unit:"%",      nmin:10,  nmax:40,   al:8.5,  ah:46,   asset:"AREA-UTIL:V-402"},
+  "V-402-TEMP":    {name:"Fuel Gas Scrubber Temp",       type:"TEMPERATURE",  unit:"°C",     nmin:20,  nmax:50,   al:17,   ah:57.5, asset:"AREA-UTIL:V-402"},
+  "P-401-FLOW":    {name:"Fire Water Pump A Flow",       type:"FLOW",         unit:"m³/h",   nmin:50,  nmax:300,  al:42.5, ah:345,  asset:"AREA-UTIL:P-401"},
+  "P-401-PRESS":   {name:"Fire Water Pump A Pressure",   type:"PRESSURE",     unit:"bar",    nmin:3,   nmax:12,   al:2.55, ah:13.8, asset:"AREA-UTIL:P-401"},
+  "P-401-VIB":     {name:"Fire Water Pump A Vibration",  type:"VIBRATION",    unit:"mm/s",   nmin:0,   nmax:3,    al:0,    ah:3.45, asset:"AREA-UTIL:P-401"},
+  "P-401-CURR":    {name:"Fire Water Pump A Current",    type:"CURRENT",      unit:"A",      nmin:15,  nmax:55,   al:12.75,ah:63.25,asset:"AREA-UTIL:P-401"},
+  "P-401-TEMP":    {name:"Fire Water Pump A Temp",       type:"TEMPERATURE",  unit:"°C",     nmin:30,  nmax:65,   al:25.5, ah:74.75,asset:"AREA-UTIL:P-401"},
+  "P-402-FLOW":    {name:"Fire Water Pump B Flow",       type:"FLOW",         unit:"m³/h",   nmin:50,  nmax:300,  al:42.5, ah:345,  asset:"AREA-UTIL:P-402"},
+  "P-402-PRESS":   {name:"Fire Water Pump B Pressure",   type:"PRESSURE",     unit:"bar",    nmin:3,   nmax:12,   al:2.55, ah:13.8, asset:"AREA-UTIL:P-402"},
+  "P-402-VIB":     {name:"Fire Water Pump B Vibration",  type:"VIBRATION",    unit:"mm/s",   nmin:0,   nmax:3,    al:0,    ah:3.45, asset:"AREA-UTIL:P-402"},
+  "P-402-CURR":    {name:"Fire Water Pump B Current",    type:"CURRENT",      unit:"A",      nmin:15,  nmax:55,   al:12.75,ah:63.25,asset:"AREA-UTIL:P-402"},
+  "P-402-TEMP":    {name:"Fire Water Pump B Temp",       type:"TEMPERATURE",  unit:"°C",     nmin:30,  nmax:65,   al:25.5, ah:74.75,asset:"AREA-UTIL:P-402"},
+  "G-401-LOAD":    {name:"Main Generator A Load",        type:"LOAD",         unit:"kW",     nmin:500, nmax:2000, al:425,  ah:2300, asset:"AREA-UTIL:G-401"},
+  "G-401-TEMP":    {name:"Main Generator A Temp",        type:"TEMPERATURE",  unit:"°C",     nmin:60,  nmax:110,  al:51,   ah:126.5,asset:"AREA-UTIL:G-401"},
+  "G-401-FREQ":    {name:"Main Generator A Frequency",   type:"FREQUENCY",    unit:"Hz",     nmin:49.5,nmax:50.5, al:42.07,ah:58.07,asset:"AREA-UTIL:G-401"},
+  "G-402-LOAD":    {name:"Main Generator B Load",        type:"LOAD",         unit:"kW",     nmin:500, nmax:2000, al:425,  ah:2300, asset:"AREA-UTIL:G-402"},
+  "G-402-TEMP":    {name:"Main Generator B Temp",        type:"TEMPERATURE",  unit:"°C",     nmin:60,  nmax:110,  al:51,   ah:126.5,asset:"AREA-UTIL:G-402"},
+  "G-402-FREQ":    {name:"Main Generator B Frequency",   type:"FREQUENCY",    unit:"Hz",     nmin:49.5,nmax:50.5, al:42.07,ah:58.07,asset:"AREA-UTIL:G-402"},
+  "G-403-LOAD":    {name:"Emergency Generator Load",     type:"LOAD",         unit:"kW",     nmin:500, nmax:2000, al:425,  ah:2300, asset:"AREA-UTIL:G-403"},
+  "G-403-TEMP":    {name:"Emergency Generator Temp",     type:"TEMPERATURE",  unit:"°C",     nmin:60,  nmax:110,  al:51,   ah:126.5,asset:"AREA-UTIL:G-403"},
+  "G-403-FREQ":    {name:"Emergency Generator Freq",     type:"FREQUENCY",    unit:"Hz",     nmin:49.5,nmax:50.5, al:42.07,ah:58.07,asset:"AREA-UTIL:G-403"},
+  "PT-401-PV":     {name:"IA Header Pressure Tx",        type:"PRESSURE",     unit:"bar",    nmin:30,  nmax:70,   al:25.5, ah:80.5, asset:"AREA-UTIL:PT-401"},
+  "PT-402-PV":     {name:"Fuel Gas Pressure Tx",         type:"PRESSURE",     unit:"bar",    nmin:30,  nmax:70,   al:25.5, ah:80.5, asset:"AREA-UTIL:PT-402"},
+  "PT-145-PV":     {name:"PT-145 Export Pressure",       type:"PRESSURE",     unit:"bar",    nmin:30,  nmax:80,   al:25,   ah:85,   asset:"AREA-UTIL:PT-145"},
+  "PT-146-PV":     {name:"PT-146 Export Pressure B",     type:"PRESSURE",     unit:"bar",    nmin:30,  nmax:70,   al:25.5, ah:80.5, asset:"AREA-UTIL:PT-146"},
+  "TT-401-PV":     {name:"Generator A Exhaust Temp",     type:"TEMPERATURE",  unit:"°C",     nmin:40,  nmax:100,  al:34,   ah:115,  asset:"AREA-UTIL:TT-401"},
+  "TT-402-PV":     {name:"Generator B Exhaust Temp",     type:"TEMPERATURE",  unit:"°C",     nmin:40,  nmax:100,  al:34,   ah:115,  asset:"AREA-UTIL:TT-402"},
+  "F-401-LEVEL":   {name:"Flare KO Drum Level",          type:"LEVEL",        unit:"%",      nmin:0,   nmax:30,   al:0,    ah:34.5, asset:"AREA-UTIL:F-401"},
+  "F-401-PRESS":   {name:"Flare KO Drum Pressure",       type:"PRESSURE",     unit:"bar",    nmin:1,   nmax:5,    al:0.85, ah:5.75, asset:"AREA-UTIL:F-401"},
+  // === METERING & EXPORT ===
+  "V-501-LEVEL":   {name:"Export Tank A Level",          type:"LEVEL",        unit:"%",      nmin:20,  nmax:80,   al:17,   ah:92,   asset:"AREA-EXPORT:V-501"},
+  "V-501-TEMP":    {name:"Export Tank A Temperature",    type:"TEMPERATURE",  unit:"°C",     nmin:30,  nmax:60,   al:25.5, ah:69,   asset:"AREA-EXPORT:V-501"},
+  "V-501-PRESS":   {name:"Export Tank A Pressure",       type:"PRESSURE",     unit:"bar",    nmin:1,   nmax:3,    al:0.85, ah:3.45, asset:"AREA-EXPORT:V-501"},
+  "V-502-LEVEL":   {name:"Export Tank B Level",          type:"LEVEL",        unit:"%",      nmin:20,  nmax:80,   al:17,   ah:92,   asset:"AREA-EXPORT:V-502"},
+  "V-502-TEMP":    {name:"Export Tank B Temperature",    type:"TEMPERATURE",  unit:"°C",     nmin:30,  nmax:60,   al:25.5, ah:69,   asset:"AREA-EXPORT:V-502"},
+  "V-502-PRESS":   {name:"Export Tank B Pressure",       type:"PRESSURE",     unit:"bar",    nmin:1,   nmax:3,    al:0.85, ah:3.45, asset:"AREA-EXPORT:V-502"},
+  "P-501-FLOW":    {name:"Export Pump A Flow",           type:"FLOW",         unit:"m³/h",   nmin:50,  nmax:300,  al:42.5, ah:345,  asset:"AREA-EXPORT:P-501"},
+  "P-501-PRESS":   {name:"Export Pump A Pressure",       type:"PRESSURE",     unit:"bar",    nmin:3,   nmax:12,   al:2.55, ah:13.8, asset:"AREA-EXPORT:P-501"},
+  "P-501-VIB":     {name:"Export Pump A Vibration",      type:"VIBRATION",    unit:"mm/s",   nmin:0,   nmax:3,    al:0,    ah:3.45, asset:"AREA-EXPORT:P-501"},
+  "P-501-CURR":    {name:"Export Pump A Current",        type:"CURRENT",      unit:"A",      nmin:15,  nmax:55,   al:12.75,ah:63.25,asset:"AREA-EXPORT:P-501"},
+  "P-501-TEMP":    {name:"Export Pump A Temperature",    type:"TEMPERATURE",  unit:"°C",     nmin:30,  nmax:65,   al:25.5, ah:74.75,asset:"AREA-EXPORT:P-501"},
+  "P-502-FLOW":    {name:"Export Pump B Flow",           type:"FLOW",         unit:"m³/h",   nmin:50,  nmax:300,  al:42.5, ah:345,  asset:"AREA-EXPORT:P-502"},
+  "P-502-PRESS":   {name:"Export Pump B Pressure",       type:"PRESSURE",     unit:"bar",    nmin:3,   nmax:12,   al:2.55, ah:13.8, asset:"AREA-EXPORT:P-502"},
+  "P-502-VIB":     {name:"Export Pump B Vibration",      type:"VIBRATION",    unit:"mm/s",   nmin:0,   nmax:3,    al:0,    ah:3.45, asset:"AREA-EXPORT:P-502"},
+  "P-502-CURR":    {name:"Export Pump B Current",        type:"CURRENT",      unit:"A",      nmin:15,  nmax:55,   al:12.75,ah:63.25,asset:"AREA-EXPORT:P-502"},
+  "P-502-TEMP":    {name:"Export Pump B Temperature",    type:"TEMPERATURE",  unit:"°C",     nmin:30,  nmax:65,   al:25.5, ah:74.75,asset:"AREA-EXPORT:P-502"},
+  "E-501-TINLET":  {name:"Export Heater Inlet Temp",     type:"TEMPERATURE",  unit:"°C",     nmin:50,  nmax:120,  al:42.5, ah:138,  asset:"AREA-EXPORT:E-501"},
+  "E-501-TOUTLET": {name:"Export Heater Outlet Temp",    type:"TEMPERATURE",  unit:"°C",     nmin:30,  nmax:70,   al:25.5, ah:80.5, asset:"AREA-EXPORT:E-501"},
+  "E-501-PSHELL":  {name:"Export Heater Shell Pressure", type:"PRESSURE",     unit:"bar",    nmin:3,   nmax:15,   al:2.55, ah:17.25,asset:"AREA-EXPORT:E-501"},
+  "E-501-FLOW":    {name:"Export Heater Flow",           type:"FLOW",         unit:"m³/h",   nmin:30,  nmax:150,  al:25.5, ah:172.5,asset:"AREA-EXPORT:E-501"},
+  "FT-501-PV":     {name:"Export Flow Meter A",          type:"FLOW",         unit:"m³/h",   nmin:50,  nmax:300,  al:42.5, ah:345,  asset:"AREA-EXPORT:FT-501"},
+  "FT-502-PV":     {name:"Export Flow Meter B",          type:"FLOW",         unit:"m³/h",   nmin:50,  nmax:300,  al:42.5, ah:345,  asset:"AREA-EXPORT:FT-502"},
+  "PT-501-PV":     {name:"Export Line Pressure Tx A",    type:"PRESSURE",     unit:"bar",    nmin:30,  nmax:70,   al:25.5, ah:80.5, asset:"AREA-EXPORT:PT-501"},
+  "PT-502-PV":     {name:"Export Line Pressure Tx B",    type:"PRESSURE",     unit:"bar",    nmin:30,  nmax:70,   al:25.5, ah:80.5, asset:"AREA-EXPORT:PT-502"},
+  "TT-501-PV":     {name:"Export Crude Temp A",          type:"TEMPERATURE",  unit:"°C",     nmin:40,  nmax:100,  al:34,   ah:115,  asset:"AREA-EXPORT:TT-501"},
+  "TT-502-PV":     {name:"Export Crude Temp B",          type:"TEMPERATURE",  unit:"°C",     nmin:40,  nmax:100,  al:34,   ah:115,  asset:"AREA-EXPORT:TT-502"},
+  "LT-501-PV":     {name:"Export Tank A Level Tx",       type:"LEVEL",        unit:"%",      nmin:20,  nmax:80,   al:17,   ah:92,   asset:"AREA-EXPORT:LT-501"},
+  "LT-502-PV":     {name:"Export Tank B Level Tx",       type:"LEVEL",        unit:"%",      nmin:20,  nmax:80,   al:17,   ah:92,   asset:"AREA-EXPORT:LT-502"},
+};
+
+const AREAS = [
+  { id:"AREA-HP-SEP", label:"HP Separation Train", deck:"Deck A",
+    assets:[
+      {id:"AREA-HP-SEP:V-101",  tag:"V-101",  name:"HP Production Separator",  sensors:["V-101-PRESS","V-101-LEVEL","V-101-TEMP","V-101-GAS_FLOW","V-101-OIL_FLOW"]},
+      {id:"AREA-HP-SEP:V-102",  tag:"V-102",  name:"Test Separator",           sensors:["V-102-PRESS","V-102-LEVEL","V-102-TEMP","V-102-GAS_FLOW","V-102-OIL_FLOW"]},
+      {id:"AREA-HP-SEP:E-101",  tag:"E-101",  name:"Wellstream Heater",        sensors:["E-101-TINLET","E-101-TOUTLET","E-101-PSHELL","E-101-FLOW"]},
+      {id:"AREA-HP-SEP:E-102",  tag:"E-102",  name:"HP Glycol Reboiler",       sensors:["E-102-TINLET","E-102-TOUTLET","E-102-PSHELL","E-102-FLOW"]},
+      {id:"AREA-HP-SEP:P-101",  tag:"P-101",  name:"HP Sep Drain Pump A",      sensors:["P-101-VIB","P-101-TEMP","P-101-FLOW","P-101-CURR","P-101-PRESS"]},
+      {id:"AREA-HP-SEP:P-102",  tag:"P-102",  name:"HP Sep Drain Pump B",      sensors:["P-102-FLOW","P-102-PRESS","P-102-VIB","P-102-CURR","P-102-TEMP"]},
+      {id:"AREA-HP-SEP:FT-101", tag:"FT-101", name:"HP Sep Gas Flow Meter",    sensors:["FT-101-PV"]},
+      {id:"AREA-HP-SEP:FT-102", tag:"FT-102", name:"HP Sep Oil Flow Meter",    sensors:["FT-102-PV"]},
+      {id:"AREA-HP-SEP:PT-101", tag:"PT-101", name:"HP Sep Pressure Tx A",     sensors:["PT-101-PV"]},
+      {id:"AREA-HP-SEP:PT-102", tag:"PT-102", name:"HP Sep Pressure Tx B",     sensors:["PT-102-PV"]},
+      {id:"AREA-HP-SEP:LT-101", tag:"LT-101", name:"HP Sep Level Tx A",        sensors:["LT-101-PV"]},
+      {id:"AREA-HP-SEP:LT-102", tag:"LT-102", name:"HP Sep Level Tx B",        sensors:["LT-102-PV"]},
+      {id:"AREA-HP-SEP:TT-101", tag:"TT-101", name:"HP Sep Temp Tx A",         sensors:["TT-101-PV"]},
+      {id:"AREA-HP-SEP:TT-102", tag:"TT-102", name:"HP Sep Temp Tx B",         sensors:["TT-102-PV"]},
+    ]
+  },
+  { id:"AREA-LP-COMP", label:"LP Compression Train", deck:"Deck B",
+    assets:[
+      {id:"AREA-LP-COMP:K-201", tag:"K-201",  name:"LP Compressor A",          sensors:["K-201-SPRESS","K-201-DPRESS","K-201-FLOW","K-201-VIBDE","K-201-VIBNDE","K-201-DTEMP"]},
+      {id:"AREA-LP-COMP:K-202", tag:"K-202",  name:"LP Compressor B",          sensors:["K-202-SPRESS","K-202-DPRESS","K-202-FLOW","K-202-VIBDE","K-202-VIBNDE","K-202-DTEMP"]},
+      {id:"AREA-LP-COMP:V-201", tag:"V-201",  name:"LP Suction Scrubber A",    sensors:["V-201-PRESS","V-201-LEVEL","V-201-TEMP"]},
+      {id:"AREA-LP-COMP:V-202", tag:"V-202",  name:"LP Suction Scrubber B",    sensors:["V-202-PRESS","V-202-LEVEL","V-202-TEMP"]},
+      {id:"AREA-LP-COMP:E-201", tag:"E-201",  name:"LP Aftercooler A",         sensors:["E-201-TINLET","E-201-TOUTLET","E-201-PRESS"]},
+      {id:"AREA-LP-COMP:E-202", tag:"E-202",  name:"LP Aftercooler B",         sensors:["E-202-TINLET","E-202-TOUTLET","E-202-PRESS"]},
+      {id:"AREA-LP-COMP:PT-201",tag:"PT-201", name:"LP Suction Pressure Tx A", sensors:["PT-201-PV"]},
+      {id:"AREA-LP-COMP:PT-202",tag:"PT-202", name:"LP Suction Pressure Tx B", sensors:["PT-202-PV"]},
+      {id:"AREA-LP-COMP:PT-203",tag:"PT-203", name:"LP Discharge Pressure Tx A",sensors:["PT-203-PV"]},
+      {id:"AREA-LP-COMP:PT-204",tag:"PT-204", name:"LP Discharge Pressure Tx B",sensors:["PT-204-PV"]},
+      {id:"AREA-LP-COMP:FT-201",tag:"FT-201", name:"LP Suction Flow Tx",       sensors:["FT-201-PV"]},
+      {id:"AREA-LP-COMP:VT-201",tag:"VT-201", name:"K-201 Vibration DE",       sensors:["VT-201-PV"]},
+      {id:"AREA-LP-COMP:VT-202",tag:"VT-202", name:"K-201 Vibration NDE",      sensors:["VT-202-PV"]},
+      {id:"AREA-LP-COMP:VT-203",tag:"VT-203", name:"K-202 Vibration DE",       sensors:["VT-203-PV"]},
+      {id:"AREA-LP-COMP:TT-201",tag:"TT-201", name:"LP Comp A Discharge Temp", sensors:["TT-201-PV"]},
+      {id:"AREA-LP-COMP:TT-202",tag:"TT-202", name:"LP Comp B Discharge Temp", sensors:["TT-202-PV"]},
+      {id:"AREA-LP-COMP:LT-201",tag:"LT-201", name:"LP Scrubber A Level Tx",   sensors:["LT-201-PV"]},
+    ]
+  },
+  { id:"AREA-WATER", label:"Water Treatment", deck:"Deck C",
+    assets:[
+      {id:"AREA-WATER:V-301",   tag:"V-301",  name:"Produced Water Vessel",    sensors:["V-301-LEVEL","V-301-PRESS","V-301-TEMP"]},
+      {id:"AREA-WATER:V-302",   tag:"V-302",  name:"Deoiling Hydrocyclone",    sensors:["V-302-DPRES","V-302-FLOW"]},
+      {id:"AREA-WATER:E-301",   tag:"E-301",  name:"Produced Water Cooler",    sensors:["E-301-TINLET","E-301-TOUTLET","E-301-PSHELL","E-301-FLOW"]},
+      {id:"AREA-WATER:P-301",   tag:"P-301",  name:"PW Transfer Pump A",       sensors:["P-301-FLOW","P-301-PRESS","P-301-VIB","P-301-CURR","P-301-TEMP"]},
+      {id:"AREA-WATER:P-302",   tag:"P-302",  name:"PW Transfer Pump B",       sensors:["P-302-FLOW","P-302-PRESS","P-302-VIB","P-302-CURR","P-302-TEMP"]},
+      {id:"AREA-WATER:P-303",   tag:"P-303",  name:"Cooling Water Pump A",     sensors:["P-303-FLOW","P-303-PRESS","P-303-VIB","P-303-CURR","P-303-TEMP"]},
+      {id:"AREA-WATER:P-304",   tag:"P-304",  name:"Cooling Water Pump B",     sensors:["P-304-FLOW","P-304-PRESS","P-304-VIB","P-304-CURR","P-304-TEMP"]},
+      {id:"AREA-WATER:FT-301",  tag:"FT-301", name:"PW Transfer Flow Meter",   sensors:["FT-301-PV"]},
+      {id:"AREA-WATER:PT-301",  tag:"PT-301", name:"PW Vessel Pressure Tx",    sensors:["PT-301-PV"]},
+      {id:"AREA-WATER:LT-301",  tag:"LT-301", name:"PW Vessel Level Tx A",     sensors:["LT-301-PV"]},
+      {id:"AREA-WATER:LT-302",  tag:"LT-302", name:"PW Vessel Level Tx B",     sensors:["LT-302-PV"]},
+      {id:"AREA-WATER:TT-301",  tag:"TT-301", name:"PW Cooler Outlet Temp A",  sensors:["TT-301-PV"]},
+      {id:"AREA-WATER:TT-302",  tag:"TT-302", name:"PW Cooler Outlet Temp B",  sensors:["TT-302-PV"]},
+      {id:"AREA-WATER:TT-303",  tag:"TT-303", name:"PW Cooler Inlet Temp",     sensors:["TT-303-PV"]},
+      {id:"AREA-WATER:VT-301",  tag:"VT-301", name:"P-301 Pump Vibration",     sensors:["VT-301-PV"]},
+      {id:"AREA-WATER:VT-302",  tag:"VT-302", name:"P-303 CW Pump Vibration",  sensors:["VT-302-PV"]},
+      {id:"AREA-WATER:AT-301",  tag:"AT-301", name:"PW Oil-in-Water Analyser", sensors:["AT-301-PV"]},
+    ]
+  },
+  { id:"AREA-UTIL", label:"Utilities", deck:"Deck D",
+    assets:[
+      {id:"AREA-UTIL:K-401",    tag:"K-401",  name:"Instrument Air Comp A",    sensors:["K-401-PRESS","K-401-VIB","K-401-TEMP"]},
+      {id:"AREA-UTIL:K-402",    tag:"K-402",  name:"Instrument Air Comp B",    sensors:["K-402-PRESS","K-402-VIB","K-402-TEMP"]},
+      {id:"AREA-UTIL:V-401",    tag:"V-401",  name:"Instrument Air Receiver",  sensors:["V-401-PRESS"]},
+      {id:"AREA-UTIL:V-402",    tag:"V-402",  name:"Fuel Gas Scrubber",        sensors:["V-402-PRESS","V-402-LEVEL","V-402-TEMP"]},
+      {id:"AREA-UTIL:P-401",    tag:"P-401",  name:"Fire Water Pump A",        sensors:["P-401-FLOW","P-401-PRESS","P-401-VIB","P-401-CURR","P-401-TEMP"]},
+      {id:"AREA-UTIL:P-402",    tag:"P-402",  name:"Fire Water Pump B",        sensors:["P-402-FLOW","P-402-PRESS","P-402-VIB","P-402-CURR","P-402-TEMP"]},
+      {id:"AREA-UTIL:G-401",    tag:"G-401",  name:"Main Generator A",         sensors:["G-401-LOAD","G-401-TEMP","G-401-FREQ"]},
+      {id:"AREA-UTIL:G-402",    tag:"G-402",  name:"Main Generator B",         sensors:["G-402-LOAD","G-402-TEMP","G-402-FREQ"]},
+      {id:"AREA-UTIL:G-403",    tag:"G-403",  name:"Emergency Generator",      sensors:["G-403-LOAD","G-403-TEMP","G-403-FREQ"]},
+      {id:"AREA-UTIL:PT-401",   tag:"PT-401", name:"IA Header Pressure Tx",    sensors:["PT-401-PV"]},
+      {id:"AREA-UTIL:PT-402",   tag:"PT-402", name:"Fuel Gas Pressure Tx",     sensors:["PT-402-PV"]},
+      {id:"AREA-UTIL:PT-145",   tag:"PT-145", name:"Export Header Press Tx A", sensors:["PT-145-PV"]},
+      {id:"AREA-UTIL:PT-146",   tag:"PT-146", name:"Export Header Press Tx B", sensors:["PT-146-PV"]},
+      {id:"AREA-UTIL:TT-401",   tag:"TT-401", name:"Generator A Exhaust Temp", sensors:["TT-401-PV"]},
+      {id:"AREA-UTIL:TT-402",   tag:"TT-402", name:"Generator B Exhaust Temp", sensors:["TT-402-PV"]},
+      {id:"AREA-UTIL:F-401",    tag:"F-401",  name:"Flare KO Drum",            sensors:["F-401-LEVEL","F-401-PRESS"]},
+    ]
+  },
+  { id:"AREA-EXPORT", label:"Metering & Export", deck:"Deck E",
+    assets:[
+      {id:"AREA-EXPORT:V-501",  tag:"V-501",  name:"Export Buffer Tank A",     sensors:["V-501-LEVEL","V-501-TEMP","V-501-PRESS"]},
+      {id:"AREA-EXPORT:V-502",  tag:"V-502",  name:"Export Buffer Tank B",     sensors:["V-502-LEVEL","V-502-TEMP","V-502-PRESS"]},
+      {id:"AREA-EXPORT:P-501",  tag:"P-501",  name:"Export Crude Pump A",      sensors:["P-501-FLOW","P-501-PRESS","P-501-VIB","P-501-CURR","P-501-TEMP"]},
+      {id:"AREA-EXPORT:P-502",  tag:"P-502",  name:"Export Crude Pump B",      sensors:["P-502-FLOW","P-502-PRESS","P-502-VIB","P-502-CURR","P-502-TEMP"]},
+      {id:"AREA-EXPORT:E-501",  tag:"E-501",  name:"Export Crude Heater",      sensors:["E-501-TINLET","E-501-TOUTLET","E-501-PSHELL","E-501-FLOW"]},
+      {id:"AREA-EXPORT:FT-501", tag:"FT-501", name:"Export Flow Meter A",      sensors:["FT-501-PV"]},
+      {id:"AREA-EXPORT:FT-502", tag:"FT-502", name:"Export Flow Meter B",      sensors:["FT-502-PV"]},
+      {id:"AREA-EXPORT:PT-501", tag:"PT-501", name:"Export Line Pressure Tx A",sensors:["PT-501-PV"]},
+      {id:"AREA-EXPORT:PT-502", tag:"PT-502", name:"Export Line Pressure Tx B",sensors:["PT-502-PV"]},
+      {id:"AREA-EXPORT:TT-501", tag:"TT-501", name:"Export Crude Temp A",      sensors:["TT-501-PV"]},
+      {id:"AREA-EXPORT:TT-502", tag:"TT-502", name:"Export Crude Temp B",      sensors:["TT-502-PV"]},
+      {id:"AREA-EXPORT:LT-501", tag:"LT-501", name:"Export Tank A Level Tx",   sensors:["LT-501-PV"]},
+      {id:"AREA-EXPORT:LT-502", tag:"LT-502", name:"Export Tank B Level Tx",   sensors:["LT-502-PV"]},
+    ]
+  },
+];
+
+// ============================================================
+// SCENARIO DATA — 4 failure scenarios with timeseries
+// ============================================================
+// Each scenario: array of {offset_hours, sensor_id, value}
+// Base time: Oct 4, 2025 07:00Z
+// SC-001: P-101 bearing failure Nov 10 = ~870 hours from base
+// We simulate 0-1000 hours total
+
+const BASE_TIME = new Date("2025-10-04T07:00:00Z");
+
+function generateTimeseries() {
+  const data = {}; // keyed by hour offset -> {sensor_id: value}
+  const HOURS = 1008; // 6 weeks
+
+  for(let h = 0; h < HOURS; h++) {
+    data[h] = {};
+    // ---- Normal baselines ----
+    data[h]["V-101-PRESS"]  = 49 + Math.sin(h/24)*2 + (Math.random()-0.5)*0.5;
+    data[h]["V-101-LEVEL"]  = 48 + Math.sin(h/8)*3  + (Math.random()-0.5)*1;
+    data[h]["V-101-TEMP"]   = 64 + Math.sin(h/48)*3 + (Math.random()-0.5)*0.5;
+
+    // P-101 vibration — slowly climbing toward failure at h=870
+    let vib_base = 1.6;
+    if(h > 500) vib_base += (h-500)/200; // gradual increase
+    if(h > 800) vib_base += (h-800)/40;  // rapid increase near failure
+    if(h >= 870) vib_base = 9.5 + Math.random(); // failed
+    data[h]["P-101-VIB"]  = Math.max(0.8, vib_base + (Math.random()-0.5)*0.2);
+
+    let temp_base = 48 + (h > 700 ? (h-700)/80 : 0);
+    if(h >= 870) temp_base = 95 + Math.random()*5;
+    data[h]["P-101-TEMP"] = temp_base + (Math.random()-0.5)*1;
+
+    let flow_base = 148 - (h > 800 ? (h-800)/10 : 0);
+    if(h >= 870) flow_base = 0;
+    data[h]["P-101-FLOW"] = Math.max(0, flow_base + (Math.random()-0.5)*3);
+
+    let curr_base = 34 + (h > 800 ? (h-800)/30 : 0);
+    if(h >= 870) curr_base = 62 + Math.random()*3;
+    data[h]["P-101-CURR"] = curr_base + (Math.random()-0.5)*0.5;
+
+    // K-201 compressor surge — failure at h~504 (Nov 25)
+    // V-201 level starts rising at h~490
+    let scrubber_lvl = 27 + Math.sin(h/12)*3;
+    if(h > 490 && h < 504) scrubber_lvl += (h-490)*3;
+    if(h >= 504) scrubber_lvl = 80 + Math.random()*5;
+    data[h]["V-201-LEVEL"] = Math.min(95, scrubber_lvl + (Math.random()-0.5)*1);
+
+    let k201_vib = 2.4 + Math.sin(h/6)*0.3;
+    if(h > 500) k201_vib += (h-500)/200;
+    if(h >= 504) k201_vib = 8.5 + Math.random()*2;
+    data[h]["K-201-VIBDE"] = Math.max(0.5, k201_vib + (Math.random()-0.5)*0.2);
+    data[h]["K-201-VIBNDE"] = Math.max(0.5, k201_vib - 0.3 + (Math.random()-0.5)*0.2);
+    data[h]["K-201-DTEMP"]  = 95 + (h>490 ? (h-490)/5 : 0) + (Math.random()-0.5)*2;
+
+    // E-301 fouling — gradual outlet temp rise, failure ~h=2136 (Feb 2026) but in our window just show it climbing
+    // Feb 1 = ~2856h from Oct4... too far. Let's compress: show fouling trend from h~200 onward
+    let e301_out = 38 + (h>100 ? (h-100)*0.025 : 0) + (Math.random()-0.5)*0.5;
+    data[h]["E-301-TOUTLET"] = Math.min(65, e301_out);
+    data[h]["E-301-TINLET"]  = 75 + Math.sin(h/24) + (Math.random()-0.5)*1;
+
+    // PT-145 drift — from h~300 (Dec 11 ~1600h too far, compress)
+    let pt145 = 55 + (h>250 ? (h-250)*0.04 : 0) + (Math.random()-0.5)*0.5;
+    data[h]["PT-145-PV"] = pt145;
+
+    // === Generic data for all other sensors not explicitly modelled above ===
+    for (const sid in SENSOR_META) {
+      if (data[h][sid] === undefined) {
+        const m = SENSOR_META[sid];
+        const mid = (m.nmin + m.nmax) / 2;
+        const amp = (m.nmax - m.nmin) * 0.08;
+        const phase = sid.split('').reduce((a, c) => a + c.charCodeAt(0), 0);
+        data[h][sid] = mid + Math.sin(h / 24 + phase * 0.07) * amp + (Math.random() - 0.5) * amp * 0.4;
+      }
+    }
+  }
+  return data;
+}
+
+// ============================================================
+// APP STATE
+// ============================================================
+const TS = generateTimeseries();
+const TOTAL_HOURS = 1008;
+let currentHour = 0;
+let playing = false;
+let playSpeed = 5;
+let playInterval = null;
+let selectedAsset = null;
+let activeAlerts = [];
+let alertLog = [];
+let apiKey = false; // true = key configured server-side, false = demo mode
+let shownAlertHours = new Set();
+
+// ============================================================
+// ALERT DEFINITIONS
+// ============================================================
+const ALERT_DEFS = [
+  {
+    id:"AL-P101-VIB-ZONE-C",
+    sensor:"P-101-VIB",
+    triggerHour: 620,
+    severity:"HIGH",
+    title:"P-101 Vibration — Zone C (Alert Threshold)",
+    desc:"Pump P-101A vibration has entered ISO 10816-3 Zone C (4.5–7.1 mm/s). Bearing failure probable within days. Standby pump should be readied.",
+    failureMode:"Bearing failure — inadequate lubrication / grease nipple blocked",
+    sop:"SOP-MAINT-001",
+    woPrompt: "P-101 pump vibration has reached Zone C (>4.5 mm/s). Generate a corrective maintenance work order referencing SOP-MAINT-001 and MAN-MECH-001. Include: immediate actions, lubrication check steps, bearing inspection procedure, ISO 10816-3 zones reference, and parts to prepare (SKF 6316-2RS1 bearings).",
+  },
+  {
+    id:"AL-P101-FAIL",
+    sensor:"P-101-VIB",
+    triggerHour: 870,
+    severity:"CRITICAL",
+    title:"P-101 BEARING FAILURE — PUMP TRIP",
+    desc:"P-101A pump has tripped. Drive End bearing complete failure. Standby P-102A must be started immediately. Production impact: est. 180 barrels if not recovered within 48h.",
+    failureMode:"Complete DE bearing spalling — metal fatigue on inner race",
+    sop:"SOP-MAINT-001 / SOP-MAINT-002",
+    woPrompt: "P-101 pump has experienced complete bearing failure — vibration >9 mm/s, pump tripped. Generate an EMERGENCY work order referencing SOP-MAINT-001 and MAN-MECH-001 bearing replacement procedure. Include: LOTO steps, bearing housing disassembly, bearing spec SKF 6316-2RS1, grease specification Shell Gadus S2 V220 2, 30-min run-in check, production loss of 180 barrels. Severity: CRITICAL.",
+  },
+  {
+    id:"AL-V201-LEVEL",
+    sensor:"V-201-LEVEL",
+    triggerHour: 492,
+    severity:"HIGH",
+    title:"V-201 Scrubber Level Rising — K-201 Surge Risk",
+    desc:"LP Suction Scrubber V-201 level rising abnormally. Suspected LCV-101 actuator sticking. If level exceeds 75%, liquid carryover to K-201 compressor will cause surge event.",
+    failureMode:"LCV-101 actuator diaphragm failure — valve sticking open",
+    sop:"SOP-OPS-010",
+    woPrompt: "V-201 LP Suction Scrubber level is rising rapidly (>60%) due to suspected LCV-101 actuator failure. This creates imminent compressor surge risk for K-201. Generate a HIGH priority work order: inspect LCV-101 actuator and positioner, check scrubber mist eliminator, reference SOP-OPS-010 K-201 startup after trip. Include actions to prevent liquid carryover.",
+  },
+  {
+    id:"AL-K201-SURGE",
+    sensor:"K-201-VIBDE",
+    triggerHour: 504,
+    severity:"CRITICAL",
+    title:"K-201 COMPRESSOR SURGE EVENT",
+    desc:"K-201 compressor surge detected. Liquid carryover from V-201. Compressor tripped on surge protection. K-202 standby must be started. Production loss: est. 320 barrels.",
+    failureMode:"Liquid slug ingested — reverse flow causing impeller surge",
+    sop:"SOP-OPS-010",
+    woPrompt: "K-201 LP Compressor has tripped on surge protection due to liquid carryover from V-201. This is a CRITICAL event. Generate an emergency work order referencing SOP-OPS-010: overhaul LCV-101 actuator, clean scrubber mist eliminator, recalibrate surge controller setpoints, inspect compressor impeller for liquid erosion damage. Production loss 320 barrels estimated.",
+  },
+  {
+    id:"AL-E301-FOUL",
+    sensor:"E-301-TOUTLET",
+    triggerHour: 350,
+    severity:"MEDIUM",
+    title:"E-301 Outlet Temp Trending High — Fouling Suspected",
+    desc:"E-301 produced water cooler outlet temperature is trending 12°C above design. Calcium carbonate fouling suspected on shell-side tubes. SOP-MAINT-010 chemical clean may be required.",
+    failureMode:"Heat exchanger tube fouling — calcium carbonate scale",
+    sop:"SOP-MAINT-010",
+    woPrompt: "E-301 produced water cooler outlet temperature has been trending high for 30+ days, now 12°C above design. Fouling factor exceeded. Generate a MEDIUM priority work order referencing SOP-MAINT-010: chemical cleaning with 15% HCl, phase 1-5 procedure steps, safety requirements (COSHH-2020-E301-HCL, full face shield, H2S monitor), target approach temperature within 5°C of design.",
+  },
+  {
+    id:"AL-PT145-DRIFT",
+    sensor:"PT-145-PV",
+    triggerHour: 280,
+    severity:"LOW",
+    title:"PT-145 Reading Drift Detected",
+    desc:"PT-145 export header pressure transmitter showing positive drift vs PT-146 redundant. Suspected diaphragm fill fluid leak — H2S stress corrosion on Hastelloy C-276. Transmitter should be flagged as bad actor.",
+    failureMode:"Instrument drift — diaphragm fill fluid loss",
+    sop:"MAN-INST-001",
+    woPrompt: "PT-145 export header pressure transmitter showing positive drift 8-10 bar above PT-146 redundant. Suspected Hastelloy C-276 diaphragm micro-fracture from H2S stress corrosion. Generate a corrective work order referencing MAN-INST-001: inspect diaphragm face under 10x magnification, flag as bad actor, switch to PT-146 as primary, replace with Emerson 3051S HART transmitter with Alloy 400 wetted parts.",
+  },
+];
+
+// ============================================================
+// RENDER ASSET TREE
+// ============================================================
+const areaCollapsed = {};
+
+function toggleArea(areaId) {
+  areaCollapsed[areaId] = !areaCollapsed[areaId];
+  renderAssetTree();
+}
+
+function renderAssetTree() {
+  const tree = document.getElementById("asset-tree");
+  tree.innerHTML = "";
+  AREAS.forEach((area, idx) => {
+    // Default: first area open, rest collapsed
+    if (areaCollapsed[area.id] === undefined) areaCollapsed[area.id] = idx !== 0;
+    const isOpen = !areaCollapsed[area.id];
+    const areaStatus = getAreaStatus(area);
+    const areaDiv = document.createElement("div");
+    areaDiv.className = "area-group";
+
+    // Header
+    const header = document.createElement("div");
+    header.className = "area-header";
+    header.onclick = () => toggleArea(area.id);
+    header.innerHTML = `
+      <div class="area-indicator ${areaStatus}"></div>
+      <div style="flex:1">
+        <div style="font-size:11px">${area.label}</div>
+        <div style="font-size:9px;color:var(--text3);font-family:var(--font-mono)">${area.deck}</div>
+      </div>
+      <div class="area-chevron ${isOpen ? 'open' : ''}">▶</div>`;
+    areaDiv.appendChild(header);
+
+    // Assets container (collapsible)
+    const assetsDiv = document.createElement("div");
+    assetsDiv.className = `area-assets ${isOpen ? 'open' : ''}`;
+    area.assets.forEach(asset => {
+      const assetStatus = getAssetStatus(asset);
+      const item = document.createElement("div");
+      item.className = `asset-item ${assetStatus !== 'green' ? (assetStatus === 'red' ? 'critical' : 'alert') : ''} ${selectedAsset && selectedAsset.id === asset.id ? 'active' : ''}`;
+      item.id = `asset-item-${asset.id.replace(/[^a-z0-9]/gi,'-')}`;
+      item.onclick = (e) => { e.stopPropagation(); selectAsset(asset); };
+      item.innerHTML = `<div class="asset-dot ${assetStatus}"></div><span>${asset.tag}</span><span style="color:var(--text3);font-size:9px;margin-left:auto">${asset.name.split(' ').slice(0,2).join(' ')}</span>`;
+      assetsDiv.appendChild(item);
+    });
+    areaDiv.appendChild(assetsDiv);
+    tree.appendChild(areaDiv);
+  });
+}
+
+function getAssetStatus(asset) {
+  let worst = 'green';
+  asset.sensors.forEach(sid => {
+    const s = getSensorStatus(sid);
+    if(s === 'red') worst = 'red';
+    else if(s === 'amber' && worst !== 'red') worst = 'amber';
+  });
+  return worst;
+}
+
+function getAreaStatus(area) {
+  let worst = 'green';
+  area.assets.forEach(a => {
+    const s = getAssetStatus(a);
+    if(s === 'red') worst = 'red';
+    else if(s === 'amber' && worst !== 'red') worst = 'amber';
+  });
+  return worst;
+}
+
+function getSensorStatus(sid) {
+  const meta = SENSOR_META[sid];
+  if(!meta) return 'grey';
+  const val = getCurrentValue(sid);
+  if(val === null) return 'grey';
+  if(val > meta.ah || val < meta.al) return 'red';
+  const warnHigh = meta.nmax * 0.9;
+  const warnLow = meta.nmin * 1.1;
+  if(val > meta.nmax || val < meta.nmin) return 'amber';
+  return 'green';
+}
+
+function getCurrentValue(sid) {
+  const h = Math.floor(currentHour);
+  return TS[h] && TS[h][sid] !== undefined ? TS[h][sid] : null;
+}
+
+// ============================================================
+// RENDER SENSOR GRID
+// ============================================================
+function selectAsset(asset) {
+  selectedAsset = asset;
+  renderAssetTree();
+  renderSensorGrid();
+}
+
+function selectArea(areaId) {
+  const area = AREAS.find(a => a.id === areaId);
+  if(area && area.assets.length > 0) selectAsset(area.assets[0]);
+}
+
+// ============================================================
+// ASSET HISTORY — key failure events per asset (from failure_events.csv)
+// ============================================================
+const ASSET_HISTORY = {
+  "AREA-HP-SEP:P-101": [
+    {
+      event_id:"FE-0002", wo:"WO-01001", date:"2025-11-10", severity:"HIGH",
+      failure_mode:"Bearing failure",
+      root_cause:"Grease nipple blocked by debris — re-lubrication interval exceeded by 3 weeks",
+      mechanism:"Metal fatigue and spalling on inner race of Drive End bearing (SKF 6316-2RS1)",
+      immediate_action:"P-101A isolated and locked out; standby pump P-102A started immediately",
+      corrective_action:"Replace DE and NDE bearings; flush and refill with Shell Gadus S2 V220 2 grease; re-establish 2-weekly lubrication schedule",
+      parts:"SKF 6316-2RS1 bearing ×2; bearing housing seal ×1",
+      production_loss:180, downtime:48
+    }
+  ],
+  "AREA-LP-COMP:K-201": [
+    {
+      event_id:"FE-0003", wo:"WO-01002", date:"2025-11-25", severity:"CRITICAL",
+      failure_mode:"Compressor surge",
+      root_cause:"LCV-101 actuator diaphragm failed — valve stuck 70% open, causing V-201 high level and liquid carryover",
+      mechanism:"Liquid slug ingested into compressor impeller stages causing reverse flow and pressure oscillation",
+      immediate_action:"K-201 tripped on surge protection; PCV-201 (anti-surge) opened; K-202 started from standby",
+      corrective_action:"Overhaul LCV-101 actuator and positioner; clean scrubber mist eliminator; recalibrate surge controller setpoints",
+      parts:"LCV-101 actuator diaphragm; positioner feedback arm; scrubber mist eliminator pad",
+      production_loss:320, downtime:22
+    }
+  ],
+  "AREA-WATER:E-301": [
+    {
+      event_id:"FE-0004", wo:"WO-01003", date:"2026-02-01", severity:"MEDIUM",
+      failure_mode:"Heat exchanger fouling — gradual",
+      root_cause:"Calcium carbonate scale on tube bundle — scale inhibitor injection pump under-dosing by ~30% due to plugged check valve",
+      mechanism:"Crystalline scale deposit on shell-side tubes reducing heat transfer coefficient by ~40%; first 3 baffles blocked >60%",
+      immediate_action:"Process routed through E-301 bypass; unit isolated for chemical clean",
+      corrective_action:"Chemical descaling 15% HCl + Rodine 213; hydroblast tube bundle; scale inhibitor dosing increased 25%; dP indicator installed",
+      parts:"Tube bundle gaskets ×4; inlet nozzle isolation valve packing",
+      production_loss:0, downtime:24
+    }
+  ],
+  "AREA-UTIL:PT-145": [
+    {
+      event_id:"FE-0005", wo:"WO-01004", date:"2025-12-11", severity:"LOW",
+      failure_mode:"Instrument drift — positive",
+      root_cause:"Hastelloy C-276 diaphragm micro-fracture from H2S stress corrosion — fill fluid (silicone oil) leaked into impulse line",
+      mechanism:"Diaphragm deflects as if higher pressure applied; reading drifted 8–12 bar above redundant PT-146",
+      immediate_action:"PT-145 flagged as bad actor; PT-146 promoted to primary; alarm limits adjusted",
+      corrective_action:"Replace with Emerson 3051S HART transmitter; upgrade to Alloy 400 wetted parts; review all transmitters from same diaphragm batch",
+      parts:"Emerson 3051S transmitter; impulse tubing; isolation valve",
+      production_loss:0, downtime:4
+    }
+  ],
+  "AREA-EXPORT:P-501": [
+    {
+      event_id:"FE-0008", wo:"WO-01007", date:"2026-03-15", severity:"CRITICAL",
+      failure_mode:"Process leak — export pipeline flange",
+      root_cause:"Spiral wound gasket blowout at NPA-EXP-FLG-047 — over-torqued during AT2023 (bolts at 125% spec) + H2S pitting on flange face (0.4mm loss)",
+      mechanism:"Gasket blowout under operating pressure; hydrocarbon vapour release detected by fixed gas detector GD-501 at 20% LEL",
+      immediate_action:"ESD activated; export header depressurised; area evacuated; gas cloud safe after 45 minutes; hot work suspended",
+      corrective_action:"Replace with ASME B16.20 Inconel 825 ring gasket; dress flange faces; re-torque with calibrated wrench; add anti-seize to bolting procedure",
+      parts:"Spiral wound gasket ×1; flange bolting set ×1; GD-501 sensor cartridge",
+      production_loss:2100, downtime:6.5
+    }
+  ]
+};
+
+function getAssetHistory(assetId) {
+  return ASSET_HISTORY[assetId] || [];
+}
+
+function getAssetHistoryContext(assetId, tag) {
+  const events = getAssetHistory(assetId);
+  if (events.length === 0) return "";
+  return `\n\nASSET MEMORY — ${tag} has ${events.length} prior failure event(s) on record:\n` +
+    events.map(e =>
+      `[${e.event_id}] ${e.date} | ${e.failure_mode} | Root cause: ${e.root_cause} | Mechanism: ${e.mechanism} | Production loss: ${e.production_loss} bbl | Downtime: ${e.downtime}h | Actions taken: ${e.corrective_action}`
+    ).join('\n');
+}
+
+function switchCenterTab(tab) {
+  document.querySelectorAll('.center-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('ctab-' + tab).classList.add('active');
+  if (tab === 'sensors') {
+    document.getElementById('sensor-grid').style.display = '';
+    document.getElementById('history-panel').style.display = 'none';
+  } else {
+    document.getElementById('sensor-grid').style.display = 'none';
+    document.getElementById('history-panel').style.display = 'flex';
+    renderHistory();
+  }
+}
+
+function renderHistory() {
+  const panel = document.getElementById("history-panel");
+  if (!panel) return;
+  panel.innerHTML = "";
+
+  if (!selectedAsset) {
+    panel.innerHTML = `<div class="history-empty"><div>◎</div><div>Select an asset to view history</div></div>`;
+    return;
+  }
+
+  const events = getAssetHistory(selectedAsset.id);
+
+  if (events.length === 0) {
+    panel.innerHTML = `<div class="history-empty"><div>✓</div><div style="color:var(--green)">No failure events on record for ${selectedAsset.tag}</div></div>`;
+    return;
+  }
+
+  // Check for active alerts on this asset — used for pattern match warning
+  const activeAssetAlerts = alertLog.filter(a => {
+    const meta = SENSOR_META[a.sensor];
+    return meta && meta.asset === selectedAsset.id;
+  });
+
+  events.forEach(e => {
+    const sevColor = e.severity === 'CRITICAL' ? 'var(--red)' : e.severity === 'HIGH' ? 'var(--amber)' : e.severity === 'MEDIUM' ? 'var(--cyan)' : 'var(--text3)';
+    const bblColor = e.production_loss > 0 ? 'var(--red)' : 'var(--green)';
+
+    const patternMatch = activeAssetAlerts.length > 0 &&
+      (e.failure_mode.toLowerCase().includes('bearing') || e.failure_mode.toLowerCase().includes('vibration') ||
+       activeAssetAlerts.some(a => a.title.toLowerCase().includes(selectedAsset.tag.toLowerCase())));
+
+    const card = document.createElement('div');
+    card.className = `history-event sev-${e.severity}`;
+    card.innerHTML = `
+      <span class="history-sev sev-${e.severity}">${e.severity}</span>
+      <span style="font-family:var(--font-mono);font-size:9px;color:var(--text3);margin-left:8px">${e.event_id} · ${e.wo} · ${e.date}</span>
+      <div style="font-family:var(--font-ui);font-size:13px;font-weight:600;color:var(--text);margin:6px 0 8px">${e.failure_mode}</div>
+
+      <div class="history-row"><span class="history-label">ROOT CAUSE</span><span class="history-val">${e.root_cause}</span></div>
+      <div class="history-row"><span class="history-label">MECHANISM</span><span class="history-val">${e.mechanism}</span></div>
+      <div class="history-row"><span class="history-label">IMM. ACTION</span><span class="history-val">${e.immediate_action}</span></div>
+      <div class="history-row"><span class="history-label">CORRECTIVE</span><span class="history-val">${e.corrective_action}</span></div>
+      <div class="history-row"><span class="history-label">PARTS USED</span><span class="history-val" style="color:var(--text3)">${e.parts}</span></div>
+
+      <div class="history-stats">
+        <div class="history-stat">
+          <div class="history-stat-val" style="color:${bblColor}">${e.production_loss}</div>
+          <div class="history-stat-lbl">BBL LOST</div>
+        </div>
+        <div class="history-stat">
+          <div class="history-stat-val" style="color:var(--amber)">${e.downtime}h</div>
+          <div class="history-stat-lbl">DOWNTIME</div>
+        </div>
+        <div class="history-stat" style="flex:1;text-align:right">
+          <div style="font-family:var(--font-mono);font-size:9px;color:var(--text3)">REF SOP</div>
+          <div style="font-family:var(--font-mono);font-size:10px;color:var(--cyan)">SOP-MAINT-001 / MAN-MECH-001</div>
+        </div>
+      </div>
+
+      ${patternMatch ? `<div class="history-pattern-match">⚠ PATTERN MATCH — Current alert shows same failure signature as ${e.event_id}. Prior root cause: blocked grease nipple.</div>` : ''}
+    `;
+    panel.appendChild(card);
+  });
+}
+
+// ============================================================
+// CORRELATION GROUPS — sensors that should move together
+// ============================================================
+const CORRELATION_GROUPS = [
+  {
+    asset:"AREA-HP-SEP:P-101", tag:"P-101", name:"HP Sep Drain Pump A",
+    sensors:[
+      {id:"P-101-VIB",  label:"Vibration DE",   unit:"mm/s"},
+      {id:"P-101-TEMP", label:"Bearing Temp",    unit:"°C"},
+      {id:"P-101-CURR", label:"Motor Current",   unit:"A"},
+      {id:"P-101-FLOW", label:"Flow",            unit:"m³/h"},
+    ]
+  },
+  {
+    asset:"AREA-LP-COMP:K-201", tag:"K-201", name:"LP Compressor A",
+    sensors:[
+      {id:"K-201-VIBDE",  label:"Vibration DE",   unit:"mm/s"},
+      {id:"K-201-VIBNDE", label:"Vibration NDE",  unit:"mm/s"},
+      {id:"K-201-DTEMP",  label:"Discharge Temp", unit:"°C"},
+      {id:"V-201-LEVEL",  label:"Scrubber Level", unit:"%"},
+    ]
+  },
+  {
+    asset:"AREA-WATER:E-301", tag:"E-301", name:"Produced Water Cooler",
+    sensors:[
+      {id:"E-301-TOUTLET", label:"Outlet Temp", unit:"°C"},
+      {id:"E-301-TINLET",  label:"Inlet Temp",  unit:"°C"},
+    ]
+  },
+  {
+    asset:"AREA-UTIL:PT-145", tag:"PT-145", name:"Export Header Pressure Tx",
+    sensors:[
+      {id:"PT-145-PV", label:"Pressure", unit:"bar"},
+    ]
+  }
+];
+
+function getCurrentZScore(sid) {
+  const data = ZSCORE_DATA[sid];
+  if (!data || data.length === 0) return null;
+  const t0 = new Date(data[0].timestamp).getTime();
+  const targetMs = BASE_TIME.getTime() + currentHour * 3600000;
+  const idx = Math.max(0, Math.min(data.length - 1, Math.round((targetMs - t0) / 900000)));
+  return data[idx] ? +data[idx].z.toFixed(2) : null;
+}
+
+function getSensorTrend(sid) {
+  const h = Math.floor(currentHour);
+  const curr = TS[h]    && TS[h][sid]    !== undefined ? TS[h][sid]    : null;
+  const prev = TS[h-24] && TS[h-24][sid] !== undefined ? TS[h-24][sid] : null;
+  if (curr === null || prev === null) return '→';
+  const pct = Math.abs(prev) > 0.001 ? (curr - prev) / Math.abs(prev) : 0;
+  if (pct >  0.02) return '↑';
+  if (pct < -0.02) return '↓';
+  return '→';
+}
+
+function renderCorrelation() {
+  const panel = document.getElementById("corr-panel");
+  if (!panel) return;
+  panel.innerHTML = "";
+
+  CORRELATION_GROUPS.forEach(group => {
+    const rows = group.sensors.map(s => {
+      const val    = getCurrentValue(s.id);
+      const status = getSensorStatus(s.id);
+      const z      = getCurrentZScore(s.id);
+      const trend  = getSensorTrend(s.id);
+      return { ...s, val, status, z, trend };
+    });
+
+    const anomalous = rows.filter(s => s.status === 'red' || s.status === 'amber');
+    const n = anomalous.length;
+    const total = rows.length;
+
+    let confHTML = '';
+    if (n >= 3) {
+      confHTML = `<div class="corr-confidence conf-high">⚠ HIGH CONFIDENCE FAILURE PREDICTED — ${n} SENSORS CORRELATED</div>`;
+    } else if (n === 2) {
+      confHTML = `<div class="corr-confidence conf-medium">△ MEDIUM CONFIDENCE — 2 SENSORS ANOMALOUS</div>`;
+    } else if (n === 1) {
+      confHTML = `<div class="corr-confidence conf-low">◉ ELEVATED RISK — SINGLE SENSOR ANOMALY</div>`;
+    }
+
+    const trendSummary = n > 0
+      ? anomalous.map(s => `${s.label} ${s.trend}`).join(' + ')
+      : 'All sensors nominal';
+
+    const countColor = n >= 3 ? 'var(--red)' : n >= 1 ? 'var(--amber)' : 'var(--green)';
+
+    const tableRows = rows.map(s => {
+      const valColor = s.status === 'red' ? 'var(--red)' : s.status === 'amber' ? 'var(--amber)' : 'var(--green)';
+      const zAbs = s.z !== null ? Math.abs(s.z) : 0;
+      const zColor = zAbs > 2.5 ? 'var(--red)' : zAbs > 1.5 ? 'var(--amber)' : 'var(--text2)';
+      const trendColor = s.trend === '↑' ? 'var(--red)' : s.trend === '↓' ? 'var(--amber)' : 'var(--text3)';
+      const dot = s.status === 'red' ? '●' : s.status === 'amber' ? '●' : '●';
+      const dotColor = s.status === 'red' ? 'var(--red)' : s.status === 'amber' ? 'var(--amber)' : 'var(--green)';
+      return `<tr>
+        <td style="color:var(--text2);font-family:var(--font-ui)">${s.label}</td>
+        <td style="color:${valColor};font-family:var(--font-mono)">${s.val !== null ? s.val.toFixed(2) : '--'} <span style="color:var(--text3);font-size:9px">${s.unit}</span></td>
+        <td style="color:${zColor};font-family:var(--font-mono)">${s.z !== null ? 'Z=' + s.z : '--'}</td>
+        <td style="color:${trendColor};font-family:var(--font-mono);font-size:14px;text-align:center">${s.trend}</td>
+        <td style="color:${dotColor};text-align:center">${dot}</td>
+      </tr>`;
+    }).join('');
+
+    const card = document.createElement('div');
+    card.className = `corr-card ${n >= 3 ? 'corr-critical' : n >= 1 ? 'corr-warn' : ''}`;
+    card.innerHTML = `
+      <div class="corr-header">
+        <div>
+          <div style="font-family:var(--font-mono);font-size:9px;color:var(--text3);letter-spacing:2px;margin-bottom:3px">${group.tag} — ${group.name}</div>
+          <div style="font-size:11px;color:${n > 0 ? countColor : 'var(--text2)'}">
+            ${n > 0 ? `${n} sensor${n>1?'s':''} trending together: ${trendSummary}` : '✓ All sensors nominal'}
+          </div>
+        </div>
+        <div class="corr-count" style="color:${countColor}">${n}<span style="font-size:11px;color:var(--text3)">/${total}</span></div>
+      </div>
+      <table class="corr-table">
+        <thead><tr>
+          <th>SENSOR</th><th>VALUE</th><th>Z-SCORE</th><th>TREND</th><th>STATE</th>
+        </tr></thead>
+        <tbody>${tableRows}</tbody>
+      </table>
+      ${confHTML}
+    `;
+    panel.appendChild(card);
+  });
+}
+
+function renderSparkline(card, sid) {
+  const data  = ZSCORE_DATA[sid];
+  const pitch = PITCH_DATA[sid];
+  if (!data || data.length === 0) return;
+
+  const W = 400, H = 96;
+  const PAD = { l: 26, r: 8, t: 22, b: 24 };
+  const plotW = W - PAD.l - PAD.r;
+  const plotH = H - PAD.t - PAD.b;
+
+  // Downsample to ~300 points for performance
+  const step = Math.max(1, Math.floor(data.length / 300));
+  const pts = data.filter((_, i) => i % step === 0);
+
+  const t0 = new Date(pts[0].timestamp).getTime();
+  const t1 = new Date(pts[pts.length - 1].timestamp).getTime();
+  const zVals = pts.map(p => p.z);
+  const zMin = Math.min(-0.5, ...zVals);
+  const zMax = Math.max(4,    ...zVals);
+
+  const tx = ms  => PAD.l + ((ms  - t0) / (t1 - t0)) * plotW;
+  const tz = z   => PAD.t + plotH - ((z  - zMin) / (zMax - zMin)) * plotH;
+
+  // Polyline
+  const polyPts = pts
+    .map(p => `${tx(new Date(p.timestamp).getTime()).toFixed(1)},${tz(p.z).toFixed(1)}`)
+    .join(' ');
+
+  const y25 = tz(2.5).toFixed(1);
+
+  // Marker lines & gap label
+  let markerSVG = '';
+  if (pitch) {
+    const tW = new Date(pitch.first_warning).getTime();
+    const tF = new Date(pitch.failure_time).getTime();
+    const xW = Math.max(PAD.l, Math.min(W - PAD.r, tx(tW))).toFixed(1);
+    const xF = Math.max(PAD.l, Math.min(W - PAD.r, tx(tF))).toFixed(1);
+    const xMid = ((parseFloat(xW) + parseFloat(xF)) / 2).toFixed(1);
+    const days = pitch.days_early.toFixed(1);
+    const yBot = H - PAD.b;
+
+    markerSVG = `
+      <line x1="${xW}" y1="${PAD.t}" x2="${xW}" y2="${yBot}" stroke="#00ff88" stroke-width="1.5" stroke-dasharray="3,2"/>
+      <text x="${xW}" y="${PAD.t - 4}" fill="#00ff88" font-family="'Share Tech Mono',monospace" font-size="5.5" text-anchor="middle">PREDICTIVE ALERT</text>
+      <line x1="${xF}" y1="${PAD.t}" x2="${xF}" y2="${yBot}" stroke="#ff3355" stroke-width="1.5"/>
+      <text x="${xF}" y="${PAD.t - 4}" fill="#ff3355" font-family="'Share Tech Mono',monospace" font-size="5.5" text-anchor="middle">THRESHOLD ALARM</text>
+      <line x1="${xW}" y1="${yBot + 7}" x2="${xF}" y2="${yBot + 7}" stroke="#ffaa00" stroke-width="1"/>
+      <line x1="${xW}" y1="${yBot + 4}" x2="${xW}" y2="${yBot + 10}" stroke="#ffaa00" stroke-width="1"/>
+      <line x1="${xF}" y1="${yBot + 4}" x2="${xF}" y2="${yBot + 10}" stroke="#ffaa00" stroke-width="1"/>
+      <text x="${xMid}" y="${yBot + 19}" fill="#ffaa00" font-family="'Share Tech Mono',monospace" font-size="6.5" text-anchor="middle" font-weight="bold">${days}d LEAD TIME</text>`;
+  }
+
+  const svg = `<svg viewBox="0 0 ${W} ${H}" width="100%"
+    style="display:block;margin-top:8px;background:rgba(0,0,0,0.35);border:1px solid var(--border);border-radius:2px;">
+    <line x1="${PAD.l}" y1="${tz(0).toFixed(1)}" x2="${W - PAD.r}" y2="${tz(0).toFixed(1)}"
+      stroke="var(--border2)" stroke-width="0.5"/>
+    <line x1="${PAD.l}" y1="${y25}" x2="${W - PAD.r}" y2="${y25}"
+      stroke="#ff3355" stroke-width="1" stroke-dasharray="5,3" opacity="0.8"/>
+    <text x="${PAD.l + 2}" y="${parseFloat(y25) - 2}"
+      fill="#ff3355" font-family="'Share Tech Mono',monospace" font-size="5.5" opacity="0.8">Z=2.5</text>
+    <polyline points="${polyPts}" fill="none" stroke="var(--cyan)" stroke-width="1" opacity="0.9"/>
+    ${markerSVG}
+    <text x="${PAD.l - 2}" y="${PAD.t + 2}"
+      fill="var(--text3)" font-family="'Share Tech Mono',monospace" font-size="5.5" text-anchor="end">${zMax.toFixed(0)}</text>
+    <text x="${PAD.l - 2}" y="${H - PAD.b}"
+      fill="var(--text3)" font-family="'Share Tech Mono',monospace" font-size="5.5" text-anchor="end">${zMin.toFixed(0)}</text>
+    <text x="${W / 2}" y="${H - PAD.b + 2}"
+      fill="var(--text3)" font-family="'Share Tech Mono',monospace" font-size="5" text-anchor="middle" opacity="0.5">Z-SCORE TREND</text>
+  </svg>`;
+
+  const wrap = document.createElement('div');
+  wrap.innerHTML = svg;
+  card.appendChild(wrap);
+}
+
+function renderSensorGrid() {
+  if(!selectedAsset) return;
+  const grid = document.getElementById("sensor-grid");
+  grid.innerHTML = "";
+
+  // Asset header
+  const header = document.createElement("div");
+  header.style.cssText = "grid-column:1/-1; padding:0 0 12px 0; border-bottom:1px solid var(--border); margin-bottom:4px;";
+  header.innerHTML = `
+    <div style="font-family:var(--font-mono);font-size:10px;color:var(--text3);letter-spacing:2px">${selectedAsset.id}</div>
+    <div style="font-family:var(--font-ui);font-size:20px;font-weight:700;color:var(--cyan);margin:2px 0">${selectedAsset.name}</div>
+    <div style="font-family:var(--font-mono);font-size:10px;color:var(--text2)">Tag: <span style="color:var(--cyan)">${selectedAsset.tag}</span> &nbsp;|&nbsp; Sensors: <span style="color:var(--cyan)">${selectedAsset.sensors.length}</span></div>
+  `;
+  grid.appendChild(header);
+
+  selectedAsset.sensors.forEach(sid => {
+    const meta = SENSOR_META[sid];
+    if(!meta) return;
+    const val = getCurrentValue(sid);
+    const status = getSensorStatus(sid);
+    const pct = val !== null ? Math.max(0, Math.min(100, ((val - meta.nmin)/(meta.nmax - meta.nmin))*100)) : 50;
+
+    const card = document.createElement("div");
+    card.className = `sensor-card ${status}`;
+    card.id = `sc-${sid.replace(/[^a-z0-9]/gi,'-')}`;
+    card.innerHTML = `
+      <div class="sc-asset">${meta.type}</div>
+      <div class="sc-name">${meta.name}</div>
+      <div class="sc-value ${status}">${val !== null ? val.toFixed(2) : '--'}</div>
+      <div class="sc-unit">${meta.unit}</div>
+      <div class="sc-bar"><div class="sc-bar-fill ${status}" style="width:${pct}%"></div></div>
+      <div class="sc-limits"><span>${meta.nmin}</span><span style="color:var(--text2);font-size:9px">${status==='red'?'⚠ ALARM':status==='amber'?'△ WARN':'✓ NORMAL'}</span><span>${meta.nmax}</span></div>
+    `;
+    grid.appendChild(card);
+    renderSparkline(card, sid);
+  });
+}
+
+// ============================================================
+// TIME SIMULATION
+// ============================================================
+function getTimeAtHour(h) {
+  const d = new Date(BASE_TIME.getTime() + h*3600000);
+  return d.toISOString().replace('T',' ').replace('Z',' UTC').slice(0,23);
+}
+
+function updateDisplay() {
+  // Clock
+  document.getElementById("sim-clock").textContent = getTimeAtHour(currentHour);
+  document.getElementById("tc-time-label").textContent = getTimeAtHour(currentHour);
+  document.getElementById("time-slider").value = (currentHour/TOTAL_HOURS)*100;
+
+  // Update sensor cards
+  if(selectedAsset) {
+    selectedAsset.sensors.forEach(sid => {
+      const card = document.getElementById(`sc-${sid.replace(/[^a-z0-9]/gi,'-')}`);
+      if(!card) return;
+      const meta = SENSOR_META[sid];
+      const val = getCurrentValue(sid);
+      const status = getSensorStatus(sid);
+      const pct = val !== null ? Math.max(0, Math.min(100, ((val - meta.nmin)/(meta.nmax - meta.nmin))*100)) : 50;
+
+      card.className = `sensor-card ${status}`;
+      card.querySelector('.sc-value').textContent = val !== null ? val.toFixed(2) : '--';
+      card.querySelector('.sc-value').className = `sc-value ${status}`;
+      card.querySelector('.sc-bar-fill').style.width = pct+'%';
+      card.querySelector('.sc-bar-fill').className = `sc-bar-fill ${status}`;
+      const lim = card.querySelector('.sc-limits');
+      const spans = lim.querySelectorAll('span');
+      spans[1].textContent = status==='red'?'⚠ ALARM':status==='amber'?'△ WARN':'✓ NORMAL';
+      spans[1].style.color = status==='red'?'var(--red)':status==='amber'?'var(--amber)':'var(--green)';
+    });
+  }
+
+  // Header stats
+  let normal=0, warn=0, crit=0, total=0;
+  Object.keys(SENSOR_META).forEach(sid => {
+    const s = getSensorStatus(sid);
+    total++;
+    if(s==='red') crit++;
+    else if(s==='amber') warn++;
+    else normal++;
+  });
+  document.getElementById("hstat-normal").textContent = normal;
+  document.getElementById("hstat-warn").textContent = warn;
+  document.getElementById("hstat-crit").textContent = crit;
+  document.getElementById("hstat-total").textContent = total;
+
+  // Asset tree refresh
+  renderAssetTree();
+
+  // Check alerts
+  checkAlerts();
+  renderCorrelation();
+}
+
+function checkAlerts() {
+  ALERT_DEFS.forEach(def => {
+    if(currentHour >= def.triggerHour && !shownAlertHours.has(def.id)) {
+      shownAlertHours.add(def.id);
+      fireAlert(def);
+    }
+  });
+}
+
+function fireAlert(def) {
+  const val = getCurrentValue(def.sensor);
+  const meta = SENSOR_META[def.sensor];
+  const alert = {
+    ...def,
+    timestamp: getTimeAtHour(currentHour),
+    sensorVal: val ? val.toFixed(2) : '--',
+    sensorUnit: meta ? meta.unit : '',
+  };
+  alertLog.unshift(alert);
+  renderAlerts();
+  // Switch to alerts tab
+  switchTab('alerts');
+  // Update count
+  updateAlertCount();
+}
+
+function renderAlerts() {
+  const list = document.getElementById("alerts-list");
+  if(alertLog.length === 0) {
+    list.innerHTML = `<div class="no-alerts"><div class="icon">✓</div><p>No active alerts.<br>System nominal.</p></div>`;
+    return;
+  }
+  list.innerHTML = "";
+  alertLog.forEach((alert, i) => {
+    const div = document.createElement("div");
+    div.className = `alert-card ${alert.severity === 'CRITICAL' ? 'critical' : ''} ${i===0 ? 'flicker' : ''}`;
+    div.innerHTML = `
+      <div class="alert-header">
+        <span class="alert-sev ${alert.severity}">${alert.severity}</span>
+        <span class="alert-tag">${SENSOR_META[alert.sensor]?.asset?.split(':')[1] || alert.sensor}</span>
+        <span class="alert-time">${alert.timestamp.slice(5,16)}</span>
+      </div>
+      <div class="alert-title">${alert.title}</div>
+      <div class="alert-desc">${alert.desc}</div>
+      <div class="alert-sensor">Sensor: <span class="${alert.severity==='CRITICAL'?'red':''}">${alert.sensor} = ${alert.sensorVal} ${alert.sensorUnit}</span> &nbsp;|&nbsp; SOP: ${alert.sop}</div>
+      <button class="gen-wo-btn" onclick="generateWO(${i})">⚙ GENERATE WORK ORDER</button>
+    `;
+    list.appendChild(div);
+  });
+}
+
+function updateAlertCount() {
+  const el = document.getElementById("alert-count");
+  if(alertLog.length > 0) {
+    el.textContent = ` (${alertLog.length})`;
+  } else {
+    el.textContent = '';
+  }
+}
+
+// ============================================================
+// WORK ORDER GENERATION
+// ============================================================
+async function generateWO(alertIdx) {
+  const alert = alertLog[alertIdx];
+  document.getElementById("wo-modal").style.display = "flex";
+  document.getElementById("wo-modal-body").innerHTML = `<div class="wo-loading">ARIA generating work order</div>`;
+
+  if(!apiKey) {
+    // Render a demo WO
+    renderDemoWO(alert);
+    return;
+  }
+
+  try {
+    const resp = await fetch("/api/chat", {
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({
+        model:"gpt-4o",
+        max_tokens:1000,
+        messages:[
+          {role:"system", content:`You are ARIA, an industrial AI agent for North Sea Platform Alpha, an offshore oil and gas platform. Generate a structured maintenance work order in JSON format based on the alert and context provided. Return ONLY valid JSON, no markdown, no preamble.
+${(()=>{
+  const ids = (alert.sop||"").split(/[\/,]/).map(s=>s.trim()).filter(Boolean);
+  const docs = ids.map(id => RAG_DOCS[id] ? `[${id}] ${RAG_DOCS[id].title}\n${RAG_DOCS[id].content}` : "").filter(Boolean);
+  return docs.length ? "\n\nRELEVANT PROCEDURE DOCUMENTS:\n\n" + docs.join("\n\n---\n\n") : "";
+})()}
+
+JSON schema:
+{
+  "wo_number": "WO-XXXXX",
+  "title": "...",
+  "priority": "EMERGENCY|HIGH|MEDIUM|LOW",
+  "asset_tag": "...",
+  "asset_name": "...",
+  "failure_mode": "...",
+  "raised_by": "ARIA — Automated Detection",
+  "raised_at": "...",
+  "permit_required": "...",
+  "ppe_required": ["..."],
+  "immediate_actions": ["step 1", "step 2", ...],
+  "procedure_steps": [{"step": 1, "action": "..."}, ...],
+  "parts_required": ["..."],
+  "safety_notes": "...",
+  "estimated_hours": 0,
+  "sop_reference": "..."
+}`},
+          {role:"user", content: alert.woPrompt + `\n\nTimestamp: ${alert.timestamp}\nSensor reading: ${alert.sensorVal} ${alert.sensorUnit}`}
+        ]
+      })
+    });
+    const data = await resp.json();
+    if (!resp.ok) throw new Error(`API error ${resp.status}: ${data.error?.message || JSON.stringify(data)}`);
+    const text = data.choices[0].message.content;
+    const parsed = JSON.parse(text.replace(/```json|```/g,'').trim());
+    renderWOFromJSON(parsed, alert);
+  } catch(e) {
+    console.error("WO generation error:", e);
+    renderDemoWO(alert);
+  }
+}
+
+function renderDemoWO(alert) {
+  // Hardcoded demo WO for P-101 failure
+  const demos = {
+    "AL-P101-VIB-ZONE-C": {
+      wo_number:"WO-01005", title:"P-101A Pump Bearing Inspection & Lubrication — Zone C Vibration Alert",
+      priority:"HIGH", asset_tag:"P-101", asset_name:"HP Sep Drain Pump A",
+      failure_mode:"Bearing fatigue — insufficient lubrication, possible grease nipple blockage",
+      raised_by:"ARIA — Automated Detection", raised_at: alert.timestamp,
+      permit_required:"Cold Work Permit", ppe_required:["Safety glasses","Gloves","Hearing protection (>85dB)","Hot surface warning"],
+      immediate_actions:["Switch to standby pump P-102A if vibration exceeds 7.1 mm/s","Notify Maintenance Supervisor immediately","Do NOT grease while vibration >4.5 mm/s until inspection complete"],
+      procedure_steps:[
+        {step:1,action:"Obtain Cold Work Permit from Permit Authority"},
+        {step:2,action:"Clean grease nipple on Drive End bearing housing with clean rag"},
+        {step:3,action:"Check for blockage — if grease nipple does not accept grease freely, raise defect immediately"},
+        {step:4,action:"Apply exactly 3 shots (15g) Shell Gadus S2 V220 2 to DE bearing housing"},
+        {step:5,action:"Apply exactly 2 shots (10g) Shell Gadus S2 V220 2 to NDE bearing housing"},
+        {step:6,action:"Take vibration readings DE and NDE in 3 planes (H, V, A) per SOP-MAINT-001"},
+        {step:7,action:"If vibration remains >4.5 mm/s after lubrication, plan bearing replacement per SOP-MAINT-002"},
+        {step:8,action:"Record all readings in CMMS MNT-CHK-P101"},
+      ],
+      parts_required:["Shell Gadus S2 V220 2 grease (standby: SKF 6316-2RS1 bearing x2)"],
+      safety_notes:"Pump casing may reach 80°C. Hearing protection mandatory. Do NOT over-grease.",
+      estimated_hours:2, sop_reference:"SOP-MAINT-001 Rev 6, MAN-MECH-001 Issue 3"
+    },
+    "AL-P101-FAIL": {
+      wo_number:"WO-01006", title:"EMERGENCY: P-101A Complete Bearing Failure — Replacement Required",
+      priority:"EMERGENCY", asset_tag:"P-101", asset_name:"HP Sep Drain Pump A",
+      failure_mode:"Complete Drive End bearing spalling — metal fatigue on inner race",
+      raised_by:"ARIA — Automated Detection", raised_at: alert.timestamp,
+      permit_required:"Cold Work Permit + LOTO Certificate",
+      ppe_required:["Safety glasses","Cut-resistant gloves","Hearing protection","Steel-toed boots"],
+      immediate_actions:["ISOLATE P-101A immediately","START standby pump P-102A","NOTIFY Production Supervisor and Maintenance Supervisor","Confirm production routing via P-102A"],
+      procedure_steps:[
+        {step:1,action:"De-energise and LOTO motor at MCC per site LOTO procedure"},
+        {step:2,action:"Remove coupling guard and disconnect coupling halves"},
+        {step:3,action:"Remove bearing housing end cover bolts (8 × M12)"},
+        {step:4,action:"Draw bearing housing off shaft using approved bearing puller — do NOT use heat"},
+        {step:5,action:"Inspect shaft for scoring or damage; measure runout with dial gauge"},
+        {step:6,action:"Press new SKF 6316-2RS1 bearing onto shaft using bearing fitting sleeve — do NOT strike inner race"},
+        {step:7,action:"Pack bearing housing with 50% of cavity volume with Shell Gadus S2 V220 2 grease"},
+        {step:8,action:"Re-assemble in reverse order; torque bearing housing bolts to spec"},
+        {step:9,action:"Perform 30-minute run-in vibration check — should be Zone A (<2.3 mm/s)"},
+        {step:10,action:"Re-check and re-grease after first 8 hours of operation"},
+      ],
+      parts_required:["SKF 6316-2RS1 bearing (DE) x1","SKF 6312-2RS1 bearing (NDE) x1","Bearing housing seal x1","Shell Gadus S2 V220 2 grease"],
+      safety_notes:"CRITICAL: Full LOTO required. Pump casing >80°C — allow to cool before work. Production loss tracking: 180 bbl estimated.",
+      estimated_hours:12, sop_reference:"SOP-MAINT-001 Rev 6, MAN-MECH-001 Issue 3, SOP-MAINT-002"
+    }
+  };
+  const wo = demos[alert.id] || {
+    wo_number:"WO-DEMO", title:alert.title, priority:alert.severity,
+    asset_tag:alert.sensor.split('-')[0]+'-'+alert.sensor.split('-')[1],
+    asset_name:"See asset register", failure_mode:alert.failureMode,
+    raised_by:"ARIA — Automated Detection", raised_at:alert.timestamp,
+    permit_required:"Cold Work Permit",
+    ppe_required:["Safety glasses","Gloves","PPE per site policy"],
+    immediate_actions:["Notify Maintenance Supervisor","Review current readings","Initiate investigation per "+alert.sop],
+    procedure_steps:[{step:1,action:"Follow "+alert.sop+" for detailed procedure"}],
+    parts_required:["See relevant equipment manual"],
+    safety_notes:"Follow all site safety procedures and PTW system.",
+    estimated_hours:4, sop_reference:alert.sop
+  };
+  renderWOFromJSON(wo, alert);
+}
+
+function renderWOFromJSON(wo, alert) {
+  const sev = wo.priority || alert.severity;
+  document.getElementById("wo-modal-body").innerHTML = `
+    <div class="wo-section">
+      <div class="wo-section-title">Work Order Header</div>
+      <div class="wo-field"><span class="wo-field-label">WO NUMBER</span><span class="wo-field-val" style="font-family:var(--font-mono);color:var(--cyan)">${wo.wo_number}</span></div>
+      <div class="wo-field"><span class="wo-field-label">PRIORITY</span><span class="wo-field-val"><span class="severity-badge ${sev}">${sev}</span></span></div>
+      <div class="wo-field"><span class="wo-field-label">TITLE</span><span class="wo-field-val">${wo.title}</span></div>
+      <div class="wo-field"><span class="wo-field-label">ASSET</span><span class="wo-field-val" style="color:var(--cyan)">${wo.asset_tag} — ${wo.asset_name}</span></div>
+      <div class="wo-field"><span class="wo-field-label">FAILURE MODE</span><span class="wo-field-val">${wo.failure_mode}</span></div>
+      <div class="wo-field"><span class="wo-field-label">RAISED BY</span><span class="wo-field-val">${wo.raised_by}</span></div>
+      <div class="wo-field"><span class="wo-field-label">TIMESTAMP</span><span class="wo-field-val" style="font-family:var(--font-mono)">${wo.raised_at}</span></div>
+      <div class="wo-field"><span class="wo-field-label">SOP REF</span><span class="wo-field-val" style="color:var(--amber)">${wo.sop_reference}</span></div>
+    </div>
+    <div class="wo-section">
+      <div class="wo-section-title">Safety Requirements</div>
+      <div class="wo-field"><span class="wo-field-label">PERMIT</span><span class="wo-field-val">${wo.permit_required}</span></div>
+      <div class="wo-field"><span class="wo-field-label">PPE</span><span class="wo-field-val">${(wo.ppe_required||[]).join(', ')}</span></div>
+      <div class="wo-field"><span class="wo-field-label">SAFETY NOTES</span><span class="wo-field-val" style="color:var(--amber)">${wo.safety_notes}</span></div>
+    </div>
+    <div class="wo-section">
+      <div class="wo-section-title">Immediate Actions</div>
+      <ul class="wo-steps">${(wo.immediate_actions||[]).map((a,i)=>`<li><span class="wo-step-num">!${i+1}</span><span>${a}</span></li>`).join('')}</ul>
+    </div>
+    <div class="wo-section">
+      <div class="wo-section-title">Procedure Steps</div>
+      <ul class="wo-steps">${(wo.procedure_steps||[]).map(s=>`<li><span class="wo-step-num">${s.step}.</span><span>${s.action}</span></li>`).join('')}</ul>
+    </div>
+    <div class="wo-section">
+      <div class="wo-section-title">Parts & Materials</div>
+      <ul class="wo-steps">${(wo.parts_required||[]).map((p,i)=>`<li><span class="wo-step-num">◆</span><span>${p}</span></li>`).join('')}</ul>
+    </div>
+    <div class="wo-section">
+      <div class="wo-section-title">Estimated Duration</div>
+      <div class="wo-field"><span class="wo-field-label">LABOR HOURS</span><span class="wo-field-val" style="font-family:var(--font-mono);font-size:18px;color:var(--cyan)">${wo.estimated_hours}h</span></div>
+    </div>
+    <div style="margin-top:20px;padding:12px;background:rgba(0,212,255,0.05);border:1px solid var(--border);font-family:var(--font-mono);font-size:9px;color:var(--text3)">
+      AUTO-GENERATED BY ARIA v1.0 &nbsp;|&nbsp; ${new Date().toISOString().slice(0,19)} UTC &nbsp;|&nbsp; NOT A SUBSTITUTE FOR QUALIFIED ENGINEER REVIEW
+    </div>
+  `;
+}
+
+function closeModal() { document.getElementById("wo-modal").style.display = "none"; }
+
+// ============================================================
+// PLAYBACK CONTROLS
+// ============================================================
+function togglePlay() {
+  playing = !playing;
+  const btn = document.getElementById("play-btn");
+  if(playing) {
+    btn.textContent = "⏸ PAUSE";
+    btn.classList.add("active");
+    startPlayback();
+  } else {
+    btn.textContent = "▶ PLAY";
+    btn.classList.remove("active");
+    stopPlayback();
+  }
+}
+
+function startPlayback() {
+  stopPlayback();
+  const msPerStep = 200; // update every 200ms
+  playInterval = setInterval(() => {
+    currentHour = Math.min(TOTAL_HOURS-1, currentHour + playSpeed * (200/3600));
+    if(currentHour >= TOTAL_HOURS-1) { togglePlay(); return; }
+    updateDisplay();
+  }, 200);
+}
+
+function stopPlayback() {
+  if(playInterval) { clearInterval(playInterval); playInterval = null; }
+}
+
+function setSpeed(s) {
+  playSpeed = s;
+  ['spd1','spd5','spd20'].forEach(id => document.getElementById(id).classList.remove('active'));
+  document.getElementById('spd'+s).classList.add('active');
+  if(playing) startPlayback();
+}
+
+function jumpToFailure() {
+  stopPlayback();
+  playing = false;
+  document.getElementById("play-btn").textContent = "▶ PLAY";
+  document.getElementById("play-btn").classList.remove("active");
+  // Jump to just before P-101 failure
+  currentHour = 860;
+  selectAsset(AREAS[0].assets[1]); // P-101
+  updateDisplay();
+  // Then auto-play to failure
+  setTimeout(() => { playing=true; document.getElementById("play-btn").textContent="⏸ PAUSE"; document.getElementById("play-btn").classList.add("active"); setSpeed(20); startPlayback(); }, 300);
+}
+
+// Slider
+document.getElementById("time-slider").addEventListener("input", function() {
+  currentHour = (this.value/100) * TOTAL_HOURS;
+  updateDisplay();
+});
+
+// ============================================================
+// TABS
+// ============================================================
+function switchTab(tab) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(t => t.style.display='none');
+  document.getElementById('tab-'+tab).classList.add('active');
+  document.getElementById('content-'+tab).style.display='flex';
+}
+
+// ============================================================
+// AI CHAT
+// ============================================================
+const SYSTEM_PROMPT = `You are ARIA (Autonomous Risk Intelligence Agent), an expert AI system for North Sea Platform Alpha, an offshore oil and gas platform. You have deep knowledge of:
+
+EQUIPMENT: HP Production Separator V-101, LP Compressors K-201/K-202, Pumps P-101/P-102, Heat Exchangers E-101/E-301, Pressure Transmitter PT-145, LP Suction Scrubbers V-201/V-202
+
+DOCUMENTS AVAILABLE:
+- SOP-OPS-001: V-101 Startup Procedure
+- SOP-OPS-002: V-101 Shutdown Procedure  
+- SOP-OPS-010: K-201 Compressor Restart After Trip
+- SOP-MAINT-001: Pump P-101 Lubrication and Vibration Inspection (14-day interval, Shell Gadus S2 V220 2 grease, ISO 10816-3 vibration zones)
+- SOP-MAINT-010: E-301 Chemical Cleaning (15% HCl, Rodine 213 inhibitor)
+- SOP-ENV-001: Produced Water Discharge / Oil-in-Water Monitoring (OSPAR 30mg/L limit)
+- SOP-SAFE-001: Emergency Shutdown Response
+- MAN-INST-001: Emerson Rosemount 3051 Pressure Transmitter Troubleshooting
+- MAN-MECH-001: Sulzer ZE Pump Bearing Maintenance (SKF 6316-2RS1 DE, SKF 6312-2RS1 NDE)
+- PID-NPA-001: HP Separation Train P&ID (V-101 interlocks: PSHH 72 barg, LSHH 80%)
+- RPT-INSPECT-001: V-101 Inspection 2020 (corrosion rate 0.25mm/yr, fit for service until AT2024)
+
+KNOWN FAILURE HISTORY:
+COMPLETE FAILURE HISTORY — NORTH SEA PLATFORM ALPHA:
+
+FE-0002 | P-101 | 2025-11-10 | Severity: HIGH | Safety: NONE
+Failure Mode: Bearing failure
+Root Cause: Grease nipple blocked by debris; lubrication interval exceeded by 3 weeks
+Mechanism: Metal fatigue and spalling on inner race of Drive End bearing
+Immediate Action: P-101A isolated and locked out; standby P-102A started
+Corrective Action: Replace SKF 6316-2RS1 DE and NDE bearings; flush and refill with Shell Gadus S2 V220 2; re-establish 2-weekly lubrication schedule
+Production Loss: 180 bbl | Downtime: 48 hours
+
+FE-0003 | K-201 | 2025-11-25 | Severity: CRITICAL | Safety: LOW
+Failure Mode: Compressor surge
+Root Cause: LCV-101 actuator sticking open — liquid carryover from V-201 scrubber high level
+Mechanism: Liquid slug ingested into compressor impeller stages causing reverse flow and pressure oscillation
+Immediate Action: K-201 tripped on surge protection; PCV-201 opened; K-202 started from standby
+Corrective Action: Overhaul LCV-101 actuator and positioner; clean scrubber mist eliminator; recalibrate surge controller setpoints
+Production Loss: 320 bbl | Downtime: 22 hours
+
+FE-0004 | E-301 | 2026-02-01 | Severity: MEDIUM | Safety: NONE
+Failure Mode: Heat exchanger fouling (gradual)
+Root Cause: Calcium carbonate scaling on tube bundle — scale inhibitor injection rate insufficient
+Mechanism: Crystalline scale deposit on shell-side tubes reducing heat transfer coefficient by ~40%
+Immediate Action: Process routed through bypass; E-301 isolated for cleaning
+Corrective Action: Chemical descaling with 15% HCl + Rodine 213; hydroblast tube bundle; increase scale inhibitor dosing by 25%; install dP indicator across bundle
+Production Loss: 0 bbl | Downtime: 24 hours
+
+FE-0005 | PT-145 | 2025-12-11 | Severity: LOW | Safety: NONE
+Failure Mode: Instrument drift
+Root Cause: Diaphragm ruptured — fill fluid leaked into impulse line causing positive drift
+Mechanism: Micro-fracture in Hastelloy C-276 diaphragm from H2S stress corrosion
+Immediate Action: PT-145 flagged as bad actor; PT-146 (redundant) used as primary; alarm limits adjusted
+Corrective Action: Replace with Emerson 3051S HART transmitter; upgrade to Alloy 400 wetted parts; review all transmitters from same batch
+Production Loss: 0 bbl | Downtime: 4 hours
+
+FE-0006 | P-303 | 2026-01-20 | Severity: HIGH | Safety: NONE
+Failure Mode: Pump mechanical seal failure
+Root Cause: O-ring degraded from intermittent dry running due to low suction head at low tide
+Mechanism: Seal face wear and O-ring elastomer swelling/cracking from thermal cycling
+Immediate Action: P-303 isolated; standby P-304 started; temperatures monitored
+Corrective Action: Replace dual mechanical seal with upgraded AISI 316 faces; install low-suction-pressure trip at 0.3 bar
+Production Loss: 0 bbl | Downtime: 6 hours
+
+FE-0007 | FAC-001 | 2026-02-21 | Severity: PLANNED | Safety: NONE
+Failure Mode: Planned shutdown — Annual Turnaround AT2024
+Root Cause: Statutory inspection and maintenance (planned)
+Corrective Action: Vessel inspections, PSV testing, relief valve overhauls, instrumentation calibration, electrical thermography
+Production Loss: 5600 bbl | Downtime: 120 hours
+
+FE-0008 | P-501 | 2026-03-15 | Severity: CRITICAL | Safety: HIGH
+Failure Mode: Process leak — export pipeline
+Root Cause: Spiral wound gasket failure from over-torquing during previous maintenance + H2S pitting on flange face
+Mechanism: Gasket blowout under operating pressure; hydrocarbon vapour release detected by GD-501
+Immediate Action: ESD activated; export header depressurised; area evacuated; gas cloud cleared after 45 minutes
+Corrective Action: Replace gasket with ASME B16.20 Inconel 825 ring gasket; dress flange faces; re-torque with calibrated wrench; add anti-seize to bolting procedure
+Production Loss: 2100 bbl | Downtime: 6.5 hours
+
+TOTAL PRODUCTION LOSS (all events): 8,200 bbl
+TOTAL DOWNTIME: 230.5 hours
+PREVENTABLE EVENTS (excluding planned AT2024): 3 events, 2,600 bbl, 86.5 hours
+Answer concisely and technically. Reference specific SOP steps, part numbers, and thresholds. Keep responses under 200 words.`;
+
+
+let chatHistory = [];
+
+async function sendChat() {
+  const input = document.getElementById("chat-input");
+  const msg = input.value.trim();
+  if(!msg) return;
+  input.value = "";
+
+  appendChatMsg("user", msg);
+  chatHistory.push({role:"user", content:msg});
+
+  const btn = document.getElementById("send-btn");
+  btn.disabled = true;
+
+  // Typing indicator
+  const typingDiv = document.createElement("div");
+  typingDiv.className = "chat-msg ai";
+  typingDiv.innerHTML = `<div class="chat-label">ARIA</div><div class="chat-bubble"><div class="typing"><span></span><span></span><span></span></div></div>`;
+  document.getElementById("chat-area").appendChild(typingDiv);
+  scrollChat();
+
+  if(!apiKey) {
+    await new Promise(r=>setTimeout(r,1200));
+    typingDiv.remove();
+    const demoResponses = {
+      default: "I'm running in demo mode (no API key configured). In full mode, I can answer detailed questions about any SOP, equipment specification, alarm threshold, or failure history on this platform."
+    };
+    appendChatMsg("ai", demoResponses.default);
+    btn.disabled = false;
+    return;
+  }
+
+  try {
+    // Add current sensor context
+    const contextMsg = chatHistory.slice(-6);
+    contextMsg[contextMsg.length-1] = {
+      role:"user",
+      content: msg +
+        `\n\n[Current simulation time: ${getTimeAtHour(currentHour)}. Active alerts: ${alertLog.length}. ${alertLog.length>0 ? 'Latest: '+alertLog[0].title : 'None.'}. Selected asset: ${selectedAsset ? selectedAsset.tag + ' — ' + selectedAsset.name : 'None'}.]` +
+        (selectedAsset ? getAssetHistoryContext(selectedAsset.id, selectedAsset.tag) : "")
+    };
+
+    const resp = await fetch("/api/chat", {
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({
+        model:"gpt-4o",
+        max_tokens:1000,
+        messages: [
+          {role:"system", content: RAG_SYSTEM_PROMPT || SYSTEM_PROMPT},
+          ...contextMsg
+        ]
+      })
+    });
+    const data = await resp.json();
+    if (!resp.ok) throw new Error(`API error ${resp.status}: ${data.error?.message || JSON.stringify(data)}`);
+    const reply = data.choices[0].message.content;
+    typingDiv.remove();
+    appendChatMsg("ai", reply);
+    chatHistory.push({role:"assistant", content:reply});
+  } catch(e) {
+    console.error("Chat error:", e);
+    typingDiv.remove();
+    appendChatMsg("ai", `Error: ${e.message}`);
+  }
+  btn.disabled = false;
+}
+
+function appendChatMsg(role, text) {
+  const div = document.createElement("div");
+  div.className = `chat-msg ${role}`;
+  div.innerHTML = `<div class="chat-label">${role==='user'?'OPERATOR':'ARIA'}</div><div class="chat-bubble">${text.replace(/\n/g,'<br>')}</div>`;
+  document.getElementById("chat-area").appendChild(div);
+  scrollChat();
+}
+
+function scrollChat() {
+  const ca = document.getElementById("chat-area");
+  ca.scrollTop = ca.scrollHeight;
+}
+
+// ============================================================
+// INIT
+// ============================================================
+async function init() {
+  try {
+    const [zRes, pRes, keyRes, ragRes] = await Promise.all([
+      fetch("zscore_results.json"),
+      fetch("pitch_numbers.json"),
+      fetch("/api/key"),
+      fetch("rag_documents.json")
+    ]);
+    if (zRes.ok)   ZSCORE_DATA = await zRes.json();
+    if (pRes.ok)   PITCH_DATA  = await pRes.json();
+    if (keyRes.ok) { const { configured } = await keyRes.json(); apiKey = !!configured; }
+    if (ragRes.ok) RAG_DOCS    = await ragRes.json();
+  } catch (e) {
+    console.warn("Could not load data files:", e);
+  }
+
+  // Build full RAG system prompt — append all SOP/manual text after the base prompt
+  const docSection = Object.entries(RAG_DOCS)
+    .map(([id, doc]) => `[${id}] ${doc.title}\n${doc.content}`)
+    .join("\n\n---\n\n");
+  RAG_SYSTEM_PROMPT = SYSTEM_PROMPT +
+    (docSection ? "\n\n====================\nPLATFORM DOCUMENTS (FOR REFERENCE):\n\n" + docSection : "");
+  const notice = document.getElementById("api-key-notice");
+  if (notice) {
+    notice.textContent = apiKey ? "✓ AI responses enabled." : "⚠ No API key — demo mode.";
+    notice.style.color = apiKey ? "var(--green)" : "var(--amber)";
+  }
+  selectAsset(AREAS[0].assets[0]);
+  updateDisplay();
+}
+
+init();
+</script>
+</body>
+</html>

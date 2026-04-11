@@ -1,0 +1,480 @@
+doc_id,asset_id,doc_type,title,revision,author,approved_by,issue_date,content
+SOP-OPS-001,AREA-HP-SEP:V-101,SOP,HP Production Separator V-101 — Normal Startup Procedure,Rev 4,Process Engineering,Operations Manager,2022-03-15,"PURPOSE
+This procedure describes the steps required to bring HP Production Separator V-101 into service from a cold depressurised state.
+
+SCOPE
+Applicable to Operations Technicians on North Sea Platform Alpha. Requires OT Level 2 competency.
+
+PREREQUISITES
+- V-101 internal inspection completed and sign-off received (see WO record)
+- All instrumentation calibration certificates valid and in loop folders
+- Isolation certificates cleared; all blinds removed per Blind Register BLD-001-V101
+- Process Safety Review Form PSR-OPS-001 signed by Permit Authority
+
+PROCEDURE
+
+Step 1 — Pre-startup Checks
+1.1  Verify all instrument isolation valves open: PT-101A/B, LT-101A/B, TT-101A/B
+1.2  Confirm safety valves PSV-101 in service (isolation valves open, locked)
+1.3  Check all man-ways closed and torqued to flange specification
+1.4  Confirm corrosion inhibitor injection running at 50 ppm dosing rate
+
+Step 2 — Pressurisation
+2.1  Crack open HP inlet SDV-101 manual bypass 10% to allow slow pressure equalisation
+2.2  Monitor pressure rise on PT-101A; raise to 45 barg over minimum 15 minutes
+2.3  Check for leaks on all flanges and instrumentation connections during pressurisation
+2.4  Once pressure equalised, open SDV-101 fully and remove bypass
+
+Step 3 — Level Establishment
+3.1  Open oil outlet LCV-101 in manual at 0%; allow liquid to accumulate
+3.2  Once LT-101A reads 30%, transfer LCV-101 to AUTO with SP=50%
+3.3  Confirm PT-101A and PT-101B agree within 0.5 bar; if not, contact Instrument Tech
+
+Step 4 — Gas Routing
+4.1  Open gas outlet to LP Compression via SDV-201 (interlocked — confirm K-201 or K-202 running)
+4.2  Confirm FT-101 (gas flow) reading stable
+
+Step 5 — Normalisation
+5.1  Complete ""V-101 In Service"" checklist and file in Control Room
+5.2  Log startup in Operations Log with actual time in service
+5.3  Notify Production Supervisor
+
+EMERGENCY ACTIONS
+- High-High pressure: SDV-101 will auto-close on PSHH-101. Do NOT attempt to override.
+- High-High level: LCV-101 will open to 100%. If level continues rising, close HP inlet.
+
+RELATED DOCUMENTS
+SOP-OPS-002 (Normal Shutdown), SOP-MAINT-015 (V-101 Inspection), P&ID NPA-PID-001 Rev 7"
+SOP-OPS-002,AREA-HP-SEP:V-101,SOP,HP Production Separator V-101 — Normal Shutdown Procedure,Rev 3,Process Engineering,Operations Manager,2022-03-15,"PURPOSE
+This procedure describes the controlled shutdown of V-101 for planned maintenance or inspection.
+
+SCOPE
+Applicable to Operations Technicians OT Level 2+. A second competent person must be present during liquid draining steps.
+
+PROCEDURE
+
+Step 1 — Notification
+1.1  Notify Production Supervisor and Control Room of intended shutdown
+1.2  Confirm standby separator (V-102 Test Separator) available for production routing
+1.3  Log time of shutdown initiation in Operations Log
+
+Step 2 — Inlet Isolation
+2.1  Transfer LCV-101 to MANUAL and close to 0%
+2.2  Close SDV-101 via DCS. Confirm closed on position indicator and field observation
+2.3  Close HP inlet hand valve HV-101 (field action, two-person operation)
+
+Step 3 — Gas Blowdown
+3.1  Open blowdown valve BDV-101 to flare at 10% ramp — observe flare system
+3.2  Depressurise V-101 to <0.5 barg (confirm on PT-101A and PT-101B)
+3.3  Target depressurisation rate: maximum 7 bar/min to prevent thermal shock
+
+Step 4 — Liquid Draining
+4.1  Open drain valve DV-101 to closed drain header
+4.2  Confirm level LT-101A/B reads 0% before closing drain valve
+4.3  Issue vessel entry permit per SOP-SAFE-004 if man-entry required
+
+Step 5 — Isolation
+5.1  Raise isolation certificate per site Permit to Work system
+5.2  Install blinds per Blind Register BLD-001-V101
+5.3  Atmosphere test for HC and H2S before any personnel entry (LEL <10%, H2S <1ppm)
+
+RELATED DOCUMENTS
+SOP-OPS-001, SOP-SAFE-004 (Vessel Entry), P&ID NPA-PID-001 Rev 7"
+SOP-MAINT-001,AREA-HP-SEP:P-101,SOP,Centrifugal Pump P-101A/B — Routine Lubrication and Vibration Inspection,Rev 6,Mechanical Engineering,Maintenance Supervisor,2021-09-01,"PURPOSE
+Define the routine maintenance activities for HP Sep drain pumps P-101A and P-101B to prevent bearing failure and ensure continuous operation.
+
+FREQUENCY
+Every 14 days (or when vibration trend exceeds 2.0 mm/s).
+
+SAFETY REQUIREMENTS
+- Hot work not required. Cold work permit needed if pump is running.
+- PPE: Safety glasses, gloves, hearing protection (>85 dB in pump room).
+- Beware of hot pump casing surface (may reach 80°C).
+
+TOOLS REQUIRED
+- Grease gun with Shell Gadus S2 V220 2 (or approved equivalent)
+- Calibrated vibration meter (Brüel & Kjær Type 2270 or equivalent)
+- Infrared thermometer
+- Torque wrench 10-50 Nm
+
+LUBRICATION PROCEDURE
+1.  Identify pump status — if running (active duty), proceed to Step 2. If on standby, start before lubrication.
+2.  Clean grease nipple on Drive End bearing housing with clean rag.
+3.  Pump exactly 3 shots (approx 15g) of Shell Gadus S2 V220 2 grease into DE nipple.
+4.  Repeat for Non-Drive End bearing housing (2 shots, approx 10g).
+5.  Do NOT over-grease — excess grease causes overheating and accelerated bearing failure.
+6.  Check grease nipple is clear and accepts grease freely — if resistance felt, flag as defect.
+
+VIBRATION MEASUREMENT
+1.  Take vibration readings on DE and NDE in three planes: horizontal, vertical, axial.
+2.  Record values on PM Checklist Form MNT-CHK-P101.
+3.  Compare to baseline and previous readings.
+
+ACCEPTANCE CRITERIA (ISO 10816-3)
+  Good:     0 – 2.3 mm/s
+  Acceptable: 2.3 – 4.5 mm/s (increase inspection frequency to weekly)
+  Alert:    4.5 – 7.1 mm/s (notify supervisor, plan replacement)
+  DANGER:   >7.1 mm/s (isolate pump immediately, switch to standby)
+
+TEMPERATURE CHECK
+- Bearing housing temperature should be <70°C. If >80°C with no recent lubrication, suspect bearing failure.
+- Motor winding temp (if accessible): <105°C.
+
+FINDINGS AND REPORTING
+Record all readings in CMMS. If ANY criterion is at Alert or above, raise a corrective work order immediately and notify the Maintenance Supervisor.
+
+RELATED DOCUMENTS
+P-101 Datasheet, CMMS Form MNT-CHK-P101, SOP-MAINT-002 (Bearing Replacement)"
+SOP-MAINT-010,AREA-WATER:E-301,SOP,Produced Water Cooler E-301 — Chemical Cleaning Procedure,Rev 2,Process/Mechanical Engineering,Maintenance & Process Manager,2020-11-20,"PURPOSE
+Remove calcium carbonate and mixed organic scale deposits from E-301 shell & tube heat exchanger to restore heat transfer performance.
+
+WHEN TO APPLY
+This procedure is initiated when either:
+(a) E-301 approach temperature exceeds design by >10°C for 7 consecutive days, or
+(b) Shell-side differential pressure exceeds 2.0 bar (design: 0.8 bar), or
+(c) Routine performance test confirms heat transfer coefficient Uo has degraded by >30%.
+
+SCOPE
+Chemical clean using recirculated inhibited HCl solution. Requires chemical injection contractor involvement.
+
+SAFETY REQUIREMENTS
+- Permit to Work: Cold Work + Chemical Handling Permit required
+- COSHH Assessment reference: COSHH-2020-E301-HCL
+- PPE: Full face shield, nitrile chemical gloves, acid-resistant apron, steel-toed boots
+- Emergency eye-wash station confirmed operational within 10m
+- Neutralisation vessel available for spent acid disposal
+- H2S monitor worn at all times (HCl + sulphide scale can generate H2S)
+
+PROCEDURE
+
+Phase 1 — Pre-clean Isolation and Bypass
+1.  Route process through E-301 bypass and confirm zero flow on E-301 flow meter FT-301
+2.  Close and blank shell-side inlet and outlet isolation valves
+3.  Fit temporary hose connections on drain/vent nozzles for recirculation loop
+4.  Verify temperature on shell-side <40°C before proceeding
+
+Phase 2 — Water Flush
+1.  Fill shell-side with clean water (demineralised preferred)
+2.  Circulate for 30 minutes at 1 m/s velocity
+3.  Drain flush water to closed drain — note colour and pH
+4.  Repeat until pH of drain water matches pH of inlet water (typically 2 flushes)
+
+Phase 3 — Acid Circulation (Chemical Contractor activity)
+1.  Prepare 15% w/w HCl solution with 0.5% Rodine 213 corrosion inhibitor in 2000L IBC
+2.  Circulate at 0.8 m/s for 4 hours at ambient temperature
+3.  Monitor pH of circulating solution every 30 minutes — when pH stabilises (pH rise <0.2 in 30 min), scale is dissolved
+4.  Sample every hour: if iron content in solution >2000 ppm, refresh acid charge
+
+Phase 4 — Rinse and Passivation
+1.  Drain acid to neutralisation tank (add soda ash to pH >6.5 before disposal)
+2.  Three-pass water flush until pH >6.0
+3.  Circulate 2% sodium nitrite solution for 1 hour to passivate metal surface
+
+Phase 5 — Return to Service
+1.  Remove temporary connections; re-install isolation valves
+2.  Perform pressure test at 1.3× design pressure (hold 30 min — no leaks)
+3.  Slowly return to service per normal startup; monitor outlet temperature trend
+
+POST-CLEAN VERIFICATION
+- Within 48h of return to service, record outlet temperature and compare to design curve
+- Target: approach temperature within 5°C of design value
+- If target not achieved, consider mechanical hydroblasting of tube bundle
+
+RELATED DOCUMENTS
+P&ID NPA-PID-009, E-301 Datasheet, COSHH-2020-E301-HCL, Thermal Performance Test SOP-MAINT-011"
+SOP-SAFE-001,AREA-UTIL:ESD-001,SOP,Emergency Shutdown System ESD-001 — ESD Activation Response Procedure,Rev 9,Safety & Process Engineering,OIM (Offshore Installation Manager),2023-01-10,"PURPOSE
+Prescribe the immediate and recovery actions for Operations Technicians following activation of Platform Emergency Shutdown (ESD) on North Sea Platform Alpha.
+
+SCOPE
+All ESD levels: ESD Level 1 (Platform ESD), ESD Level 2 (Area ESD), ESD Level 3 (Equipment ESD). This procedure addresses Level 1 and Level 2 events.
+
+ACTIVATION CAUSES (Common)
+- Gas detector activation (fixed or portable) >20% LEL
+- High-High pressure on protected equipment
+- Fire detector activation (confirmed fire)
+- Manual ESD activation (push-button on MCP or in field)
+- Loss of utility power (partial or full)
+
+IMMEDIATE ACTIONS — Control Room Operator
+1.  Confirm ESD activation on DCS — identify initiating cause from first-up alarm
+2.  Announce via PA system: ""EMERGENCY SHUTDOWN ACTIVATED — ALL PERSONNEL TO MUSTER STATIONS""
+3.  Confirm mustering complete via Talkback radio to all stations
+4.  Do NOT attempt to reset ESD until cause is identified and cleared
+5.  Notify OIM, Production Supervisor, and Maintenance Supervisor immediately
+6.  Start ESD log — record all actions and times
+
+IMMEDIATE ACTIONS — Field Operator
+1.  Proceed to muster station unless assigned to an emergency response role
+2.  If safe to do so and assigned, carry out visual inspection of ESD initiating area
+3.  Report findings to Control Room by radio
+4.  Do NOT re-enter gas-detected area without OIM authorisation and breathing apparatus
+
+CAUSE INVESTIGATION
+1.  Identify first-up alarm — Control Room operator to advise field team of suspected source
+2.  Inspect for visible signs: gas cloud, liquid release, fire/smoke
+3.  For gas detection: use portable gas detector to confirm/deny; identify source
+4.  For high-pressure events: identify the overpressure origin from trend data
+
+ESD RESET CRITERIA (All must be satisfied before reset)
+□  Initiating cause identified and cleared
+□  All personnel accounted for (muster complete)
+□  OIM has authorised reset
+□  Plant clear of hazardous concentrations (gas: <10% LEL; H2S: <1 ppm in work area)
+□  All ESD isolation valves confirmed closed (visual confirmation in field)
+□  Instrument air and power systems healthy
+
+RESTART SEQUENCE
+1.  Instrument air system first — confirm header pressure >7 barg before proceeding
+2.  Utilities: Generators, cooling water
+3.  HP Separation Train — follow SOP-OPS-001 for V-101
+4.  LP Compression — follow SOP-OPS-010 for K-201/K-202
+5.  Export — final step; confirm metering system healthy before opening export SDV-501
+
+RELATED DOCUMENTS
+ESD Cause & Effect Matrix NPA-ESD-CEF-001 Rev 12, SOP-OPS-001, SOP-OPS-010, Emergency Response Plan ERP-NPA-2023"
+SOP-OPS-010,AREA-LP-COMP:K-201,SOP,LP Compressor K-201 — Startup After Trip Procedure,Rev 5,Process Engineering,Operations Manager,2021-06-01,"PURPOSE
+Describe the safe restart of LP Compressor K-201 following an unplanned trip, including pre-start checks to prevent repeat trip.
+
+SCOPE
+Operations Technicians OT Level 2+, in conjunction with Instrument Technician for vibration system reset.
+
+PREREQUISITES
+- Trip cause identified and cleared (see DCS first-up alarm and Operations Log)
+- Compressor Maintenance Technician sign-off if mechanical trip (vibration, temperature)
+- Suction scrubber V-201 level confirmed <30% before attempting restart
+
+PRE-START CHECKS
+1.  Check vibration readings on VT-201 (DE) and VT-202 (NDE) — must be <3.0 mm/s at rest
+2.  Check lube oil level in reservoir — minimum 75% on sight glass
+3.  Check lube oil pressure — must be >2.5 bar before main drive permit given
+4.  Confirm anti-surge valve PCV-201 is OPEN (100%) — anti-surge must be open during start
+5.  Confirm suction SDV-201 closed; discharge check valve functional
+6.  Verify cooling system operational — confirm cooling water flow on local indicator
+
+STARTUP SEQUENCE
+Step 1:  Start lube oil pre-lube pump — allow 5 minutes of pre-lubrication
+Step 2:  Reset vibration monitoring system — confirm all channels healthy
+Step 3:  Open suction SDV-201 slowly (10% per minute) while monitoring suction pressure
+Step 4:  Confirm suction pressure stable at design (5-8 barg) before proceeding
+Step 5:  Start K-201 motor — observe speed ramp-up on DCS
+Step 6:  As speed increases through minimum stable speed, begin closing PCV-201 (anti-surge) in AUTO mode
+Step 7:  Allow compressor to reach 100% design speed; confirm discharge pressure building
+Step 8:  Monitor vibration — if any channel exceeds 4.5 mm/s, STOP immediately; do NOT continue
+
+SURGE AVOIDANCE
+- During startup, if flow drops below minimum stable flow set point, PCV-201 will automatically open
+- Do NOT attempt to manually override surge protection during startup
+- If surge is detected (rapid pressure oscillations, noise from casing), trip compressor via DCS stop
+
+NORMAL RUNNING CHECKS (First 30 minutes)
+- Vibration readings every 5 minutes
+- Lube oil temperature: 40-60°C; lube oil pressure >2.5 bar
+- Discharge temperature <120°C
+- No unusual noise or vibration
+
+RELATED DOCUMENTS
+K-201 Datasheet, Anti-surge Control Narrative NPA-CTRL-002, P&ID NPA-PID-005 Rev 6"
+MAN-MECH-001,AREA-HP-SEP:P-101,EQUIPMENT_MANUAL,Sulzer ZE Centrifugal Pump — Maintenance Manual Extract (Bearings),Issue 3,Sulzer Pumps Ltd,OEM,2015-04-01,"SULZER ZE SERIES — BEARING MAINTENANCE GUIDELINES (EXTRACT)
+Document Reference: SZ-ZE-MM-003-EN
+
+BEARING SPECIFICATION
+Drive End (DE):      SKF 6316-2RS1 — Single row deep groove ball bearing, 80mm bore
+Non-Drive End (NDE): SKF 6312-2RS1 — Single row deep groove ball bearing, 60mm bore
+Lubrication:         Shell Gadus S2 V220 2 (or equivalent ISO VG 220 NLGI 2 grease)
+
+RELUBRICATION INTERVAL
+Operating temperature <70°C: Relubricate every 2000 operating hours (approx. 12 weeks)
+Operating temperature 70–90°C: Relubricate every 1000 operating hours (approx. 6 weeks)
+Caution: DO NOT exceed relubrication interval. Starvation is the leading cause of bearing failure.
+
+RELUBRICATION QUANTITY
+Drive End:     Add 15g of grease (3 gun strokes with standard 5g grease gun)
+Non-Drive End: Add 10g of grease (2 gun strokes)
+
+WARNING: Over-greasing causes elevated bearing temperature and premature failure. Always use measured grease quantities.
+
+BEARING REPLACEMENT — WHEN REQUIRED
+Replace bearings when any of the following are observed:
+- ISO vibration severity Zone D (>7.1 mm/s on 15-350 Hz broadband)
+- Abnormal noise: grinding, clicking, or rumbling sound not present previously
+- Bearing temperature sustained above 90°C
+- Grease found discoloured (black or dark grey) with metallic particles on inspection
+
+BEARING REPLACEMENT PROCEDURE (SUMMARY)
+1.  De-energise and LOTO motor
+2.  Remove coupling guard and disconnect coupling halves
+3.  Remove bearing housing end cover bolts (8 × M12)
+4.  Draw bearing housing off shaft using approved puller — do NOT use heat
+5.  Press new bearing onto shaft using bearing fitting sleeve — do NOT strike inner race directly
+6.  Pack bearing housing with 50% of cavity volume with fresh grease before assembly
+7.  Re-assemble in reverse order
+8.  Perform vibration check on first run (30-minute run-in)
+9.  Re-check and re-grease after first 8 hours of operation after replacement
+
+VIBRATION ALERT TABLE (ISO 10816-3, Group 1 machinery)
+  Zone A (new):     0 – 2.3 mm/s
+  Zone B (ok):      2.3 – 4.5 mm/s
+  Zone C (monitor): 4.5 – 7.1 mm/s
+  Zone D (danger):  >7.1 mm/s — remove from service
+
+RELATED DOCUMENTS: Sulzer ZE Series Datasheet, Installation Manual SZ-ZE-IM-001-EN"
+MAN-INST-001,AREA-UTIL:PT-145,EQUIPMENT_MANUAL,Emerson Rosemount 3051 Pressure Transmitter — Troubleshooting Guide (Extract),Issue 7,Emerson Process Management,OEM,2019-08-01,"EMERSON ROSEMOUNT 3051 — TROUBLESHOOTING GUIDE (EXTRACT)
+Document Reference: 00809-0100-4001 Rev EA
+
+SYMPTOM: Transmitter reading high (positive drift) with no corresponding process change
+
+Possible Causes and Diagnostics:
+
+1. Fill Fluid Leak from Isolating Diaphragm
+   - Description: A hairline crack or micro-fracture in the isolating diaphragm allows process fluid into the fill fluid cavity, or alternatively allows fill fluid to migrate into the impulse line.
+   - Effect: Positive shift in reading (fill fluid loss causes diaphragm to deflect as if higher pressure is applied).
+   - Diagnosis: Compare reading against a calibrated reference gauge or redundant transmitter. Inspect diaphragm face for visible pitting or deformation. Fill fluid (silicone or inert oil) may be visible at diaphragm face.
+   - Action: Replace transmitter. Do NOT attempt to repair fill fluid loss in field. Return to OEM or authorised service centre.
+
+2. Process Isolation Valve Partially Closed
+   - Description: Isolation valve not fully open creates a partial restriction, causing transmitter to see dampened or offset pressure.
+   - Diagnosis: Confirm isolation valve fully open (handwheel backed off 1/4 turn after full open).
+   - Action: Open isolation valve fully.
+
+3. Blocked Impulse Line
+   - Description: Scaling, hydrate, or wax deposit in impulse tubing between process connection and transmitter.
+   - Diagnosis: Pressure reading frozen or slow to respond to known process changes.
+   - Action: Blow down impulse line per SOP-INST-005. If scaling suspected, use impulse line flushing procedure.
+
+4. Zero Point Shift — Calibration Drift
+   - Description: Electronic zero drift over time, typically <0.5% over 5 years. Larger drift suggests hardware issue.
+   - Diagnosis: Compare to calibrator at known zero pressure. Use HART communicator to read sensor temperature — elevated temperature accelerates drift.
+   - Action: Recalibrate using HART communicator if drift <1% of span. If drift >1%, replace transmitter.
+
+5. H2S / Wet Gas Attack on Wetted Materials
+   - Description: In H2S service, Hastelloy C-276 or 316L SS diaphragms can suffer stress corrosion cracking, particularly if process contains H2S + chloride + water at elevated temperature.
+   - Inspection: At transmitter removal, inspect diaphragm face under 10× magnification for intergranular cracking or pitting.
+   - Long-term Action: Specify Alloy 400 (Monel) or Alloy 625 wetted parts for H2S + chloride service. Reference NACE MR0175 material selection guide.
+
+RELATED DOCUMENTS: 3051 Reference Manual 00809-0100-4001, NACE MR0175"
+PID-NPA-001,AREA-HP-SEP:V-101,PIID_REFERENCE,P&ID NPA-PID-001 — HP Separation Train (Sheet 1 of 3),Rev 7,Process Engineering,Lead Process Engineer,2023-05-01,"P&ID REFERENCE — NPA-PID-001 REV 7
+Title: North Sea Platform Alpha — HP Separation Train
+
+LINE SCHEDULE (Key Lines)
+  Line Tag         Size   Rating   Fluid        From          To
+  NPA-01-PL-001    10""    900#     Wellstream   Manifold      V-101 inlet
+  NPA-01-GS-002    8""     900#     Gas          V-101 outlet  SDV-201/K-201 suction
+  NPA-01-OL-003    4""     600#     Crude oil     V-101 outlet  LCV-101/P-101
+  NPA-01-PW-004    3""     300#     Produced water V-101 drain  V-301
+
+INSTRUMENTATION SUMMARY (V-101 Loop Tags)
+  PT-101A / PT-101B   Pressure — dual redundant (2oo2 voting for PSHH trip)
+  LT-101A / LT-101B   Level   — dual redundant (2oo2 voting for LSHH trip)
+  TT-101A / TT-101B   Temperature — dual redundant (high temp alarm only)
+  FT-101              Gas outlet flow (custody transfer meter, ultrasonic)
+  FT-102              Oil outlet flow (Coriolis mass flow meter)
+
+SAFETY INTERLOCK SUMMARY (V-101)
+  PSHH-101   PT-101A or PT-101B >72 barg  → Close SDV-101 (inlet) + SDV-201 (gas outlet) + open BDV-101 (blowdown)
+  LSHH-101   LT-101A or LT-101B >80%      → Open LCV-101 to 100% + alarm to Control Room
+  PSLL-101   PT-101A and PT-101B <15 barg  → Close SDV-201 (gas outlet) — prevent compressor suction stall
+
+NOTES
+  1. PT-101A and PT-101B are Emerson Rosemount 3051 with Hastelloy C-276 wetted parts. Calibrated range: 0–100 barg. Previous NOTE (AT2020): diaphragm material under review for H2S service — see action AI-2020-047.
+  2. LCV-101 is a Fisher V250 rotary ball valve, 4"" ANSI 300#, air-to-open, fail-close on loss of instrument air.
+  3. SDV-101 is a Cameron WKM floating ball valve, motor-operated, fail-safe close.
+  4. V-101 is designed to ASME VIII Div 1. MAWP: 75 barg at 120°C. Current corrosion allowance remaining: 3.5mm (as of AT2020 inspection). Next statutory inspection due AT2024.
+
+REVISION HISTORY
+  Rev 7 (May 2023): Updated PT-101A/B calibration range from 0–90 to 0–100 barg following MoC MOC-2023-015.
+  Rev 6 (Jan 2021): Added FT-102 Coriolis meter per project MOD-2020-007.
+  Rev 5 (Sep 2018): Added PSLL-101 interlock per Safety Review SR-2018-003."
+RPT-INSPECT-001,AREA-HP-SEP:V-101,INSPECTION_REPORT,V-101 HP Separator — Internal Inspection Report AT2020,Rev 0 (Final),Inspection Engineer — Bureau Veritas,Asset Integrity Engineer,2020-09-28,"INSPECTION REPORT: V-101 HP Production Separator
+Client: North Sea Platform Alpha Operations Ltd
+Inspector: K. Johannsen (Bureau Veritas, Level II UKAS)
+Inspection Date: 14–16 September 2020
+Report Date: 28 September 2020
+Reference: BV-NPA-2020-V101-001
+
+VESSEL DATA
+  Tag:      V-101
+  Design Code: ASME VIII Div 1
+  MAWP:     75 barg @ 120°C
+  Material: SA-516 Gr 70 carbon steel with 3mm nominal corrosion allowance
+  Dimensions: 2200mm ID × 6500mm T/T
+  Last Inspection: 2016 (AT2016)
+
+INSPECTION SCOPE
+- Internal visual inspection (post blinding and gas freeing)
+- Ultrasonic Thickness (UT) measurements on shell, heads, and nozzles
+- MPI on all nozzle welds
+- Cladding inspection (where applicable)
+- Internal coating assessment
+
+FINDINGS
+
+1. SHELL UT MEASUREMENTS
+   Average shell thickness: 18.8mm (new: 19mm + 3mm CA = 22mm)
+   Minimum recorded: 17.2mm (location: 3m from South head, 6 o'clock position)
+   Calculated corrosion rate: 0.25 mm/year (based on 4-year interval)
+   Remaining corrosion allowance at min point: 1.2mm
+   Assessment: ACCEPTABLE. Estimated remaining life 4.8 years at current rate.
+   Recommendation: Increase UT grid density at 6 o'clock position. Monitor in AT2024.
+
+2. NOZZLE UT — INLET NOZZLE NZL-N1 (10"", ANSI 900#)
+   Nozzle neck minimum thickness: 14.1mm (required: 13.8mm minimum)
+   Weld inspection: MPI — No indications found.
+   Assessment: ACCEPTABLE.
+
+3. NOZZLE UT — LIQUID OUTLET NOZZLE NZL-N3 (4"", ANSI 600#)
+   Nozzle neck minimum thickness: 8.2mm (required: 8.0mm minimum)
+   NOTE: This is within specification but approaching minimum. Corrosion rate at this nozzle is 0.35 mm/year — higher than shell.
+   Assessment: MONITOR. Recommended for replacement or weld overlay at AT2024 if continued corrosion.
+
+4. INTERNAL COATING
+   Phenolic epoxy coating on lower 1/3 of vessel (wet zone): approximately 40% holiday rate, particularly in weld bead areas.
+   Assessment: Coating is providing minimal protection in wetted zone.
+   Recommendation: Full abrasive blast and recoat at AT2024.
+
+5. INLET DISTRIBUTOR
+   Internal inlet distributor (perforated plate type): One tab weld cracked on 3rd perforation row. Distributor plate still secured.
+   Assessment: No immediate concern but should be repaired during AT2024.
+
+OVERALL ASSESSMENT: FIT FOR SERVICE until AT2024.
+Statutory next inspection due: September 2024 (or before, if corrosion rate changes).
+
+ACTIONS RAISED
+  AI-2020-041: Increase UT monitoring frequency at 6 o'clock shell position to annual. [Owner: Asset Integrity]
+  AI-2020-042: Plan NZL-N3 weld overlay for AT2024 scope. [Owner: Mechanical Engineering]
+  AI-2020-043: Include full internal recoating in AT2024 scope. [Owner: Maintenance Planning]"
+SOP-ENV-001,AREA-WATER:AT-301,SOP,Produced Water Discharge — Oil-in-Water Monitoring and OPPC Compliance Procedure,Rev 3,Environmental Officer,OIM,2022-07-01,"PURPOSE
+Ensure continuous compliance with OSPAR Convention limit of 30 mg/L oil-in-water (OiW) for produced water overboard discharge, and respond to exceedances.
+
+REGULATORY REFERENCE
+OSPAR Decision 2000/3 on the Use of Organic-Phase Drilling Fluids (OPF) and the Discharge, Reinjection or Disposal of OPF-Contaminated Cuttings.
+UK OPPC (Offshore Pollution Prevention and Control) Permit NPA-OPPC-2019-001.
+
+MONITORING EQUIPMENT
+Primary:  AT-301 Jiskoot inline OiW analyser (UV fluorescence method)
+Backup:   Manual grab sample sent to onshore lab (2× per week)
+
+NORMAL OPERATIONS
+1.  AT-301 reading should be checked at each shift handover in Control Room DCS.
+2.  Normal operating target: <20 mg/L (10 mg/L margin below regulatory limit).
+3.  Calibrate AT-301 every 14 days using certified reference standards per SOP-INST-020.
+
+ALARM RESPONSE
+Alarm Level 1 (AT-301 >20 mg/L):
+  - Investigate process — check deoiler hydrocyclone V-302 performance, check PW cooler E-301 temperature (hot PW reduces OiW efficiency)
+  - Take manual grab sample; notify Environmental Officer
+  - Log in Environmental Log ENV-LOG-NPA
+
+Alarm Level 2 (AT-301 >27 mg/L or approaching 30 mg/L limit):
+  - Reduce/stop produced water overboard discharge; divert to produced water injection or storage
+  - Notify OIM and Environmental Officer immediately
+  - Take emergency grab sample; send to lab by helicopter if necessary
+  - Begin 4-hourly monitoring until exceedance resolved
+
+EXCEEDANCE (>30 mg/L confirmed by lab):
+  - Stop all produced water overboard discharge immediately
+  - OIM to notify NSTA (North Sea Transition Authority) within 4 hours per OPPC permit condition
+  - Raise an Environmental Incident Report EIR using form ENV-FORM-001
+  - Investigate root cause; do not resume discharge until root cause resolved and OIM authorises
+
+RELATED DOCUMENTS
+AT-301 Calibration SOP-INST-020, P&ID NPA-PID-009, OPPC Permit NPA-OPPC-2019-001"
