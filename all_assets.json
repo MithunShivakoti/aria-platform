@@ -1,0 +1,867 @@
+{
+  "HP Separation Train": [
+    {
+      "asset_id": "AREA-HP-SEP",
+      "tag": "AREA-HP-SEP",
+      "name": "HP Separation Train",
+      "type": "Area",
+      "subtype": "ProcessArea",
+      "status": "OPERATING",
+      "criticality": "HIGH"
+    },
+    {
+      "asset_id": "AREA-HP-SEP:V-101",
+      "tag": "V-101",
+      "name": "HP Production Separator",
+      "type": "Vessel",
+      "subtype": "Separator",
+      "status": "OPERATING",
+      "criticality": "MEDIUM"
+    },
+    {
+      "asset_id": "AREA-HP-SEP:V-102",
+      "tag": "V-102",
+      "name": "Test Separator",
+      "type": "Vessel",
+      "subtype": "Separator",
+      "status": "MAINTENANCE",
+      "criticality": "MEDIUM"
+    },
+    {
+      "asset_id": "AREA-HP-SEP:E-101",
+      "tag": "E-101",
+      "name": "Wellstream Heater",
+      "type": "HeatExchanger",
+      "subtype": "Shell&Tube",
+      "status": "STANDBY",
+      "criticality": "MEDIUM"
+    },
+    {
+      "asset_id": "AREA-HP-SEP:E-102",
+      "tag": "E-102",
+      "name": "HP Glycol Reboiler",
+      "type": "HeatExchanger",
+      "subtype": "Shell&Tube",
+      "status": "OPERATING",
+      "criticality": "MEDIUM"
+    },
+    {
+      "asset_id": "AREA-HP-SEP:P-101",
+      "tag": "P-101",
+      "name": "HP Separator Drain Pump A",
+      "type": "Pump",
+      "subtype": "CentrifugalPump",
+      "status": "OPERATING",
+      "criticality": "HIGH"
+    },
+    {
+      "asset_id": "AREA-HP-SEP:P-102",
+      "tag": "P-102",
+      "name": "HP Separator Drain Pump B",
+      "type": "Pump",
+      "subtype": "CentrifugalPump",
+      "status": "OPERATING",
+      "criticality": "HIGH"
+    },
+    {
+      "asset_id": "AREA-HP-SEP:FT-101",
+      "tag": "FT-101",
+      "name": "HP Sep Gas Flow Meter",
+      "type": "Instrument",
+      "subtype": "FlowTransmitter",
+      "status": "STANDBY",
+      "criticality": "LOW"
+    },
+    {
+      "asset_id": "AREA-HP-SEP:FT-102",
+      "tag": "FT-102",
+      "name": "HP Sep Oil Flow Meter",
+      "type": "Instrument",
+      "subtype": "FlowTransmitter",
+      "status": "OPERATING",
+      "criticality": "LOW"
+    },
+    {
+      "asset_id": "AREA-HP-SEP:PT-101",
+      "tag": "PT-101",
+      "name": "HP Sep Pressure Transmitter A",
+      "type": "Instrument",
+      "subtype": "PressureTransmitter",
+      "status": "STANDBY",
+      "criticality": "LOW"
+    },
+    {
+      "asset_id": "AREA-HP-SEP:PT-102",
+      "tag": "PT-102",
+      "name": "HP Sep Pressure Transmitter B",
+      "type": "Instrument",
+      "subtype": "PressureTransmitter",
+      "status": "OPERATING",
+      "criticality": "LOW"
+    },
+    {
+      "asset_id": "AREA-HP-SEP:LT-101",
+      "tag": "LT-101",
+      "name": "HP Sep Level Transmitter A",
+      "type": "Instrument",
+      "subtype": "LevelTransmitter",
+      "status": "MAINTENANCE",
+      "criticality": "LOW"
+    },
+    {
+      "asset_id": "AREA-HP-SEP:LT-102",
+      "tag": "LT-102",
+      "name": "HP Sep Level Transmitter B",
+      "type": "Instrument",
+      "subtype": "LevelTransmitter",
+      "status": "OPERATING",
+      "criticality": "LOW"
+    },
+    {
+      "asset_id": "AREA-HP-SEP:TT-101",
+      "tag": "TT-101",
+      "name": "HP Sep Temperature Tx A",
+      "type": "Instrument",
+      "subtype": "TemperatureTransmitter",
+      "status": "MAINTENANCE",
+      "criticality": "LOW"
+    },
+    {
+      "asset_id": "AREA-HP-SEP:TT-102",
+      "tag": "TT-102",
+      "name": "HP Sep Temperature Tx B",
+      "type": "Instrument",
+      "subtype": "TemperatureTransmitter",
+      "status": "STANDBY",
+      "criticality": "LOW"
+    },
+    {
+      "asset_id": "AREA-HP-SEP:PSV-101",
+      "tag": "PSV-101",
+      "name": "HP Sep Pressure Safety Valve",
+      "type": "Valve",
+      "subtype": "SafetyValve",
+      "status": "MAINTENANCE",
+      "criticality": "LOW"
+    },
+    {
+      "asset_id": "AREA-HP-SEP:SDV-101",
+      "tag": "SDV-101",
+      "name": "HP Sep Shutdown Valve",
+      "type": "Valve",
+      "subtype": "ShutdownValve",
+      "status": "OPERATING",
+      "criticality": "LOW"
+    },
+    {
+      "asset_id": "AREA-HP-SEP:LCV-101",
+      "tag": "LCV-101",
+      "name": "HP Sep Level Control Valve",
+      "type": "Valve",
+      "subtype": "ControlValve",
+      "status": "OPERATING",
+      "criticality": "LOW"
+    },
+    {
+      "asset_id": "AREA-HP-SEP:PCV-101",
+      "tag": "PCV-101",
+      "name": "HP Sep Pressure Control Valve",
+      "type": "Valve",
+      "subtype": "ControlValve",
+      "status": "OPERATING",
+      "criticality": "LOW"
+    }
+  ],
+  "LP Compression Train": [
+    {
+      "asset_id": "AREA-LP-COMP",
+      "tag": "AREA-LP-COMP",
+      "name": "LP Compression Train",
+      "type": "Area",
+      "subtype": "ProcessArea",
+      "status": "OPERATING",
+      "criticality": "HIGH"
+    },
+    {
+      "asset_id": "AREA-LP-COMP:K-201",
+      "tag": "K-201",
+      "name": "LP Compressor A",
+      "type": "Compressor",
+      "subtype": "Centrifugal",
+      "status": "MAINTENANCE",
+      "criticality": "HIGH"
+    },
+    {
+      "asset_id": "AREA-LP-COMP:K-202",
+      "tag": "K-202",
+      "name": "LP Compressor B",
+      "type": "Compressor",
+      "subtype": "Centrifugal",
+      "status": "OPERATING",
+      "criticality": "HIGH"
+    },
+    {
+      "asset_id": "AREA-LP-COMP:V-201",
+      "tag": "V-201",
+      "name": "LP Suction Scrubber A",
+      "type": "Vessel",
+      "subtype": "Scrubber",
+      "status": "OPERATING",
+      "criticality": "MEDIUM"
+    },
+    {
+      "asset_id": "AREA-LP-COMP:V-202",
+      "tag": "V-202",
+      "name": "LP Suction Scrubber B",
+      "type": "Vessel",
+      "subtype": "Scrubber",
+      "status": "STANDBY",
+      "criticality": "MEDIUM"
+    },
+    {
+      "asset_id": "AREA-LP-COMP:E-201",
+      "tag": "E-201",
+      "name": "LP Compressor Aftercooler A",
+      "type": "HeatExchanger",
+      "subtype": "AirCooled",
+      "status": "MAINTENANCE",
+      "criticality": "MEDIUM"
+    },
+    {
+      "asset_id": "AREA-LP-COMP:E-202",
+      "tag": "E-202",
+      "name": "LP Compressor Aftercooler B",
+      "type": "HeatExchanger",
+      "subtype": "AirCooled",
+      "status": "OPERATING",
+      "criticality": "MEDIUM"
+    },
+    {
+      "asset_id": "AREA-LP-COMP:PT-201",
+      "tag": "PT-201",
+      "name": "LP Suction Pressure Tx A",
+      "type": "Instrument",
+      "subtype": "PressureTransmitter",
+      "status": "OPERATING",
+      "criticality": "LOW"
+    },
+    {
+      "asset_id": "AREA-LP-COMP:PT-202",
+      "tag": "PT-202",
+      "name": "LP Suction Pressure Tx B",
+      "type": "Instrument",
+      "subtype": "PressureTransmitter",
+      "status": "OPERATING",
+      "criticality": "LOW"
+    },
+    {
+      "asset_id": "AREA-LP-COMP:PT-203",
+      "tag": "PT-203",
+      "name": "LP Discharge Pressure Tx A",
+      "type": "Instrument",
+      "subtype": "PressureTransmitter",
+      "status": "OPERATING",
+      "criticality": "LOW"
+    },
+    {
+      "asset_id": "AREA-LP-COMP:PT-204",
+      "tag": "PT-204",
+      "name": "LP Discharge Pressure Tx B",
+      "type": "Instrument",
+      "subtype": "PressureTransmitter",
+      "status": "OPERATING",
+      "criticality": "LOW"
+    },
+    {
+      "asset_id": "AREA-LP-COMP:FT-201",
+      "tag": "FT-201",
+      "name": "LP Compressor Suction Flow Tx",
+      "type": "Instrument",
+      "subtype": "FlowTransmitter",
+      "status": "MAINTENANCE",
+      "criticality": "LOW"
+    },
+    {
+      "asset_id": "AREA-LP-COMP:VT-201",
+      "tag": "VT-201",
+      "name": "K-201 Vibration Sensor DE",
+      "type": "Instrument",
+      "subtype": "VibrationTransmitter",
+      "status": "MAINTENANCE",
+      "criticality": "LOW"
+    },
+    {
+      "asset_id": "AREA-LP-COMP:VT-202",
+      "tag": "VT-202",
+      "name": "K-201 Vibration Sensor NDE",
+      "type": "Instrument",
+      "subtype": "VibrationTransmitter",
+      "status": "OPERATING",
+      "criticality": "LOW"
+    },
+    {
+      "asset_id": "AREA-LP-COMP:VT-203",
+      "tag": "VT-203",
+      "name": "K-202 Vibration Sensor DE",
+      "type": "Instrument",
+      "subtype": "VibrationTransmitter",
+      "status": "MAINTENANCE",
+      "criticality": "LOW"
+    },
+    {
+      "asset_id": "AREA-LP-COMP:TT-201",
+      "tag": "TT-201",
+      "name": "LP Comp A Discharge Temp",
+      "type": "Instrument",
+      "subtype": "TemperatureTransmitter",
+      "status": "STANDBY",
+      "criticality": "LOW"
+    },
+    {
+      "asset_id": "AREA-LP-COMP:TT-202",
+      "tag": "TT-202",
+      "name": "LP Comp B Discharge Temp",
+      "type": "Instrument",
+      "subtype": "TemperatureTransmitter",
+      "status": "MAINTENANCE",
+      "criticality": "LOW"
+    },
+    {
+      "asset_id": "AREA-LP-COMP:LT-201",
+      "tag": "LT-201",
+      "name": "LP Scrubber A Level Tx",
+      "type": "Instrument",
+      "subtype": "LevelTransmitter",
+      "status": "OPERATING",
+      "criticality": "LOW"
+    },
+    {
+      "asset_id": "AREA-LP-COMP:SDV-201",
+      "tag": "SDV-201",
+      "name": "LP Comp A Suction SDV",
+      "type": "Valve",
+      "subtype": "ShutdownValve",
+      "status": "OPERATING",
+      "criticality": "LOW"
+    },
+    {
+      "asset_id": "AREA-LP-COMP:SDV-202",
+      "tag": "SDV-202",
+      "name": "LP Comp B Suction SDV",
+      "type": "Valve",
+      "subtype": "ShutdownValve",
+      "status": "MAINTENANCE",
+      "criticality": "LOW"
+    },
+    {
+      "asset_id": "AREA-LP-COMP:PCV-201",
+      "tag": "PCV-201",
+      "name": "LP Comp A Anti-Surge Valve",
+      "type": "Valve",
+      "subtype": "ControlValve",
+      "status": "OPERATING",
+      "criticality": "LOW"
+    }
+  ],
+  "Water Treatment": [
+    {
+      "asset_id": "AREA-WATER",
+      "tag": "AREA-WATER",
+      "name": "Water Treatment",
+      "type": "Area",
+      "subtype": "ProcessArea",
+      "status": "OPERATING",
+      "criticality": "HIGH"
+    },
+    {
+      "asset_id": "AREA-WATER:V-301",
+      "tag": "V-301",
+      "name": "Produced Water Vessel",
+      "type": "Vessel",
+      "subtype": "SeparationVessel",
+      "status": "STANDBY",
+      "criticality": "MEDIUM"
+    },
+    {
+      "asset_id": "AREA-WATER:V-302",
+      "tag": "V-302",
+      "name": "Deoiling Hydrocyclone Package",
+      "type": "Vessel",
+      "subtype": "Hydrocyclone",
+      "status": "OPERATING",
+      "criticality": "MEDIUM"
+    },
+    {
+      "asset_id": "AREA-WATER:E-301",
+      "tag": "E-301",
+      "name": "Produced Water Cooler",
+      "type": "HeatExchanger",
+      "subtype": "Shell&Tube",
+      "status": "OPERATING",
+      "criticality": "MEDIUM"
+    },
+    {
+      "asset_id": "AREA-WATER:P-301",
+      "tag": "P-301",
+      "name": "Produced Water Transfer Pump A",
+      "type": "Pump",
+      "subtype": "CentrifugalPump",
+      "status": "OPERATING",
+      "criticality": "HIGH"
+    },
+    {
+      "asset_id": "AREA-WATER:P-302",
+      "tag": "P-302",
+      "name": "Produced Water Transfer Pump B",
+      "type": "Pump",
+      "subtype": "CentrifugalPump",
+      "status": "OPERATING",
+      "criticality": "HIGH"
+    },
+    {
+      "asset_id": "AREA-WATER:P-303",
+      "tag": "P-303",
+      "name": "Cooling Water Pump A",
+      "type": "Pump",
+      "subtype": "CentrifugalPump",
+      "status": "STANDBY",
+      "criticality": "HIGH"
+    },
+    {
+      "asset_id": "AREA-WATER:P-304",
+      "tag": "P-304",
+      "name": "Cooling Water Pump B",
+      "type": "Pump",
+      "subtype": "CentrifugalPump",
+      "status": "STANDBY",
+      "criticality": "HIGH"
+    },
+    {
+      "asset_id": "AREA-WATER:FT-301",
+      "tag": "FT-301",
+      "name": "PW Transfer Flow Meter",
+      "type": "Instrument",
+      "subtype": "FlowTransmitter",
+      "status": "OPERATING",
+      "criticality": "LOW"
+    },
+    {
+      "asset_id": "AREA-WATER:PT-301",
+      "tag": "PT-301",
+      "name": "PW Vessel Pressure Tx",
+      "type": "Instrument",
+      "subtype": "PressureTransmitter",
+      "status": "MAINTENANCE",
+      "criticality": "LOW"
+    },
+    {
+      "asset_id": "AREA-WATER:LT-301",
+      "tag": "LT-301",
+      "name": "PW Vessel Level Tx A",
+      "type": "Instrument",
+      "subtype": "LevelTransmitter",
+      "status": "OPERATING",
+      "criticality": "LOW"
+    },
+    {
+      "asset_id": "AREA-WATER:LT-302",
+      "tag": "LT-302",
+      "name": "PW Vessel Level Tx B",
+      "type": "Instrument",
+      "subtype": "LevelTransmitter",
+      "status": "MAINTENANCE",
+      "criticality": "LOW"
+    },
+    {
+      "asset_id": "AREA-WATER:TT-301",
+      "tag": "TT-301",
+      "name": "PW Cooler Outlet Temp A",
+      "type": "Instrument",
+      "subtype": "TemperatureTransmitter",
+      "status": "OPERATING",
+      "criticality": "LOW"
+    },
+    {
+      "asset_id": "AREA-WATER:TT-302",
+      "tag": "TT-302",
+      "name": "PW Cooler Outlet Temp B",
+      "type": "Instrument",
+      "subtype": "TemperatureTransmitter",
+      "status": "MAINTENANCE",
+      "criticality": "LOW"
+    },
+    {
+      "asset_id": "AREA-WATER:TT-303",
+      "tag": "TT-303",
+      "name": "PW Cooler Inlet Temp",
+      "type": "Instrument",
+      "subtype": "TemperatureTransmitter",
+      "status": "MAINTENANCE",
+      "criticality": "LOW"
+    },
+    {
+      "asset_id": "AREA-WATER:VT-301",
+      "tag": "VT-301",
+      "name": "P-301 Pump Vibration",
+      "type": "Instrument",
+      "subtype": "VibrationTransmitter",
+      "status": "OPERATING",
+      "criticality": "LOW"
+    },
+    {
+      "asset_id": "AREA-WATER:VT-302",
+      "tag": "VT-302",
+      "name": "P-303 CW Pump Vibration",
+      "type": "Instrument",
+      "subtype": "VibrationTransmitter",
+      "status": "OPERATING",
+      "criticality": "LOW"
+    },
+    {
+      "asset_id": "AREA-WATER:AT-301",
+      "tag": "AT-301",
+      "name": "PW Oil-in-Water Analyser",
+      "type": "Instrument",
+      "subtype": "Analyser",
+      "status": "STANDBY",
+      "criticality": "LOW"
+    },
+    {
+      "asset_id": "AREA-WATER:LCV-301",
+      "tag": "LCV-301",
+      "name": "PW Vessel Level Control Valve",
+      "type": "Valve",
+      "subtype": "ControlValve",
+      "status": "OPERATING",
+      "criticality": "LOW"
+    },
+    {
+      "asset_id": "AREA-WATER:SDV-301",
+      "tag": "SDV-301",
+      "name": "PW Transfer SDV",
+      "type": "Valve",
+      "subtype": "ShutdownValve",
+      "status": "OPERATING",
+      "criticality": "LOW"
+    }
+  ],
+  "Utilities": [
+    {
+      "asset_id": "AREA-UTIL",
+      "tag": "AREA-UTIL",
+      "name": "Utilities",
+      "type": "Area",
+      "subtype": "ProcessArea",
+      "status": "OPERATING",
+      "criticality": "HIGH"
+    },
+    {
+      "asset_id": "AREA-UTIL:K-401",
+      "tag": "K-401",
+      "name": "Instrument Air Compressor A",
+      "type": "Compressor",
+      "subtype": "Reciprocating",
+      "status": "OPERATING",
+      "criticality": "HIGH"
+    },
+    {
+      "asset_id": "AREA-UTIL:K-402",
+      "tag": "K-402",
+      "name": "Instrument Air Compressor B",
+      "type": "Compressor",
+      "subtype": "Reciprocating",
+      "status": "STANDBY",
+      "criticality": "HIGH"
+    },
+    {
+      "asset_id": "AREA-UTIL:V-401",
+      "tag": "V-401",
+      "name": "Instrument Air Receiver",
+      "type": "Vessel",
+      "subtype": "Receiver",
+      "status": "MAINTENANCE",
+      "criticality": "MEDIUM"
+    },
+    {
+      "asset_id": "AREA-UTIL:V-402",
+      "tag": "V-402",
+      "name": "Fuel Gas Scrubber",
+      "type": "Vessel",
+      "subtype": "Scrubber",
+      "status": "STANDBY",
+      "criticality": "MEDIUM"
+    },
+    {
+      "asset_id": "AREA-UTIL:P-401",
+      "tag": "P-401",
+      "name": "Fire Water Pump A",
+      "type": "Pump",
+      "subtype": "CentrifugalPump",
+      "status": "OPERATING",
+      "criticality": "HIGH"
+    },
+    {
+      "asset_id": "AREA-UTIL:P-402",
+      "tag": "P-402",
+      "name": "Fire Water Pump B",
+      "type": "Pump",
+      "subtype": "CentrifugalPump",
+      "status": "MAINTENANCE",
+      "criticality": "HIGH"
+    },
+    {
+      "asset_id": "AREA-UTIL:G-401",
+      "tag": "G-401",
+      "name": "Main Generator A",
+      "type": "Generator",
+      "subtype": "DieselGenerator",
+      "status": "OPERATING",
+      "criticality": "HIGH"
+    },
+    {
+      "asset_id": "AREA-UTIL:G-402",
+      "tag": "G-402",
+      "name": "Main Generator B",
+      "type": "Generator",
+      "subtype": "DieselGenerator",
+      "status": "OPERATING",
+      "criticality": "HIGH"
+    },
+    {
+      "asset_id": "AREA-UTIL:G-403",
+      "tag": "G-403",
+      "name": "Emergency Generator",
+      "type": "Generator",
+      "subtype": "DieselGenerator",
+      "status": "OPERATING",
+      "criticality": "HIGH"
+    },
+    {
+      "asset_id": "AREA-UTIL:PT-401",
+      "tag": "PT-401",
+      "name": "IA Header Pressure Tx",
+      "type": "Instrument",
+      "subtype": "PressureTransmitter",
+      "status": "STANDBY",
+      "criticality": "LOW"
+    },
+    {
+      "asset_id": "AREA-UTIL:PT-402",
+      "tag": "PT-402",
+      "name": "Fuel Gas Pressure Tx",
+      "type": "Instrument",
+      "subtype": "PressureTransmitter",
+      "status": "STANDBY",
+      "criticality": "LOW"
+    },
+    {
+      "asset_id": "AREA-UTIL:PT-145",
+      "tag": "PT-145",
+      "name": "Export Header Pressure Tx A",
+      "type": "Instrument",
+      "subtype": "PressureTransmitter",
+      "status": "STANDBY",
+      "criticality": "LOW"
+    },
+    {
+      "asset_id": "AREA-UTIL:PT-146",
+      "tag": "PT-146",
+      "name": "Export Header Pressure Tx B",
+      "type": "Instrument",
+      "subtype": "PressureTransmitter",
+      "status": "OPERATING",
+      "criticality": "LOW"
+    },
+    {
+      "asset_id": "AREA-UTIL:TT-401",
+      "tag": "TT-401",
+      "name": "Generator A Exhaust Temp",
+      "type": "Instrument",
+      "subtype": "TemperatureTransmitter",
+      "status": "STANDBY",
+      "criticality": "LOW"
+    },
+    {
+      "asset_id": "AREA-UTIL:TT-402",
+      "tag": "TT-402",
+      "name": "Generator B Exhaust Temp",
+      "type": "Instrument",
+      "subtype": "TemperatureTransmitter",
+      "status": "STANDBY",
+      "criticality": "LOW"
+    },
+    {
+      "asset_id": "AREA-UTIL:ESD-001",
+      "tag": "ESD-001",
+      "name": "Platform Emergency Shutdown",
+      "type": "Safety",
+      "subtype": "ESDSystem",
+      "status": "MAINTENANCE",
+      "criticality": "LOW"
+    },
+    {
+      "asset_id": "AREA-UTIL:F-401",
+      "tag": "F-401",
+      "name": "Flare KO Drum",
+      "type": "Vessel",
+      "subtype": "KnockoutDrum",
+      "status": "STANDBY",
+      "criticality": "MEDIUM"
+    },
+    {
+      "asset_id": "AREA-UTIL:PSV-401",
+      "tag": "PSV-401",
+      "name": "Flare Header PSV",
+      "type": "Valve",
+      "subtype": "SafetyValve",
+      "status": "OPERATING",
+      "criticality": "LOW"
+    }
+  ],
+  "Metering & Export": [
+    {
+      "asset_id": "AREA-EXPORT",
+      "tag": "AREA-EXPORT",
+      "name": "Metering & Export",
+      "type": "Area",
+      "subtype": "ProcessArea",
+      "status": "OPERATING",
+      "criticality": "HIGH"
+    },
+    {
+      "asset_id": "AREA-EXPORT:V-501",
+      "tag": "V-501",
+      "name": "Export Buffer Tank A",
+      "type": "Vessel",
+      "subtype": "StorageTank",
+      "status": "OPERATING",
+      "criticality": "MEDIUM"
+    },
+    {
+      "asset_id": "AREA-EXPORT:V-502",
+      "tag": "V-502",
+      "name": "Export Buffer Tank B",
+      "type": "Vessel",
+      "subtype": "StorageTank",
+      "status": "OPERATING",
+      "criticality": "MEDIUM"
+    },
+    {
+      "asset_id": "AREA-EXPORT:P-501",
+      "tag": "P-501",
+      "name": "Export Crude Pump A",
+      "type": "Pump",
+      "subtype": "CentrifugalPump",
+      "status": "MAINTENANCE",
+      "criticality": "HIGH"
+    },
+    {
+      "asset_id": "AREA-EXPORT:P-502",
+      "tag": "P-502",
+      "name": "Export Crude Pump B",
+      "type": "Pump",
+      "subtype": "CentrifugalPump",
+      "status": "OPERATING",
+      "criticality": "HIGH"
+    },
+    {
+      "asset_id": "AREA-EXPORT:E-501",
+      "tag": "E-501",
+      "name": "Export Crude Heater",
+      "type": "HeatExchanger",
+      "subtype": "Shell&Tube",
+      "status": "STANDBY",
+      "criticality": "MEDIUM"
+    },
+    {
+      "asset_id": "AREA-EXPORT:FT-501",
+      "tag": "FT-501",
+      "name": "Export Flow Meter A",
+      "type": "Instrument",
+      "subtype": "FlowTransmitter",
+      "status": "STANDBY",
+      "criticality": "LOW"
+    },
+    {
+      "asset_id": "AREA-EXPORT:FT-502",
+      "tag": "FT-502",
+      "name": "Export Flow Meter B",
+      "type": "Instrument",
+      "subtype": "FlowTransmitter",
+      "status": "OPERATING",
+      "criticality": "LOW"
+    },
+    {
+      "asset_id": "AREA-EXPORT:PT-501",
+      "tag": "PT-501",
+      "name": "Export Line Pressure Tx A",
+      "type": "Instrument",
+      "subtype": "PressureTransmitter",
+      "status": "MAINTENANCE",
+      "criticality": "LOW"
+    },
+    {
+      "asset_id": "AREA-EXPORT:PT-502",
+      "tag": "PT-502",
+      "name": "Export Line Pressure Tx B",
+      "type": "Instrument",
+      "subtype": "PressureTransmitter",
+      "status": "OPERATING",
+      "criticality": "LOW"
+    },
+    {
+      "asset_id": "AREA-EXPORT:TT-501",
+      "tag": "TT-501",
+      "name": "Export Crude Temp A",
+      "type": "Instrument",
+      "subtype": "TemperatureTransmitter",
+      "status": "STANDBY",
+      "criticality": "LOW"
+    },
+    {
+      "asset_id": "AREA-EXPORT:TT-502",
+      "tag": "TT-502",
+      "name": "Export Crude Temp B",
+      "type": "Instrument",
+      "subtype": "TemperatureTransmitter",
+      "status": "MAINTENANCE",
+      "criticality": "LOW"
+    },
+    {
+      "asset_id": "AREA-EXPORT:LT-501",
+      "tag": "LT-501",
+      "name": "Export Tank A Level Tx",
+      "type": "Instrument",
+      "subtype": "LevelTransmitter",
+      "status": "MAINTENANCE",
+      "criticality": "LOW"
+    },
+    {
+      "asset_id": "AREA-EXPORT:LT-502",
+      "tag": "LT-502",
+      "name": "Export Tank B Level Tx",
+      "type": "Instrument",
+      "subtype": "LevelTransmitter",
+      "status": "MAINTENANCE",
+      "criticality": "LOW"
+    },
+    {
+      "asset_id": "AREA-EXPORT:SDV-501",
+      "tag": "SDV-501",
+      "name": "Export Line Shutdown Valve",
+      "type": "Valve",
+      "subtype": "ShutdownValve",
+      "status": "OPERATING",
+      "criticality": "LOW"
+    },
+    {
+      "asset_id": "AREA-EXPORT:PCV-501",
+      "tag": "PCV-501",
+      "name": "Export Pressure Control Valve",
+      "type": "Valve",
+      "subtype": "ControlValve",
+      "status": "MAINTENANCE",
+      "criticality": "LOW"
+    }
+  ]
+}

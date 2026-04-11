@@ -1,0 +1,2256 @@
+{
+  "AREA-HP-SEP:V-101": [
+    {
+      "sensor_id": "V-101-PRESS",
+      "name": "HP Production Separator - PRESSURE",
+      "sensor_type": "PRESSURE",
+      "unit": "bar",
+      "normal_min": 30.0,
+      "normal_max": 70.0,
+      "alarm_low": 25.5,
+      "alarm_high": 80.5,
+      "trip_low": 21.0,
+      "trip_high": 91.0
+    },
+    {
+      "sensor_id": "V-101-LEVEL",
+      "name": "HP Production Separator - LEVEL",
+      "sensor_type": "LEVEL",
+      "unit": "%",
+      "normal_min": 30.0,
+      "normal_max": 70.0,
+      "alarm_low": 25.5,
+      "alarm_high": 80.5,
+      "trip_low": 21.0,
+      "trip_high": 91.0
+    },
+    {
+      "sensor_id": "V-101-TEMP",
+      "name": "HP Production Separator - TEMPERATURE",
+      "sensor_type": "TEMPERATURE",
+      "unit": "degC",
+      "normal_min": 40.0,
+      "normal_max": 90.0,
+      "alarm_low": 34.0,
+      "alarm_high": 103.5,
+      "trip_low": 28.0,
+      "trip_high": 117.0
+    },
+    {
+      "sensor_id": "V-101-GAS_FLOW",
+      "name": "HP Production Separator - FLOW",
+      "sensor_type": "FLOW",
+      "unit": "MMscfd",
+      "normal_min": 2.0,
+      "normal_max": 20.0,
+      "alarm_low": 1.7,
+      "alarm_high": 23.0,
+      "trip_low": 1.4,
+      "trip_high": 26.0
+    },
+    {
+      "sensor_id": "V-101-OIL_FLOW",
+      "name": "HP Production Separator - FLOW",
+      "sensor_type": "FLOW",
+      "unit": "m3/h",
+      "normal_min": 20.0,
+      "normal_max": 200.0,
+      "alarm_low": 17.0,
+      "alarm_high": 230.0,
+      "trip_low": 14.0,
+      "trip_high": 260.0
+    }
+  ],
+  "AREA-HP-SEP:V-102": [
+    {
+      "sensor_id": "V-102-PRESS",
+      "name": "Test Separator - PRESSURE",
+      "sensor_type": "PRESSURE",
+      "unit": "bar",
+      "normal_min": 30.0,
+      "normal_max": 70.0,
+      "alarm_low": 25.5,
+      "alarm_high": 80.5,
+      "trip_low": 21.0,
+      "trip_high": 91.0
+    },
+    {
+      "sensor_id": "V-102-LEVEL",
+      "name": "Test Separator - LEVEL",
+      "sensor_type": "LEVEL",
+      "unit": "%",
+      "normal_min": 30.0,
+      "normal_max": 70.0,
+      "alarm_low": 25.5,
+      "alarm_high": 80.5,
+      "trip_low": 21.0,
+      "trip_high": 91.0
+    },
+    {
+      "sensor_id": "V-102-TEMP",
+      "name": "Test Separator - TEMPERATURE",
+      "sensor_type": "TEMPERATURE",
+      "unit": "degC",
+      "normal_min": 40.0,
+      "normal_max": 90.0,
+      "alarm_low": 34.0,
+      "alarm_high": 103.5,
+      "trip_low": 28.0,
+      "trip_high": 117.0
+    },
+    {
+      "sensor_id": "V-102-GAS_FLOW",
+      "name": "Test Separator - FLOW",
+      "sensor_type": "FLOW",
+      "unit": "MMscfd",
+      "normal_min": 2.0,
+      "normal_max": 20.0,
+      "alarm_low": 1.7,
+      "alarm_high": 23.0,
+      "trip_low": 1.4,
+      "trip_high": 26.0
+    },
+    {
+      "sensor_id": "V-102-OIL_FLOW",
+      "name": "Test Separator - FLOW",
+      "sensor_type": "FLOW",
+      "unit": "m3/h",
+      "normal_min": 20.0,
+      "normal_max": 200.0,
+      "alarm_low": 17.0,
+      "alarm_high": 230.0,
+      "trip_low": 14.0,
+      "trip_high": 260.0
+    }
+  ],
+  "AREA-HP-SEP:E-101": [
+    {
+      "sensor_id": "E-101-TINLET",
+      "name": "Wellstream Heater - TEMPERATURE",
+      "sensor_type": "TEMPERATURE",
+      "unit": "degC",
+      "normal_min": 50.0,
+      "normal_max": 120.0,
+      "alarm_low": 42.5,
+      "alarm_high": 138.0,
+      "trip_low": 35.0,
+      "trip_high": 156.0
+    },
+    {
+      "sensor_id": "E-101-TOUTLET",
+      "name": "Wellstream Heater - TEMPERATURE",
+      "sensor_type": "TEMPERATURE",
+      "unit": "degC",
+      "normal_min": 30.0,
+      "normal_max": 70.0,
+      "alarm_low": 25.5,
+      "alarm_high": 80.5,
+      "trip_low": 21.0,
+      "trip_high": 91.0
+    },
+    {
+      "sensor_id": "E-101-PSHELL",
+      "name": "Wellstream Heater - PRESSURE",
+      "sensor_type": "PRESSURE",
+      "unit": "bar",
+      "normal_min": 3.0,
+      "normal_max": 15.0,
+      "alarm_low": 2.55,
+      "alarm_high": 17.25,
+      "trip_low": 2.1,
+      "trip_high": 19.5
+    },
+    {
+      "sensor_id": "E-101-FLOW",
+      "name": "Wellstream Heater - FLOW",
+      "sensor_type": "FLOW",
+      "unit": "m3/h",
+      "normal_min": 30.0,
+      "normal_max": 150.0,
+      "alarm_low": 25.5,
+      "alarm_high": 172.5,
+      "trip_low": 21.0,
+      "trip_high": 195.0
+    }
+  ],
+  "AREA-HP-SEP:E-102": [
+    {
+      "sensor_id": "E-102-TINLET",
+      "name": "HP Glycol Reboiler - TEMPERATURE",
+      "sensor_type": "TEMPERATURE",
+      "unit": "degC",
+      "normal_min": 50.0,
+      "normal_max": 120.0,
+      "alarm_low": 42.5,
+      "alarm_high": 138.0,
+      "trip_low": 35.0,
+      "trip_high": 156.0
+    },
+    {
+      "sensor_id": "E-102-TOUTLET",
+      "name": "HP Glycol Reboiler - TEMPERATURE",
+      "sensor_type": "TEMPERATURE",
+      "unit": "degC",
+      "normal_min": 30.0,
+      "normal_max": 70.0,
+      "alarm_low": 25.5,
+      "alarm_high": 80.5,
+      "trip_low": 21.0,
+      "trip_high": 91.0
+    },
+    {
+      "sensor_id": "E-102-PSHELL",
+      "name": "HP Glycol Reboiler - PRESSURE",
+      "sensor_type": "PRESSURE",
+      "unit": "bar",
+      "normal_min": 3.0,
+      "normal_max": 15.0,
+      "alarm_low": 2.55,
+      "alarm_high": 17.25,
+      "trip_low": 2.1,
+      "trip_high": 19.5
+    },
+    {
+      "sensor_id": "E-102-FLOW",
+      "name": "HP Glycol Reboiler - FLOW",
+      "sensor_type": "FLOW",
+      "unit": "m3/h",
+      "normal_min": 30.0,
+      "normal_max": 150.0,
+      "alarm_low": 25.5,
+      "alarm_high": 172.5,
+      "trip_low": 21.0,
+      "trip_high": 195.0
+    }
+  ],
+  "AREA-HP-SEP:P-101": [
+    {
+      "sensor_id": "P-101-FLOW",
+      "name": "HP Separator Drain Pump A - FLOW",
+      "sensor_type": "FLOW",
+      "unit": "m3/h",
+      "normal_min": 50.0,
+      "normal_max": 300.0,
+      "alarm_low": 42.5,
+      "alarm_high": 345.0,
+      "trip_low": 35.0,
+      "trip_high": 390.0
+    },
+    {
+      "sensor_id": "P-101-PRESS",
+      "name": "HP Separator Drain Pump A - PRESSURE",
+      "sensor_type": "PRESSURE",
+      "unit": "bar",
+      "normal_min": 3.0,
+      "normal_max": 12.0,
+      "alarm_low": 2.55,
+      "alarm_high": 13.8,
+      "trip_low": 2.1,
+      "trip_high": 15.6
+    },
+    {
+      "sensor_id": "P-101-VIB",
+      "name": "HP Separator Drain Pump A - VIBRATION",
+      "sensor_type": "VIBRATION",
+      "unit": "mm/s",
+      "normal_min": 0.0,
+      "normal_max": 3.0,
+      "alarm_low": 0.0,
+      "alarm_high": 3.45,
+      "trip_low": 0.0,
+      "trip_high": 3.9
+    },
+    {
+      "sensor_id": "P-101-CURR",
+      "name": "HP Separator Drain Pump A - CURRENT",
+      "sensor_type": "CURRENT",
+      "unit": "A",
+      "normal_min": 15.0,
+      "normal_max": 55.0,
+      "alarm_low": 12.75,
+      "alarm_high": 63.25,
+      "trip_low": 10.5,
+      "trip_high": 71.5
+    },
+    {
+      "sensor_id": "P-101-TEMP",
+      "name": "HP Separator Drain Pump A - TEMPERATURE",
+      "sensor_type": "TEMPERATURE",
+      "unit": "degC",
+      "normal_min": 30.0,
+      "normal_max": 65.0,
+      "alarm_low": 25.5,
+      "alarm_high": 74.75,
+      "trip_low": 21.0,
+      "trip_high": 84.5
+    }
+  ],
+  "AREA-HP-SEP:P-102": [
+    {
+      "sensor_id": "P-102-FLOW",
+      "name": "HP Separator Drain Pump B - FLOW",
+      "sensor_type": "FLOW",
+      "unit": "m3/h",
+      "normal_min": 50.0,
+      "normal_max": 300.0,
+      "alarm_low": 42.5,
+      "alarm_high": 345.0,
+      "trip_low": 35.0,
+      "trip_high": 390.0
+    },
+    {
+      "sensor_id": "P-102-PRESS",
+      "name": "HP Separator Drain Pump B - PRESSURE",
+      "sensor_type": "PRESSURE",
+      "unit": "bar",
+      "normal_min": 3.0,
+      "normal_max": 12.0,
+      "alarm_low": 2.55,
+      "alarm_high": 13.8,
+      "trip_low": 2.1,
+      "trip_high": 15.6
+    },
+    {
+      "sensor_id": "P-102-VIB",
+      "name": "HP Separator Drain Pump B - VIBRATION",
+      "sensor_type": "VIBRATION",
+      "unit": "mm/s",
+      "normal_min": 0.0,
+      "normal_max": 3.0,
+      "alarm_low": 0.0,
+      "alarm_high": 3.45,
+      "trip_low": 0.0,
+      "trip_high": 3.9
+    },
+    {
+      "sensor_id": "P-102-CURR",
+      "name": "HP Separator Drain Pump B - CURRENT",
+      "sensor_type": "CURRENT",
+      "unit": "A",
+      "normal_min": 15.0,
+      "normal_max": 55.0,
+      "alarm_low": 12.75,
+      "alarm_high": 63.25,
+      "trip_low": 10.5,
+      "trip_high": 71.5
+    },
+    {
+      "sensor_id": "P-102-TEMP",
+      "name": "HP Separator Drain Pump B - TEMPERATURE",
+      "sensor_type": "TEMPERATURE",
+      "unit": "degC",
+      "normal_min": 30.0,
+      "normal_max": 65.0,
+      "alarm_low": 25.5,
+      "alarm_high": 74.75,
+      "trip_low": 21.0,
+      "trip_high": 84.5
+    }
+  ],
+  "AREA-HP-SEP:FT-101": [
+    {
+      "sensor_id": "FT-101-PV",
+      "name": "HP Sep Gas Flow Meter - FLOW",
+      "sensor_type": "FLOW",
+      "unit": "m3/h",
+      "normal_min": 50.0,
+      "normal_max": 300.0,
+      "alarm_low": 42.5,
+      "alarm_high": 345.0,
+      "trip_low": 35.0,
+      "trip_high": 390.0
+    }
+  ],
+  "AREA-HP-SEP:FT-102": [
+    {
+      "sensor_id": "FT-102-PV",
+      "name": "HP Sep Oil Flow Meter - FLOW",
+      "sensor_type": "FLOW",
+      "unit": "m3/h",
+      "normal_min": 50.0,
+      "normal_max": 300.0,
+      "alarm_low": 42.5,
+      "alarm_high": 345.0,
+      "trip_low": 35.0,
+      "trip_high": 390.0
+    }
+  ],
+  "AREA-HP-SEP:PT-101": [
+    {
+      "sensor_id": "PT-101-PV",
+      "name": "HP Sep Pressure Transmitter A - PRESSURE",
+      "sensor_type": "PRESSURE",
+      "unit": "bar",
+      "normal_min": 30.0,
+      "normal_max": 70.0,
+      "alarm_low": 25.5,
+      "alarm_high": 80.5,
+      "trip_low": 21.0,
+      "trip_high": 91.0
+    }
+  ],
+  "AREA-HP-SEP:PT-102": [
+    {
+      "sensor_id": "PT-102-PV",
+      "name": "HP Sep Pressure Transmitter B - PRESSURE",
+      "sensor_type": "PRESSURE",
+      "unit": "bar",
+      "normal_min": 30.0,
+      "normal_max": 70.0,
+      "alarm_low": 25.5,
+      "alarm_high": 80.5,
+      "trip_low": 21.0,
+      "trip_high": 91.0
+    }
+  ],
+  "AREA-HP-SEP:LT-101": [
+    {
+      "sensor_id": "LT-101-PV",
+      "name": "HP Sep Level Transmitter A - LEVEL",
+      "sensor_type": "LEVEL",
+      "unit": "%",
+      "normal_min": 20.0,
+      "normal_max": 80.0,
+      "alarm_low": 17.0,
+      "alarm_high": 92.0,
+      "trip_low": 14.0,
+      "trip_high": 104.0
+    }
+  ],
+  "AREA-HP-SEP:LT-102": [
+    {
+      "sensor_id": "LT-102-PV",
+      "name": "HP Sep Level Transmitter B - LEVEL",
+      "sensor_type": "LEVEL",
+      "unit": "%",
+      "normal_min": 20.0,
+      "normal_max": 80.0,
+      "alarm_low": 17.0,
+      "alarm_high": 92.0,
+      "trip_low": 14.0,
+      "trip_high": 104.0
+    }
+  ],
+  "AREA-HP-SEP:TT-101": [
+    {
+      "sensor_id": "TT-101-PV",
+      "name": "HP Sep Temperature Tx A - TEMPERATURE",
+      "sensor_type": "TEMPERATURE",
+      "unit": "degC",
+      "normal_min": 40.0,
+      "normal_max": 100.0,
+      "alarm_low": 34.0,
+      "alarm_high": 115.0,
+      "trip_low": 28.0,
+      "trip_high": 130.0
+    }
+  ],
+  "AREA-HP-SEP:TT-102": [
+    {
+      "sensor_id": "TT-102-PV",
+      "name": "HP Sep Temperature Tx B - TEMPERATURE",
+      "sensor_type": "TEMPERATURE",
+      "unit": "degC",
+      "normal_min": 40.0,
+      "normal_max": 100.0,
+      "alarm_low": 34.0,
+      "alarm_high": 115.0,
+      "trip_low": 28.0,
+      "trip_high": 130.0
+    }
+  ],
+  "AREA-LP-COMP:K-201": [
+    {
+      "sensor_id": "K-201-SPRESS",
+      "name": "LP Compressor A - PRESSURE",
+      "sensor_type": "PRESSURE",
+      "unit": "bar",
+      "normal_min": 5.0,
+      "normal_max": 25.0,
+      "alarm_low": 4.25,
+      "alarm_high": 28.75,
+      "trip_low": 3.5,
+      "trip_high": 32.5
+    },
+    {
+      "sensor_id": "K-201-DPRESS",
+      "name": "LP Compressor A - PRESSURE",
+      "sensor_type": "PRESSURE",
+      "unit": "bar",
+      "normal_min": 30.0,
+      "normal_max": 80.0,
+      "alarm_low": 25.5,
+      "alarm_high": 92.0,
+      "trip_low": 21.0,
+      "trip_high": 104.0
+    },
+    {
+      "sensor_id": "K-201-FLOW",
+      "name": "LP Compressor A - FLOW",
+      "sensor_type": "FLOW",
+      "unit": "MMscfd",
+      "normal_min": 1.0,
+      "normal_max": 8.0,
+      "alarm_low": 0.85,
+      "alarm_high": 9.2,
+      "trip_low": 0.7,
+      "trip_high": 10.4
+    },
+    {
+      "sensor_id": "K-201-VIBDE",
+      "name": "LP Compressor A - VIBRATION",
+      "sensor_type": "VIBRATION",
+      "unit": "mm/s",
+      "normal_min": 0.0,
+      "normal_max": 5.0,
+      "alarm_low": 0.0,
+      "alarm_high": 5.75,
+      "trip_low": 0.0,
+      "trip_high": 6.5
+    },
+    {
+      "sensor_id": "K-201-VIBNDE",
+      "name": "LP Compressor A - VIBRATION",
+      "sensor_type": "VIBRATION",
+      "unit": "mm/s",
+      "normal_min": 0.0,
+      "normal_max": 5.0,
+      "alarm_low": 0.0,
+      "alarm_high": 5.75,
+      "trip_low": 0.0,
+      "trip_high": 6.5
+    },
+    {
+      "sensor_id": "K-201-DTEMP",
+      "name": "LP Compressor A - TEMPERATURE",
+      "sensor_type": "TEMPERATURE",
+      "unit": "degC",
+      "normal_min": 60.0,
+      "normal_max": 120.0,
+      "alarm_low": 51.0,
+      "alarm_high": 138.0,
+      "trip_low": 42.0,
+      "trip_high": 156.0
+    }
+  ],
+  "AREA-LP-COMP:K-202": [
+    {
+      "sensor_id": "K-202-SPRESS",
+      "name": "LP Compressor B - PRESSURE",
+      "sensor_type": "PRESSURE",
+      "unit": "bar",
+      "normal_min": 5.0,
+      "normal_max": 25.0,
+      "alarm_low": 4.25,
+      "alarm_high": 28.75,
+      "trip_low": 3.5,
+      "trip_high": 32.5
+    },
+    {
+      "sensor_id": "K-202-DPRESS",
+      "name": "LP Compressor B - PRESSURE",
+      "sensor_type": "PRESSURE",
+      "unit": "bar",
+      "normal_min": 30.0,
+      "normal_max": 80.0,
+      "alarm_low": 25.5,
+      "alarm_high": 92.0,
+      "trip_low": 21.0,
+      "trip_high": 104.0
+    },
+    {
+      "sensor_id": "K-202-FLOW",
+      "name": "LP Compressor B - FLOW",
+      "sensor_type": "FLOW",
+      "unit": "MMscfd",
+      "normal_min": 1.0,
+      "normal_max": 8.0,
+      "alarm_low": 0.85,
+      "alarm_high": 9.2,
+      "trip_low": 0.7,
+      "trip_high": 10.4
+    },
+    {
+      "sensor_id": "K-202-VIBDE",
+      "name": "LP Compressor B - VIBRATION",
+      "sensor_type": "VIBRATION",
+      "unit": "mm/s",
+      "normal_min": 0.0,
+      "normal_max": 5.0,
+      "alarm_low": 0.0,
+      "alarm_high": 5.75,
+      "trip_low": 0.0,
+      "trip_high": 6.5
+    },
+    {
+      "sensor_id": "K-202-VIBNDE",
+      "name": "LP Compressor B - VIBRATION",
+      "sensor_type": "VIBRATION",
+      "unit": "mm/s",
+      "normal_min": 0.0,
+      "normal_max": 5.0,
+      "alarm_low": 0.0,
+      "alarm_high": 5.75,
+      "trip_low": 0.0,
+      "trip_high": 6.5
+    },
+    {
+      "sensor_id": "K-202-DTEMP",
+      "name": "LP Compressor B - TEMPERATURE",
+      "sensor_type": "TEMPERATURE",
+      "unit": "degC",
+      "normal_min": 60.0,
+      "normal_max": 120.0,
+      "alarm_low": 51.0,
+      "alarm_high": 138.0,
+      "trip_low": 42.0,
+      "trip_high": 156.0
+    }
+  ],
+  "AREA-LP-COMP:V-201": [
+    {
+      "sensor_id": "V-201-PRESS",
+      "name": "LP Suction Scrubber A - PRESSURE",
+      "sensor_type": "PRESSURE",
+      "unit": "bar",
+      "normal_min": 5.0,
+      "normal_max": 30.0,
+      "alarm_low": 4.25,
+      "alarm_high": 34.5,
+      "trip_low": 3.5,
+      "trip_high": 39.0
+    },
+    {
+      "sensor_id": "V-201-LEVEL",
+      "name": "LP Suction Scrubber A - LEVEL",
+      "sensor_type": "LEVEL",
+      "unit": "%",
+      "normal_min": 10.0,
+      "normal_max": 40.0,
+      "alarm_low": 8.5,
+      "alarm_high": 46.0,
+      "trip_low": 7.0,
+      "trip_high": 52.0
+    },
+    {
+      "sensor_id": "V-201-TEMP",
+      "name": "LP Suction Scrubber A - TEMPERATURE",
+      "sensor_type": "TEMPERATURE",
+      "unit": "degC",
+      "normal_min": 20.0,
+      "normal_max": 50.0,
+      "alarm_low": 17.0,
+      "alarm_high": 57.5,
+      "trip_low": 14.0,
+      "trip_high": 65.0
+    }
+  ],
+  "AREA-LP-COMP:V-202": [
+    {
+      "sensor_id": "V-202-PRESS",
+      "name": "LP Suction Scrubber B - PRESSURE",
+      "sensor_type": "PRESSURE",
+      "unit": "bar",
+      "normal_min": 5.0,
+      "normal_max": 30.0,
+      "alarm_low": 4.25,
+      "alarm_high": 34.5,
+      "trip_low": 3.5,
+      "trip_high": 39.0
+    },
+    {
+      "sensor_id": "V-202-LEVEL",
+      "name": "LP Suction Scrubber B - LEVEL",
+      "sensor_type": "LEVEL",
+      "unit": "%",
+      "normal_min": 10.0,
+      "normal_max": 40.0,
+      "alarm_low": 8.5,
+      "alarm_high": 46.0,
+      "trip_low": 7.0,
+      "trip_high": 52.0
+    },
+    {
+      "sensor_id": "V-202-TEMP",
+      "name": "LP Suction Scrubber B - TEMPERATURE",
+      "sensor_type": "TEMPERATURE",
+      "unit": "degC",
+      "normal_min": 20.0,
+      "normal_max": 50.0,
+      "alarm_low": 17.0,
+      "alarm_high": 57.5,
+      "trip_low": 14.0,
+      "trip_high": 65.0
+    }
+  ],
+  "AREA-LP-COMP:E-201": [
+    {
+      "sensor_id": "E-201-TINLET",
+      "name": "LP Compressor Aftercooler A - TEMPERATURE",
+      "sensor_type": "TEMPERATURE",
+      "unit": "degC",
+      "normal_min": 80.0,
+      "normal_max": 140.0,
+      "alarm_low": 68.0,
+      "alarm_high": 161.0,
+      "trip_low": 56.0,
+      "trip_high": 182.0
+    },
+    {
+      "sensor_id": "E-201-TOUTLET",
+      "name": "LP Compressor Aftercooler A - TEMPERATURE",
+      "sensor_type": "TEMPERATURE",
+      "unit": "degC",
+      "normal_min": 40.0,
+      "normal_max": 70.0,
+      "alarm_low": 34.0,
+      "alarm_high": 80.5,
+      "trip_low": 28.0,
+      "trip_high": 91.0
+    },
+    {
+      "sensor_id": "E-201-PRESS",
+      "name": "LP Compressor Aftercooler A - PRESSURE",
+      "sensor_type": "PRESSURE",
+      "unit": "bar",
+      "normal_min": 30.0,
+      "normal_max": 80.0,
+      "alarm_low": 25.5,
+      "alarm_high": 92.0,
+      "trip_low": 21.0,
+      "trip_high": 104.0
+    }
+  ],
+  "AREA-LP-COMP:E-202": [
+    {
+      "sensor_id": "E-202-TINLET",
+      "name": "LP Compressor Aftercooler B - TEMPERATURE",
+      "sensor_type": "TEMPERATURE",
+      "unit": "degC",
+      "normal_min": 80.0,
+      "normal_max": 140.0,
+      "alarm_low": 68.0,
+      "alarm_high": 161.0,
+      "trip_low": 56.0,
+      "trip_high": 182.0
+    },
+    {
+      "sensor_id": "E-202-TOUTLET",
+      "name": "LP Compressor Aftercooler B - TEMPERATURE",
+      "sensor_type": "TEMPERATURE",
+      "unit": "degC",
+      "normal_min": 40.0,
+      "normal_max": 70.0,
+      "alarm_low": 34.0,
+      "alarm_high": 80.5,
+      "trip_low": 28.0,
+      "trip_high": 91.0
+    },
+    {
+      "sensor_id": "E-202-PRESS",
+      "name": "LP Compressor Aftercooler B - PRESSURE",
+      "sensor_type": "PRESSURE",
+      "unit": "bar",
+      "normal_min": 30.0,
+      "normal_max": 80.0,
+      "alarm_low": 25.5,
+      "alarm_high": 92.0,
+      "trip_low": 21.0,
+      "trip_high": 104.0
+    }
+  ],
+  "AREA-LP-COMP:PT-201": [
+    {
+      "sensor_id": "PT-201-PV",
+      "name": "LP Suction Pressure Tx A - PRESSURE",
+      "sensor_type": "PRESSURE",
+      "unit": "bar",
+      "normal_min": 30.0,
+      "normal_max": 70.0,
+      "alarm_low": 25.5,
+      "alarm_high": 80.5,
+      "trip_low": 21.0,
+      "trip_high": 91.0
+    }
+  ],
+  "AREA-LP-COMP:PT-202": [
+    {
+      "sensor_id": "PT-202-PV",
+      "name": "LP Suction Pressure Tx B - PRESSURE",
+      "sensor_type": "PRESSURE",
+      "unit": "bar",
+      "normal_min": 30.0,
+      "normal_max": 70.0,
+      "alarm_low": 25.5,
+      "alarm_high": 80.5,
+      "trip_low": 21.0,
+      "trip_high": 91.0
+    }
+  ],
+  "AREA-LP-COMP:PT-203": [
+    {
+      "sensor_id": "PT-203-PV",
+      "name": "LP Discharge Pressure Tx A - PRESSURE",
+      "sensor_type": "PRESSURE",
+      "unit": "bar",
+      "normal_min": 30.0,
+      "normal_max": 70.0,
+      "alarm_low": 25.5,
+      "alarm_high": 80.5,
+      "trip_low": 21.0,
+      "trip_high": 91.0
+    }
+  ],
+  "AREA-LP-COMP:PT-204": [
+    {
+      "sensor_id": "PT-204-PV",
+      "name": "LP Discharge Pressure Tx B - PRESSURE",
+      "sensor_type": "PRESSURE",
+      "unit": "bar",
+      "normal_min": 30.0,
+      "normal_max": 70.0,
+      "alarm_low": 25.5,
+      "alarm_high": 80.5,
+      "trip_low": 21.0,
+      "trip_high": 91.0
+    }
+  ],
+  "AREA-LP-COMP:FT-201": [
+    {
+      "sensor_id": "FT-201-PV",
+      "name": "LP Compressor Suction Flow Tx - FLOW",
+      "sensor_type": "FLOW",
+      "unit": "m3/h",
+      "normal_min": 50.0,
+      "normal_max": 300.0,
+      "alarm_low": 42.5,
+      "alarm_high": 345.0,
+      "trip_low": 35.0,
+      "trip_high": 390.0
+    }
+  ],
+  "AREA-LP-COMP:VT-201": [
+    {
+      "sensor_id": "VT-201-PV",
+      "name": "K-201 Vibration Sensor DE - VIBRATION",
+      "sensor_type": "VIBRATION",
+      "unit": "mm/s",
+      "normal_min": 0.0,
+      "normal_max": 5.0,
+      "alarm_low": 0.0,
+      "alarm_high": 5.75,
+      "trip_low": 0.0,
+      "trip_high": 6.5
+    }
+  ],
+  "AREA-LP-COMP:VT-202": [
+    {
+      "sensor_id": "VT-202-PV",
+      "name": "K-201 Vibration Sensor NDE - VIBRATION",
+      "sensor_type": "VIBRATION",
+      "unit": "mm/s",
+      "normal_min": 0.0,
+      "normal_max": 5.0,
+      "alarm_low": 0.0,
+      "alarm_high": 5.75,
+      "trip_low": 0.0,
+      "trip_high": 6.5
+    }
+  ],
+  "AREA-LP-COMP:VT-203": [
+    {
+      "sensor_id": "VT-203-PV",
+      "name": "K-202 Vibration Sensor DE - VIBRATION",
+      "sensor_type": "VIBRATION",
+      "unit": "mm/s",
+      "normal_min": 0.0,
+      "normal_max": 5.0,
+      "alarm_low": 0.0,
+      "alarm_high": 5.75,
+      "trip_low": 0.0,
+      "trip_high": 6.5
+    }
+  ],
+  "AREA-LP-COMP:TT-201": [
+    {
+      "sensor_id": "TT-201-PV",
+      "name": "LP Comp A Discharge Temp - TEMPERATURE",
+      "sensor_type": "TEMPERATURE",
+      "unit": "degC",
+      "normal_min": 40.0,
+      "normal_max": 100.0,
+      "alarm_low": 34.0,
+      "alarm_high": 115.0,
+      "trip_low": 28.0,
+      "trip_high": 130.0
+    }
+  ],
+  "AREA-LP-COMP:TT-202": [
+    {
+      "sensor_id": "TT-202-PV",
+      "name": "LP Comp B Discharge Temp - TEMPERATURE",
+      "sensor_type": "TEMPERATURE",
+      "unit": "degC",
+      "normal_min": 40.0,
+      "normal_max": 100.0,
+      "alarm_low": 34.0,
+      "alarm_high": 115.0,
+      "trip_low": 28.0,
+      "trip_high": 130.0
+    }
+  ],
+  "AREA-LP-COMP:LT-201": [
+    {
+      "sensor_id": "LT-201-PV",
+      "name": "LP Scrubber A Level Tx - LEVEL",
+      "sensor_type": "LEVEL",
+      "unit": "%",
+      "normal_min": 20.0,
+      "normal_max": 80.0,
+      "alarm_low": 17.0,
+      "alarm_high": 92.0,
+      "trip_low": 14.0,
+      "trip_high": 104.0
+    }
+  ],
+  "AREA-WATER:V-301": [
+    {
+      "sensor_id": "V-301-LEVEL",
+      "name": "Produced Water Vessel - LEVEL",
+      "sensor_type": "LEVEL",
+      "unit": "%",
+      "normal_min": 25.0,
+      "normal_max": 75.0,
+      "alarm_low": 21.25,
+      "alarm_high": 86.25,
+      "trip_low": 17.5,
+      "trip_high": 97.5
+    },
+    {
+      "sensor_id": "V-301-PRESS",
+      "name": "Produced Water Vessel - PRESSURE",
+      "sensor_type": "PRESSURE",
+      "unit": "bar",
+      "normal_min": 2.0,
+      "normal_max": 8.0,
+      "alarm_low": 1.7,
+      "alarm_high": 9.2,
+      "trip_low": 1.4,
+      "trip_high": 10.4
+    },
+    {
+      "sensor_id": "V-301-TEMP",
+      "name": "Produced Water Vessel - TEMPERATURE",
+      "sensor_type": "TEMPERATURE",
+      "unit": "degC",
+      "normal_min": 30.0,
+      "normal_max": 60.0,
+      "alarm_low": 25.5,
+      "alarm_high": 69.0,
+      "trip_low": 21.0,
+      "trip_high": 78.0
+    }
+  ],
+  "AREA-WATER:V-302": [
+    {
+      "sensor_id": "V-302-DPRES",
+      "name": "Deoiling Hydrocyclone Package - PRESSURE",
+      "sensor_type": "PRESSURE",
+      "unit": "bar",
+      "normal_min": 2.0,
+      "normal_max": 6.0,
+      "alarm_low": 1.7,
+      "alarm_high": 6.9,
+      "trip_low": 1.4,
+      "trip_high": 7.8
+    },
+    {
+      "sensor_id": "V-302-FLOW",
+      "name": "Deoiling Hydrocyclone Package - FLOW",
+      "sensor_type": "FLOW",
+      "unit": "m3/h",
+      "normal_min": 20.0,
+      "normal_max": 100.0,
+      "alarm_low": 17.0,
+      "alarm_high": 115.0,
+      "trip_low": 14.0,
+      "trip_high": 130.0
+    }
+  ],
+  "AREA-WATER:E-301": [
+    {
+      "sensor_id": "E-301-TINLET",
+      "name": "Produced Water Cooler - TEMPERATURE",
+      "sensor_type": "TEMPERATURE",
+      "unit": "degC",
+      "normal_min": 50.0,
+      "normal_max": 120.0,
+      "alarm_low": 42.5,
+      "alarm_high": 138.0,
+      "trip_low": 35.0,
+      "trip_high": 156.0
+    },
+    {
+      "sensor_id": "E-301-TOUTLET",
+      "name": "Produced Water Cooler - TEMPERATURE",
+      "sensor_type": "TEMPERATURE",
+      "unit": "degC",
+      "normal_min": 30.0,
+      "normal_max": 70.0,
+      "alarm_low": 25.5,
+      "alarm_high": 80.5,
+      "trip_low": 21.0,
+      "trip_high": 91.0
+    },
+    {
+      "sensor_id": "E-301-PSHELL",
+      "name": "Produced Water Cooler - PRESSURE",
+      "sensor_type": "PRESSURE",
+      "unit": "bar",
+      "normal_min": 3.0,
+      "normal_max": 15.0,
+      "alarm_low": 2.55,
+      "alarm_high": 17.25,
+      "trip_low": 2.1,
+      "trip_high": 19.5
+    },
+    {
+      "sensor_id": "E-301-FLOW",
+      "name": "Produced Water Cooler - FLOW",
+      "sensor_type": "FLOW",
+      "unit": "m3/h",
+      "normal_min": 30.0,
+      "normal_max": 150.0,
+      "alarm_low": 25.5,
+      "alarm_high": 172.5,
+      "trip_low": 21.0,
+      "trip_high": 195.0
+    }
+  ],
+  "AREA-WATER:P-301": [
+    {
+      "sensor_id": "P-301-FLOW",
+      "name": "Produced Water Transfer Pump A - FLOW",
+      "sensor_type": "FLOW",
+      "unit": "m3/h",
+      "normal_min": 50.0,
+      "normal_max": 300.0,
+      "alarm_low": 42.5,
+      "alarm_high": 345.0,
+      "trip_low": 35.0,
+      "trip_high": 390.0
+    },
+    {
+      "sensor_id": "P-301-PRESS",
+      "name": "Produced Water Transfer Pump A - PRESSURE",
+      "sensor_type": "PRESSURE",
+      "unit": "bar",
+      "normal_min": 3.0,
+      "normal_max": 12.0,
+      "alarm_low": 2.55,
+      "alarm_high": 13.8,
+      "trip_low": 2.1,
+      "trip_high": 15.6
+    },
+    {
+      "sensor_id": "P-301-VIB",
+      "name": "Produced Water Transfer Pump A - VIBRATION",
+      "sensor_type": "VIBRATION",
+      "unit": "mm/s",
+      "normal_min": 0.0,
+      "normal_max": 3.0,
+      "alarm_low": 0.0,
+      "alarm_high": 3.45,
+      "trip_low": 0.0,
+      "trip_high": 3.9
+    },
+    {
+      "sensor_id": "P-301-CURR",
+      "name": "Produced Water Transfer Pump A - CURRENT",
+      "sensor_type": "CURRENT",
+      "unit": "A",
+      "normal_min": 15.0,
+      "normal_max": 55.0,
+      "alarm_low": 12.75,
+      "alarm_high": 63.25,
+      "trip_low": 10.5,
+      "trip_high": 71.5
+    },
+    {
+      "sensor_id": "P-301-TEMP",
+      "name": "Produced Water Transfer Pump A - TEMPERATURE",
+      "sensor_type": "TEMPERATURE",
+      "unit": "degC",
+      "normal_min": 30.0,
+      "normal_max": 65.0,
+      "alarm_low": 25.5,
+      "alarm_high": 74.75,
+      "trip_low": 21.0,
+      "trip_high": 84.5
+    }
+  ],
+  "AREA-WATER:P-302": [
+    {
+      "sensor_id": "P-302-FLOW",
+      "name": "Produced Water Transfer Pump B - FLOW",
+      "sensor_type": "FLOW",
+      "unit": "m3/h",
+      "normal_min": 50.0,
+      "normal_max": 300.0,
+      "alarm_low": 42.5,
+      "alarm_high": 345.0,
+      "trip_low": 35.0,
+      "trip_high": 390.0
+    },
+    {
+      "sensor_id": "P-302-PRESS",
+      "name": "Produced Water Transfer Pump B - PRESSURE",
+      "sensor_type": "PRESSURE",
+      "unit": "bar",
+      "normal_min": 3.0,
+      "normal_max": 12.0,
+      "alarm_low": 2.55,
+      "alarm_high": 13.8,
+      "trip_low": 2.1,
+      "trip_high": 15.6
+    },
+    {
+      "sensor_id": "P-302-VIB",
+      "name": "Produced Water Transfer Pump B - VIBRATION",
+      "sensor_type": "VIBRATION",
+      "unit": "mm/s",
+      "normal_min": 0.0,
+      "normal_max": 3.0,
+      "alarm_low": 0.0,
+      "alarm_high": 3.45,
+      "trip_low": 0.0,
+      "trip_high": 3.9
+    },
+    {
+      "sensor_id": "P-302-CURR",
+      "name": "Produced Water Transfer Pump B - CURRENT",
+      "sensor_type": "CURRENT",
+      "unit": "A",
+      "normal_min": 15.0,
+      "normal_max": 55.0,
+      "alarm_low": 12.75,
+      "alarm_high": 63.25,
+      "trip_low": 10.5,
+      "trip_high": 71.5
+    },
+    {
+      "sensor_id": "P-302-TEMP",
+      "name": "Produced Water Transfer Pump B - TEMPERATURE",
+      "sensor_type": "TEMPERATURE",
+      "unit": "degC",
+      "normal_min": 30.0,
+      "normal_max": 65.0,
+      "alarm_low": 25.5,
+      "alarm_high": 74.75,
+      "trip_low": 21.0,
+      "trip_high": 84.5
+    }
+  ],
+  "AREA-WATER:P-303": [
+    {
+      "sensor_id": "P-303-FLOW",
+      "name": "Cooling Water Pump A - FLOW",
+      "sensor_type": "FLOW",
+      "unit": "m3/h",
+      "normal_min": 50.0,
+      "normal_max": 300.0,
+      "alarm_low": 42.5,
+      "alarm_high": 345.0,
+      "trip_low": 35.0,
+      "trip_high": 390.0
+    },
+    {
+      "sensor_id": "P-303-PRESS",
+      "name": "Cooling Water Pump A - PRESSURE",
+      "sensor_type": "PRESSURE",
+      "unit": "bar",
+      "normal_min": 3.0,
+      "normal_max": 12.0,
+      "alarm_low": 2.55,
+      "alarm_high": 13.8,
+      "trip_low": 2.1,
+      "trip_high": 15.6
+    },
+    {
+      "sensor_id": "P-303-VIB",
+      "name": "Cooling Water Pump A - VIBRATION",
+      "sensor_type": "VIBRATION",
+      "unit": "mm/s",
+      "normal_min": 0.0,
+      "normal_max": 3.0,
+      "alarm_low": 0.0,
+      "alarm_high": 3.45,
+      "trip_low": 0.0,
+      "trip_high": 3.9
+    },
+    {
+      "sensor_id": "P-303-CURR",
+      "name": "Cooling Water Pump A - CURRENT",
+      "sensor_type": "CURRENT",
+      "unit": "A",
+      "normal_min": 15.0,
+      "normal_max": 55.0,
+      "alarm_low": 12.75,
+      "alarm_high": 63.25,
+      "trip_low": 10.5,
+      "trip_high": 71.5
+    },
+    {
+      "sensor_id": "P-303-TEMP",
+      "name": "Cooling Water Pump A - TEMPERATURE",
+      "sensor_type": "TEMPERATURE",
+      "unit": "degC",
+      "normal_min": 30.0,
+      "normal_max": 65.0,
+      "alarm_low": 25.5,
+      "alarm_high": 74.75,
+      "trip_low": 21.0,
+      "trip_high": 84.5
+    }
+  ],
+  "AREA-WATER:P-304": [
+    {
+      "sensor_id": "P-304-FLOW",
+      "name": "Cooling Water Pump B - FLOW",
+      "sensor_type": "FLOW",
+      "unit": "m3/h",
+      "normal_min": 50.0,
+      "normal_max": 300.0,
+      "alarm_low": 42.5,
+      "alarm_high": 345.0,
+      "trip_low": 35.0,
+      "trip_high": 390.0
+    },
+    {
+      "sensor_id": "P-304-PRESS",
+      "name": "Cooling Water Pump B - PRESSURE",
+      "sensor_type": "PRESSURE",
+      "unit": "bar",
+      "normal_min": 3.0,
+      "normal_max": 12.0,
+      "alarm_low": 2.55,
+      "alarm_high": 13.8,
+      "trip_low": 2.1,
+      "trip_high": 15.6
+    },
+    {
+      "sensor_id": "P-304-VIB",
+      "name": "Cooling Water Pump B - VIBRATION",
+      "sensor_type": "VIBRATION",
+      "unit": "mm/s",
+      "normal_min": 0.0,
+      "normal_max": 3.0,
+      "alarm_low": 0.0,
+      "alarm_high": 3.45,
+      "trip_low": 0.0,
+      "trip_high": 3.9
+    },
+    {
+      "sensor_id": "P-304-CURR",
+      "name": "Cooling Water Pump B - CURRENT",
+      "sensor_type": "CURRENT",
+      "unit": "A",
+      "normal_min": 15.0,
+      "normal_max": 55.0,
+      "alarm_low": 12.75,
+      "alarm_high": 63.25,
+      "trip_low": 10.5,
+      "trip_high": 71.5
+    },
+    {
+      "sensor_id": "P-304-TEMP",
+      "name": "Cooling Water Pump B - TEMPERATURE",
+      "sensor_type": "TEMPERATURE",
+      "unit": "degC",
+      "normal_min": 30.0,
+      "normal_max": 65.0,
+      "alarm_low": 25.5,
+      "alarm_high": 74.75,
+      "trip_low": 21.0,
+      "trip_high": 84.5
+    }
+  ],
+  "AREA-WATER:FT-301": [
+    {
+      "sensor_id": "FT-301-PV",
+      "name": "PW Transfer Flow Meter - FLOW",
+      "sensor_type": "FLOW",
+      "unit": "m3/h",
+      "normal_min": 50.0,
+      "normal_max": 300.0,
+      "alarm_low": 42.5,
+      "alarm_high": 345.0,
+      "trip_low": 35.0,
+      "trip_high": 390.0
+    }
+  ],
+  "AREA-WATER:PT-301": [
+    {
+      "sensor_id": "PT-301-PV",
+      "name": "PW Vessel Pressure Tx - PRESSURE",
+      "sensor_type": "PRESSURE",
+      "unit": "bar",
+      "normal_min": 30.0,
+      "normal_max": 70.0,
+      "alarm_low": 25.5,
+      "alarm_high": 80.5,
+      "trip_low": 21.0,
+      "trip_high": 91.0
+    }
+  ],
+  "AREA-WATER:LT-301": [
+    {
+      "sensor_id": "LT-301-PV",
+      "name": "PW Vessel Level Tx A - LEVEL",
+      "sensor_type": "LEVEL",
+      "unit": "%",
+      "normal_min": 20.0,
+      "normal_max": 80.0,
+      "alarm_low": 17.0,
+      "alarm_high": 92.0,
+      "trip_low": 14.0,
+      "trip_high": 104.0
+    }
+  ],
+  "AREA-WATER:LT-302": [
+    {
+      "sensor_id": "LT-302-PV",
+      "name": "PW Vessel Level Tx B - LEVEL",
+      "sensor_type": "LEVEL",
+      "unit": "%",
+      "normal_min": 20.0,
+      "normal_max": 80.0,
+      "alarm_low": 17.0,
+      "alarm_high": 92.0,
+      "trip_low": 14.0,
+      "trip_high": 104.0
+    }
+  ],
+  "AREA-WATER:TT-301": [
+    {
+      "sensor_id": "TT-301-PV",
+      "name": "PW Cooler Outlet Temp A - TEMPERATURE",
+      "sensor_type": "TEMPERATURE",
+      "unit": "degC",
+      "normal_min": 40.0,
+      "normal_max": 100.0,
+      "alarm_low": 34.0,
+      "alarm_high": 115.0,
+      "trip_low": 28.0,
+      "trip_high": 130.0
+    }
+  ],
+  "AREA-WATER:TT-302": [
+    {
+      "sensor_id": "TT-302-PV",
+      "name": "PW Cooler Outlet Temp B - TEMPERATURE",
+      "sensor_type": "TEMPERATURE",
+      "unit": "degC",
+      "normal_min": 40.0,
+      "normal_max": 100.0,
+      "alarm_low": 34.0,
+      "alarm_high": 115.0,
+      "trip_low": 28.0,
+      "trip_high": 130.0
+    }
+  ],
+  "AREA-WATER:TT-303": [
+    {
+      "sensor_id": "TT-303-PV",
+      "name": "PW Cooler Inlet Temp - TEMPERATURE",
+      "sensor_type": "TEMPERATURE",
+      "unit": "degC",
+      "normal_min": 40.0,
+      "normal_max": 100.0,
+      "alarm_low": 34.0,
+      "alarm_high": 115.0,
+      "trip_low": 28.0,
+      "trip_high": 130.0
+    }
+  ],
+  "AREA-WATER:VT-301": [
+    {
+      "sensor_id": "VT-301-PV",
+      "name": "P-301 Pump Vibration - VIBRATION",
+      "sensor_type": "VIBRATION",
+      "unit": "mm/s",
+      "normal_min": 0.0,
+      "normal_max": 5.0,
+      "alarm_low": 0.0,
+      "alarm_high": 5.75,
+      "trip_low": 0.0,
+      "trip_high": 6.5
+    }
+  ],
+  "AREA-WATER:VT-302": [
+    {
+      "sensor_id": "VT-302-PV",
+      "name": "P-303 CW Pump Vibration - VIBRATION",
+      "sensor_type": "VIBRATION",
+      "unit": "mm/s",
+      "normal_min": 0.0,
+      "normal_max": 5.0,
+      "alarm_low": 0.0,
+      "alarm_high": 5.75,
+      "trip_low": 0.0,
+      "trip_high": 6.5
+    }
+  ],
+  "AREA-WATER:AT-301": [
+    {
+      "sensor_id": "AT-301-PV",
+      "name": "PW Oil-in-Water Analyser - CONCENTRATION",
+      "sensor_type": "CONCENTRATION",
+      "unit": "mg/L",
+      "normal_min": 5.0,
+      "normal_max": 50.0,
+      "alarm_low": 4.25,
+      "alarm_high": 57.5,
+      "trip_low": 3.5,
+      "trip_high": 65.0
+    }
+  ],
+  "AREA-UTIL:K-401": [
+    {
+      "sensor_id": "K-401-PRESS",
+      "name": "Instrument Air Compressor A - PRESSURE",
+      "sensor_type": "PRESSURE",
+      "unit": "bar",
+      "normal_min": 6.0,
+      "normal_max": 10.0,
+      "alarm_low": 5.1,
+      "alarm_high": 11.5,
+      "trip_low": 4.2,
+      "trip_high": 13.0
+    },
+    {
+      "sensor_id": "K-401-VIB",
+      "name": "Instrument Air Compressor A - VIBRATION",
+      "sensor_type": "VIBRATION",
+      "unit": "mm/s",
+      "normal_min": 0.0,
+      "normal_max": 8.0,
+      "alarm_low": 0.0,
+      "alarm_high": 9.2,
+      "trip_low": 0.0,
+      "trip_high": 10.4
+    },
+    {
+      "sensor_id": "K-401-TEMP",
+      "name": "Instrument Air Compressor A - TEMPERATURE",
+      "sensor_type": "TEMPERATURE",
+      "unit": "degC",
+      "normal_min": 40.0,
+      "normal_max": 90.0,
+      "alarm_low": 34.0,
+      "alarm_high": 103.5,
+      "trip_low": 28.0,
+      "trip_high": 117.0
+    }
+  ],
+  "AREA-UTIL:K-402": [
+    {
+      "sensor_id": "K-402-PRESS",
+      "name": "Instrument Air Compressor B - PRESSURE",
+      "sensor_type": "PRESSURE",
+      "unit": "bar",
+      "normal_min": 6.0,
+      "normal_max": 10.0,
+      "alarm_low": 5.1,
+      "alarm_high": 11.5,
+      "trip_low": 4.2,
+      "trip_high": 13.0
+    },
+    {
+      "sensor_id": "K-402-VIB",
+      "name": "Instrument Air Compressor B - VIBRATION",
+      "sensor_type": "VIBRATION",
+      "unit": "mm/s",
+      "normal_min": 0.0,
+      "normal_max": 8.0,
+      "alarm_low": 0.0,
+      "alarm_high": 9.2,
+      "trip_low": 0.0,
+      "trip_high": 10.4
+    },
+    {
+      "sensor_id": "K-402-TEMP",
+      "name": "Instrument Air Compressor B - TEMPERATURE",
+      "sensor_type": "TEMPERATURE",
+      "unit": "degC",
+      "normal_min": 40.0,
+      "normal_max": 90.0,
+      "alarm_low": 34.0,
+      "alarm_high": 103.5,
+      "trip_low": 28.0,
+      "trip_high": 117.0
+    }
+  ],
+  "AREA-UTIL:V-401": [
+    {
+      "sensor_id": "V-401-PRESS",
+      "name": "Instrument Air Receiver - PRESSURE",
+      "sensor_type": "PRESSURE",
+      "unit": "bar",
+      "normal_min": 7.0,
+      "normal_max": 9.0,
+      "alarm_low": 5.95,
+      "alarm_high": 10.35,
+      "trip_low": 4.9,
+      "trip_high": 11.7
+    }
+  ],
+  "AREA-UTIL:V-402": [
+    {
+      "sensor_id": "V-402-PRESS",
+      "name": "Fuel Gas Scrubber - PRESSURE",
+      "sensor_type": "PRESSURE",
+      "unit": "bar",
+      "normal_min": 5.0,
+      "normal_max": 30.0,
+      "alarm_low": 4.25,
+      "alarm_high": 34.5,
+      "trip_low": 3.5,
+      "trip_high": 39.0
+    },
+    {
+      "sensor_id": "V-402-LEVEL",
+      "name": "Fuel Gas Scrubber - LEVEL",
+      "sensor_type": "LEVEL",
+      "unit": "%",
+      "normal_min": 10.0,
+      "normal_max": 40.0,
+      "alarm_low": 8.5,
+      "alarm_high": 46.0,
+      "trip_low": 7.0,
+      "trip_high": 52.0
+    },
+    {
+      "sensor_id": "V-402-TEMP",
+      "name": "Fuel Gas Scrubber - TEMPERATURE",
+      "sensor_type": "TEMPERATURE",
+      "unit": "degC",
+      "normal_min": 20.0,
+      "normal_max": 50.0,
+      "alarm_low": 17.0,
+      "alarm_high": 57.5,
+      "trip_low": 14.0,
+      "trip_high": 65.0
+    }
+  ],
+  "AREA-UTIL:P-401": [
+    {
+      "sensor_id": "P-401-FLOW",
+      "name": "Fire Water Pump A - FLOW",
+      "sensor_type": "FLOW",
+      "unit": "m3/h",
+      "normal_min": 50.0,
+      "normal_max": 300.0,
+      "alarm_low": 42.5,
+      "alarm_high": 345.0,
+      "trip_low": 35.0,
+      "trip_high": 390.0
+    },
+    {
+      "sensor_id": "P-401-PRESS",
+      "name": "Fire Water Pump A - PRESSURE",
+      "sensor_type": "PRESSURE",
+      "unit": "bar",
+      "normal_min": 3.0,
+      "normal_max": 12.0,
+      "alarm_low": 2.55,
+      "alarm_high": 13.8,
+      "trip_low": 2.1,
+      "trip_high": 15.6
+    },
+    {
+      "sensor_id": "P-401-VIB",
+      "name": "Fire Water Pump A - VIBRATION",
+      "sensor_type": "VIBRATION",
+      "unit": "mm/s",
+      "normal_min": 0.0,
+      "normal_max": 3.0,
+      "alarm_low": 0.0,
+      "alarm_high": 3.45,
+      "trip_low": 0.0,
+      "trip_high": 3.9
+    },
+    {
+      "sensor_id": "P-401-CURR",
+      "name": "Fire Water Pump A - CURRENT",
+      "sensor_type": "CURRENT",
+      "unit": "A",
+      "normal_min": 15.0,
+      "normal_max": 55.0,
+      "alarm_low": 12.75,
+      "alarm_high": 63.25,
+      "trip_low": 10.5,
+      "trip_high": 71.5
+    },
+    {
+      "sensor_id": "P-401-TEMP",
+      "name": "Fire Water Pump A - TEMPERATURE",
+      "sensor_type": "TEMPERATURE",
+      "unit": "degC",
+      "normal_min": 30.0,
+      "normal_max": 65.0,
+      "alarm_low": 25.5,
+      "alarm_high": 74.75,
+      "trip_low": 21.0,
+      "trip_high": 84.5
+    }
+  ],
+  "AREA-UTIL:P-402": [
+    {
+      "sensor_id": "P-402-FLOW",
+      "name": "Fire Water Pump B - FLOW",
+      "sensor_type": "FLOW",
+      "unit": "m3/h",
+      "normal_min": 50.0,
+      "normal_max": 300.0,
+      "alarm_low": 42.5,
+      "alarm_high": 345.0,
+      "trip_low": 35.0,
+      "trip_high": 390.0
+    },
+    {
+      "sensor_id": "P-402-PRESS",
+      "name": "Fire Water Pump B - PRESSURE",
+      "sensor_type": "PRESSURE",
+      "unit": "bar",
+      "normal_min": 3.0,
+      "normal_max": 12.0,
+      "alarm_low": 2.55,
+      "alarm_high": 13.8,
+      "trip_low": 2.1,
+      "trip_high": 15.6
+    },
+    {
+      "sensor_id": "P-402-VIB",
+      "name": "Fire Water Pump B - VIBRATION",
+      "sensor_type": "VIBRATION",
+      "unit": "mm/s",
+      "normal_min": 0.0,
+      "normal_max": 3.0,
+      "alarm_low": 0.0,
+      "alarm_high": 3.45,
+      "trip_low": 0.0,
+      "trip_high": 3.9
+    },
+    {
+      "sensor_id": "P-402-CURR",
+      "name": "Fire Water Pump B - CURRENT",
+      "sensor_type": "CURRENT",
+      "unit": "A",
+      "normal_min": 15.0,
+      "normal_max": 55.0,
+      "alarm_low": 12.75,
+      "alarm_high": 63.25,
+      "trip_low": 10.5,
+      "trip_high": 71.5
+    },
+    {
+      "sensor_id": "P-402-TEMP",
+      "name": "Fire Water Pump B - TEMPERATURE",
+      "sensor_type": "TEMPERATURE",
+      "unit": "degC",
+      "normal_min": 30.0,
+      "normal_max": 65.0,
+      "alarm_low": 25.5,
+      "alarm_high": 74.75,
+      "trip_low": 21.0,
+      "trip_high": 84.5
+    }
+  ],
+  "AREA-UTIL:G-401": [
+    {
+      "sensor_id": "G-401-LOAD",
+      "name": "Main Generator A - LOAD",
+      "sensor_type": "LOAD",
+      "unit": "kW",
+      "normal_min": 500.0,
+      "normal_max": 2000.0,
+      "alarm_low": 425.0,
+      "alarm_high": 2300.0,
+      "trip_low": 350.0,
+      "trip_high": 2600.0
+    },
+    {
+      "sensor_id": "G-401-TEMP",
+      "name": "Main Generator A - TEMPERATURE",
+      "sensor_type": "TEMPERATURE",
+      "unit": "degC",
+      "normal_min": 60.0,
+      "normal_max": 110.0,
+      "alarm_low": 51.0,
+      "alarm_high": 126.5,
+      "trip_low": 42.0,
+      "trip_high": 143.0
+    },
+    {
+      "sensor_id": "G-401-FREQ",
+      "name": "Main Generator A - FREQUENCY",
+      "sensor_type": "FREQUENCY",
+      "unit": "Hz",
+      "normal_min": 49.5,
+      "normal_max": 50.5,
+      "alarm_low": 42.07,
+      "alarm_high": 58.07,
+      "trip_low": 34.65,
+      "trip_high": 65.65
+    }
+  ],
+  "AREA-UTIL:G-402": [
+    {
+      "sensor_id": "G-402-LOAD",
+      "name": "Main Generator B - LOAD",
+      "sensor_type": "LOAD",
+      "unit": "kW",
+      "normal_min": 500.0,
+      "normal_max": 2000.0,
+      "alarm_low": 425.0,
+      "alarm_high": 2300.0,
+      "trip_low": 350.0,
+      "trip_high": 2600.0
+    },
+    {
+      "sensor_id": "G-402-TEMP",
+      "name": "Main Generator B - TEMPERATURE",
+      "sensor_type": "TEMPERATURE",
+      "unit": "degC",
+      "normal_min": 60.0,
+      "normal_max": 110.0,
+      "alarm_low": 51.0,
+      "alarm_high": 126.5,
+      "trip_low": 42.0,
+      "trip_high": 143.0
+    },
+    {
+      "sensor_id": "G-402-FREQ",
+      "name": "Main Generator B - FREQUENCY",
+      "sensor_type": "FREQUENCY",
+      "unit": "Hz",
+      "normal_min": 49.5,
+      "normal_max": 50.5,
+      "alarm_low": 42.07,
+      "alarm_high": 58.07,
+      "trip_low": 34.65,
+      "trip_high": 65.65
+    }
+  ],
+  "AREA-UTIL:G-403": [
+    {
+      "sensor_id": "G-403-LOAD",
+      "name": "Emergency Generator - LOAD",
+      "sensor_type": "LOAD",
+      "unit": "kW",
+      "normal_min": 500.0,
+      "normal_max": 2000.0,
+      "alarm_low": 425.0,
+      "alarm_high": 2300.0,
+      "trip_low": 350.0,
+      "trip_high": 2600.0
+    },
+    {
+      "sensor_id": "G-403-TEMP",
+      "name": "Emergency Generator - TEMPERATURE",
+      "sensor_type": "TEMPERATURE",
+      "unit": "degC",
+      "normal_min": 60.0,
+      "normal_max": 110.0,
+      "alarm_low": 51.0,
+      "alarm_high": 126.5,
+      "trip_low": 42.0,
+      "trip_high": 143.0
+    },
+    {
+      "sensor_id": "G-403-FREQ",
+      "name": "Emergency Generator - FREQUENCY",
+      "sensor_type": "FREQUENCY",
+      "unit": "Hz",
+      "normal_min": 49.5,
+      "normal_max": 50.5,
+      "alarm_low": 42.07,
+      "alarm_high": 58.07,
+      "trip_low": 34.65,
+      "trip_high": 65.65
+    }
+  ],
+  "AREA-UTIL:PT-401": [
+    {
+      "sensor_id": "PT-401-PV",
+      "name": "IA Header Pressure Tx - PRESSURE",
+      "sensor_type": "PRESSURE",
+      "unit": "bar",
+      "normal_min": 30.0,
+      "normal_max": 70.0,
+      "alarm_low": 25.5,
+      "alarm_high": 80.5,
+      "trip_low": 21.0,
+      "trip_high": 91.0
+    }
+  ],
+  "AREA-UTIL:PT-402": [
+    {
+      "sensor_id": "PT-402-PV",
+      "name": "Fuel Gas Pressure Tx - PRESSURE",
+      "sensor_type": "PRESSURE",
+      "unit": "bar",
+      "normal_min": 30.0,
+      "normal_max": 70.0,
+      "alarm_low": 25.5,
+      "alarm_high": 80.5,
+      "trip_low": 21.0,
+      "trip_high": 91.0
+    }
+  ],
+  "AREA-UTIL:PT-145": [
+    {
+      "sensor_id": "PT-145-PV",
+      "name": "Export Header Pressure Tx A - PRESSURE",
+      "sensor_type": "PRESSURE",
+      "unit": "bar",
+      "normal_min": 30.0,
+      "normal_max": 70.0,
+      "alarm_low": 25.5,
+      "alarm_high": 80.5,
+      "trip_low": 21.0,
+      "trip_high": 91.0
+    }
+  ],
+  "AREA-UTIL:PT-146": [
+    {
+      "sensor_id": "PT-146-PV",
+      "name": "Export Header Pressure Tx B - PRESSURE",
+      "sensor_type": "PRESSURE",
+      "unit": "bar",
+      "normal_min": 30.0,
+      "normal_max": 70.0,
+      "alarm_low": 25.5,
+      "alarm_high": 80.5,
+      "trip_low": 21.0,
+      "trip_high": 91.0
+    }
+  ],
+  "AREA-UTIL:TT-401": [
+    {
+      "sensor_id": "TT-401-PV",
+      "name": "Generator A Exhaust Temp - TEMPERATURE",
+      "sensor_type": "TEMPERATURE",
+      "unit": "degC",
+      "normal_min": 40.0,
+      "normal_max": 100.0,
+      "alarm_low": 34.0,
+      "alarm_high": 115.0,
+      "trip_low": 28.0,
+      "trip_high": 130.0
+    }
+  ],
+  "AREA-UTIL:TT-402": [
+    {
+      "sensor_id": "TT-402-PV",
+      "name": "Generator B Exhaust Temp - TEMPERATURE",
+      "sensor_type": "TEMPERATURE",
+      "unit": "degC",
+      "normal_min": 40.0,
+      "normal_max": 100.0,
+      "alarm_low": 34.0,
+      "alarm_high": 115.0,
+      "trip_low": 28.0,
+      "trip_high": 130.0
+    }
+  ],
+  "AREA-UTIL:F-401": [
+    {
+      "sensor_id": "F-401-LEVEL",
+      "name": "Flare KO Drum - LEVEL",
+      "sensor_type": "LEVEL",
+      "unit": "%",
+      "normal_min": 0.0,
+      "normal_max": 30.0,
+      "alarm_low": 0.0,
+      "alarm_high": 34.5,
+      "trip_low": 0.0,
+      "trip_high": 39.0
+    },
+    {
+      "sensor_id": "F-401-PRESS",
+      "name": "Flare KO Drum - PRESSURE",
+      "sensor_type": "PRESSURE",
+      "unit": "bar",
+      "normal_min": 1.0,
+      "normal_max": 5.0,
+      "alarm_low": 0.85,
+      "alarm_high": 5.75,
+      "trip_low": 0.7,
+      "trip_high": 6.5
+    }
+  ],
+  "AREA-EXPORT:V-501": [
+    {
+      "sensor_id": "V-501-LEVEL",
+      "name": "Export Buffer Tank A - LEVEL",
+      "sensor_type": "LEVEL",
+      "unit": "%",
+      "normal_min": 20.0,
+      "normal_max": 80.0,
+      "alarm_low": 17.0,
+      "alarm_high": 92.0,
+      "trip_low": 14.0,
+      "trip_high": 104.0
+    },
+    {
+      "sensor_id": "V-501-TEMP",
+      "name": "Export Buffer Tank A - TEMPERATURE",
+      "sensor_type": "TEMPERATURE",
+      "unit": "degC",
+      "normal_min": 30.0,
+      "normal_max": 60.0,
+      "alarm_low": 25.5,
+      "alarm_high": 69.0,
+      "trip_low": 21.0,
+      "trip_high": 78.0
+    },
+    {
+      "sensor_id": "V-501-PRESS",
+      "name": "Export Buffer Tank A - PRESSURE",
+      "sensor_type": "PRESSURE",
+      "unit": "bar",
+      "normal_min": 1.0,
+      "normal_max": 3.0,
+      "alarm_low": 0.85,
+      "alarm_high": 3.45,
+      "trip_low": 0.7,
+      "trip_high": 3.9
+    }
+  ],
+  "AREA-EXPORT:V-502": [
+    {
+      "sensor_id": "V-502-LEVEL",
+      "name": "Export Buffer Tank B - LEVEL",
+      "sensor_type": "LEVEL",
+      "unit": "%",
+      "normal_min": 20.0,
+      "normal_max": 80.0,
+      "alarm_low": 17.0,
+      "alarm_high": 92.0,
+      "trip_low": 14.0,
+      "trip_high": 104.0
+    },
+    {
+      "sensor_id": "V-502-TEMP",
+      "name": "Export Buffer Tank B - TEMPERATURE",
+      "sensor_type": "TEMPERATURE",
+      "unit": "degC",
+      "normal_min": 30.0,
+      "normal_max": 60.0,
+      "alarm_low": 25.5,
+      "alarm_high": 69.0,
+      "trip_low": 21.0,
+      "trip_high": 78.0
+    },
+    {
+      "sensor_id": "V-502-PRESS",
+      "name": "Export Buffer Tank B - PRESSURE",
+      "sensor_type": "PRESSURE",
+      "unit": "bar",
+      "normal_min": 1.0,
+      "normal_max": 3.0,
+      "alarm_low": 0.85,
+      "alarm_high": 3.45,
+      "trip_low": 0.7,
+      "trip_high": 3.9
+    }
+  ],
+  "AREA-EXPORT:P-501": [
+    {
+      "sensor_id": "P-501-FLOW",
+      "name": "Export Crude Pump A - FLOW",
+      "sensor_type": "FLOW",
+      "unit": "m3/h",
+      "normal_min": 50.0,
+      "normal_max": 300.0,
+      "alarm_low": 42.5,
+      "alarm_high": 345.0,
+      "trip_low": 35.0,
+      "trip_high": 390.0
+    },
+    {
+      "sensor_id": "P-501-PRESS",
+      "name": "Export Crude Pump A - PRESSURE",
+      "sensor_type": "PRESSURE",
+      "unit": "bar",
+      "normal_min": 3.0,
+      "normal_max": 12.0,
+      "alarm_low": 2.55,
+      "alarm_high": 13.8,
+      "trip_low": 2.1,
+      "trip_high": 15.6
+    },
+    {
+      "sensor_id": "P-501-VIB",
+      "name": "Export Crude Pump A - VIBRATION",
+      "sensor_type": "VIBRATION",
+      "unit": "mm/s",
+      "normal_min": 0.0,
+      "normal_max": 3.0,
+      "alarm_low": 0.0,
+      "alarm_high": 3.45,
+      "trip_low": 0.0,
+      "trip_high": 3.9
+    },
+    {
+      "sensor_id": "P-501-CURR",
+      "name": "Export Crude Pump A - CURRENT",
+      "sensor_type": "CURRENT",
+      "unit": "A",
+      "normal_min": 15.0,
+      "normal_max": 55.0,
+      "alarm_low": 12.75,
+      "alarm_high": 63.25,
+      "trip_low": 10.5,
+      "trip_high": 71.5
+    },
+    {
+      "sensor_id": "P-501-TEMP",
+      "name": "Export Crude Pump A - TEMPERATURE",
+      "sensor_type": "TEMPERATURE",
+      "unit": "degC",
+      "normal_min": 30.0,
+      "normal_max": 65.0,
+      "alarm_low": 25.5,
+      "alarm_high": 74.75,
+      "trip_low": 21.0,
+      "trip_high": 84.5
+    }
+  ],
+  "AREA-EXPORT:P-502": [
+    {
+      "sensor_id": "P-502-FLOW",
+      "name": "Export Crude Pump B - FLOW",
+      "sensor_type": "FLOW",
+      "unit": "m3/h",
+      "normal_min": 50.0,
+      "normal_max": 300.0,
+      "alarm_low": 42.5,
+      "alarm_high": 345.0,
+      "trip_low": 35.0,
+      "trip_high": 390.0
+    },
+    {
+      "sensor_id": "P-502-PRESS",
+      "name": "Export Crude Pump B - PRESSURE",
+      "sensor_type": "PRESSURE",
+      "unit": "bar",
+      "normal_min": 3.0,
+      "normal_max": 12.0,
+      "alarm_low": 2.55,
+      "alarm_high": 13.8,
+      "trip_low": 2.1,
+      "trip_high": 15.6
+    },
+    {
+      "sensor_id": "P-502-VIB",
+      "name": "Export Crude Pump B - VIBRATION",
+      "sensor_type": "VIBRATION",
+      "unit": "mm/s",
+      "normal_min": 0.0,
+      "normal_max": 3.0,
+      "alarm_low": 0.0,
+      "alarm_high": 3.45,
+      "trip_low": 0.0,
+      "trip_high": 3.9
+    },
+    {
+      "sensor_id": "P-502-CURR",
+      "name": "Export Crude Pump B - CURRENT",
+      "sensor_type": "CURRENT",
+      "unit": "A",
+      "normal_min": 15.0,
+      "normal_max": 55.0,
+      "alarm_low": 12.75,
+      "alarm_high": 63.25,
+      "trip_low": 10.5,
+      "trip_high": 71.5
+    },
+    {
+      "sensor_id": "P-502-TEMP",
+      "name": "Export Crude Pump B - TEMPERATURE",
+      "sensor_type": "TEMPERATURE",
+      "unit": "degC",
+      "normal_min": 30.0,
+      "normal_max": 65.0,
+      "alarm_low": 25.5,
+      "alarm_high": 74.75,
+      "trip_low": 21.0,
+      "trip_high": 84.5
+    }
+  ],
+  "AREA-EXPORT:E-501": [
+    {
+      "sensor_id": "E-501-TINLET",
+      "name": "Export Crude Heater - TEMPERATURE",
+      "sensor_type": "TEMPERATURE",
+      "unit": "degC",
+      "normal_min": 50.0,
+      "normal_max": 120.0,
+      "alarm_low": 42.5,
+      "alarm_high": 138.0,
+      "trip_low": 35.0,
+      "trip_high": 156.0
+    },
+    {
+      "sensor_id": "E-501-TOUTLET",
+      "name": "Export Crude Heater - TEMPERATURE",
+      "sensor_type": "TEMPERATURE",
+      "unit": "degC",
+      "normal_min": 30.0,
+      "normal_max": 70.0,
+      "alarm_low": 25.5,
+      "alarm_high": 80.5,
+      "trip_low": 21.0,
+      "trip_high": 91.0
+    },
+    {
+      "sensor_id": "E-501-PSHELL",
+      "name": "Export Crude Heater - PRESSURE",
+      "sensor_type": "PRESSURE",
+      "unit": "bar",
+      "normal_min": 3.0,
+      "normal_max": 15.0,
+      "alarm_low": 2.55,
+      "alarm_high": 17.25,
+      "trip_low": 2.1,
+      "trip_high": 19.5
+    },
+    {
+      "sensor_id": "E-501-FLOW",
+      "name": "Export Crude Heater - FLOW",
+      "sensor_type": "FLOW",
+      "unit": "m3/h",
+      "normal_min": 30.0,
+      "normal_max": 150.0,
+      "alarm_low": 25.5,
+      "alarm_high": 172.5,
+      "trip_low": 21.0,
+      "trip_high": 195.0
+    }
+  ],
+  "AREA-EXPORT:FT-501": [
+    {
+      "sensor_id": "FT-501-PV",
+      "name": "Export Flow Meter A - FLOW",
+      "sensor_type": "FLOW",
+      "unit": "m3/h",
+      "normal_min": 50.0,
+      "normal_max": 300.0,
+      "alarm_low": 42.5,
+      "alarm_high": 345.0,
+      "trip_low": 35.0,
+      "trip_high": 390.0
+    }
+  ],
+  "AREA-EXPORT:FT-502": [
+    {
+      "sensor_id": "FT-502-PV",
+      "name": "Export Flow Meter B - FLOW",
+      "sensor_type": "FLOW",
+      "unit": "m3/h",
+      "normal_min": 50.0,
+      "normal_max": 300.0,
+      "alarm_low": 42.5,
+      "alarm_high": 345.0,
+      "trip_low": 35.0,
+      "trip_high": 390.0
+    }
+  ],
+  "AREA-EXPORT:PT-501": [
+    {
+      "sensor_id": "PT-501-PV",
+      "name": "Export Line Pressure Tx A - PRESSURE",
+      "sensor_type": "PRESSURE",
+      "unit": "bar",
+      "normal_min": 30.0,
+      "normal_max": 70.0,
+      "alarm_low": 25.5,
+      "alarm_high": 80.5,
+      "trip_low": 21.0,
+      "trip_high": 91.0
+    }
+  ],
+  "AREA-EXPORT:PT-502": [
+    {
+      "sensor_id": "PT-502-PV",
+      "name": "Export Line Pressure Tx B - PRESSURE",
+      "sensor_type": "PRESSURE",
+      "unit": "bar",
+      "normal_min": 30.0,
+      "normal_max": 70.0,
+      "alarm_low": 25.5,
+      "alarm_high": 80.5,
+      "trip_low": 21.0,
+      "trip_high": 91.0
+    }
+  ],
+  "AREA-EXPORT:TT-501": [
+    {
+      "sensor_id": "TT-501-PV",
+      "name": "Export Crude Temp A - TEMPERATURE",
+      "sensor_type": "TEMPERATURE",
+      "unit": "degC",
+      "normal_min": 40.0,
+      "normal_max": 100.0,
+      "alarm_low": 34.0,
+      "alarm_high": 115.0,
+      "trip_low": 28.0,
+      "trip_high": 130.0
+    }
+  ],
+  "AREA-EXPORT:TT-502": [
+    {
+      "sensor_id": "TT-502-PV",
+      "name": "Export Crude Temp B - TEMPERATURE",
+      "sensor_type": "TEMPERATURE",
+      "unit": "degC",
+      "normal_min": 40.0,
+      "normal_max": 100.0,
+      "alarm_low": 34.0,
+      "alarm_high": 115.0,
+      "trip_low": 28.0,
+      "trip_high": 130.0
+    }
+  ],
+  "AREA-EXPORT:LT-501": [
+    {
+      "sensor_id": "LT-501-PV",
+      "name": "Export Tank A Level Tx - LEVEL",
+      "sensor_type": "LEVEL",
+      "unit": "%",
+      "normal_min": 20.0,
+      "normal_max": 80.0,
+      "alarm_low": 17.0,
+      "alarm_high": 92.0,
+      "trip_low": 14.0,
+      "trip_high": 104.0
+    }
+  ],
+  "AREA-EXPORT:LT-502": [
+    {
+      "sensor_id": "LT-502-PV",
+      "name": "Export Tank B Level Tx - LEVEL",
+      "sensor_type": "LEVEL",
+      "unit": "%",
+      "normal_min": 20.0,
+      "normal_max": 80.0,
+      "alarm_low": 17.0,
+      "alarm_high": 92.0,
+      "trip_low": 14.0,
+      "trip_high": 104.0
+    }
+  ]
+}
