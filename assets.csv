@@ -1,0 +1,97 @@
+asset_id,tag,name,type,subtype,parent_id,area,location,manufacturer,model,install_date,status,criticality
+FAC-001,NPA-001,North Sea Platform Alpha,Facility,OffshorePlatform,,,North Sea Block 14/29,Aker Solutions,Semi-submersible,2008-06-15,OPERATING,HIGH
+AREA-HP-SEP,AREA-HP-SEP,HP Separation Train,Area,ProcessArea,FAC-001,HP Separation Train,Deck A,,,2008-06-15,OPERATING,HIGH
+AREA-HP-SEP:V-101,V-101,HP Production Separator,Vessel,Separator,AREA-HP-SEP,HP Separation Train,Deck A,Forum Energy Technologies,VES-5034,2021-09-05,OPERATING,MEDIUM
+AREA-HP-SEP:V-102,V-102,Test Separator,Vessel,Separator,AREA-HP-SEP,HP Separation Train,Deck A,Peerless,VES-6622,2021-06-07,MAINTENANCE,MEDIUM
+AREA-HP-SEP:E-101,E-101,Wellstream Heater,HeatExchanger,Shell&Tube,AREA-HP-SEP,HP Separation Train,Deck A,Harsco,HEA-3763,2016-07-20,STANDBY,MEDIUM
+AREA-HP-SEP:E-102,E-102,HP Glycol Reboiler,HeatExchanger,Shell&Tube,AREA-HP-SEP,HP Separation Train,Deck A,Alfa Laval,HEA-5237,2021-01-17,OPERATING,MEDIUM
+AREA-HP-SEP:P-101,P-101,HP Separator Drain Pump A,Pump,CentrifugalPump,AREA-HP-SEP,HP Separation Train,Deck A,Flowserve,PUM-1556,2016-10-15,OPERATING,HIGH
+AREA-HP-SEP:P-102,P-102,HP Separator Drain Pump B,Pump,CentrifugalPump,AREA-HP-SEP,HP Separation Train,Deck A,Sulzer,PUM-8584,2018-10-09,OPERATING,HIGH
+AREA-HP-SEP:FT-101,FT-101,HP Sep Gas Flow Meter,Instrument,FlowTransmitter,AREA-HP-SEP,HP Separation Train,Deck A,Emerson,INS-1462,2019-08-07,STANDBY,LOW
+AREA-HP-SEP:FT-102,FT-102,HP Sep Oil Flow Meter,Instrument,FlowTransmitter,AREA-HP-SEP,HP Separation Train,Deck A,Honeywell,INS-3732,2020-11-15,OPERATING,LOW
+AREA-HP-SEP:PT-101,PT-101,HP Sep Pressure Transmitter A,Instrument,PressureTransmitter,AREA-HP-SEP,HP Separation Train,Deck A,Honeywell,INS-3636,2015-08-20,STANDBY,LOW
+AREA-HP-SEP:PT-102,PT-102,HP Sep Pressure Transmitter B,Instrument,PressureTransmitter,AREA-HP-SEP,HP Separation Train,Deck A,Yokogawa,INS-1791,2022-06-27,OPERATING,LOW
+AREA-HP-SEP:LT-101,LT-101,HP Sep Level Transmitter A,Instrument,LevelTransmitter,AREA-HP-SEP,HP Separation Train,Deck A,Emerson,INS-1142,2017-06-18,MAINTENANCE,LOW
+AREA-HP-SEP:LT-102,LT-102,HP Sep Level Transmitter B,Instrument,LevelTransmitter,AREA-HP-SEP,HP Separation Train,Deck A,Emerson,INS-7476,2022-04-20,OPERATING,LOW
+AREA-HP-SEP:TT-101,TT-101,HP Sep Temperature Tx A,Instrument,TemperatureTransmitter,AREA-HP-SEP,HP Separation Train,Deck A,ABB,INS-8397,2015-12-16,MAINTENANCE,LOW
+AREA-HP-SEP:TT-102,TT-102,HP Sep Temperature Tx B,Instrument,TemperatureTransmitter,AREA-HP-SEP,HP Separation Train,Deck A,ABB,INS-6206,2017-08-10,STANDBY,LOW
+AREA-HP-SEP:PSV-101,PSV-101,HP Sep Pressure Safety Valve,Valve,SafetyValve,AREA-HP-SEP,HP Separation Train,Deck A,Cameron,VAL-5047,2021-09-28,MAINTENANCE,LOW
+AREA-HP-SEP:SDV-101,SDV-101,HP Sep Shutdown Valve,Valve,ShutdownValve,AREA-HP-SEP,HP Separation Train,Deck A,Velan,VAL-5906,2017-02-20,OPERATING,LOW
+AREA-HP-SEP:LCV-101,LCV-101,HP Sep Level Control Valve,Valve,ControlValve,AREA-HP-SEP,HP Separation Train,Deck A,Flowserve,VAL-9142,2015-06-24,OPERATING,LOW
+AREA-HP-SEP:PCV-101,PCV-101,HP Sep Pressure Control Valve,Valve,ControlValve,AREA-HP-SEP,HP Separation Train,Deck A,Neles,VAL-2605,2020-09-07,OPERATING,LOW
+AREA-LP-COMP,AREA-LP-COMP,LP Compression Train,Area,ProcessArea,FAC-001,LP Compression Train,Deck B,,,2008-06-15,OPERATING,HIGH
+AREA-LP-COMP:K-201,K-201,LP Compressor A,Compressor,Centrifugal,AREA-LP-COMP,LP Compression Train,Deck B,Siemens,COM-6891,2017-03-18,MAINTENANCE,HIGH
+AREA-LP-COMP:K-202,K-202,LP Compressor B,Compressor,Centrifugal,AREA-LP-COMP,LP Compression Train,Deck B,Atlas Copco,COM-8131,2018-02-25,OPERATING,HIGH
+AREA-LP-COMP:V-201,V-201,LP Suction Scrubber A,Vessel,Scrubber,AREA-LP-COMP,LP Compression Train,Deck B,Exterran,VES-7636,2020-11-26,OPERATING,MEDIUM
+AREA-LP-COMP:V-202,V-202,LP Suction Scrubber B,Vessel,Scrubber,AREA-LP-COMP,LP Compression Train,Deck B,Forum Energy Technologies,VES-5403,2016-01-20,STANDBY,MEDIUM
+AREA-LP-COMP:E-201,E-201,LP Compressor Aftercooler A,HeatExchanger,AirCooled,AREA-LP-COMP,LP Compression Train,Deck B,SWEP,HEA-3479,2017-01-07,MAINTENANCE,MEDIUM
+AREA-LP-COMP:E-202,E-202,LP Compressor Aftercooler B,HeatExchanger,AirCooled,AREA-LP-COMP,LP Compression Train,Deck B,Tranter,HEA-9897,2016-03-16,OPERATING,MEDIUM
+AREA-LP-COMP:PT-201,PT-201,LP Suction Pressure Tx A,Instrument,PressureTransmitter,AREA-LP-COMP,LP Compression Train,Deck B,Honeywell,INS-4909,2018-09-12,OPERATING,LOW
+AREA-LP-COMP:PT-202,PT-202,LP Suction Pressure Tx B,Instrument,PressureTransmitter,AREA-LP-COMP,LP Compression Train,Deck B,Yokogawa,INS-3945,2018-08-16,OPERATING,LOW
+AREA-LP-COMP:PT-203,PT-203,LP Discharge Pressure Tx A,Instrument,PressureTransmitter,AREA-LP-COMP,LP Compression Train,Deck B,Honeywell,INS-3928,2017-04-19,OPERATING,LOW
+AREA-LP-COMP:PT-204,PT-204,LP Discharge Pressure Tx B,Instrument,PressureTransmitter,AREA-LP-COMP,LP Compression Train,Deck B,Emerson,INS-7254,2017-02-09,OPERATING,LOW
+AREA-LP-COMP:FT-201,FT-201,LP Compressor Suction Flow Tx,Instrument,FlowTransmitter,AREA-LP-COMP,LP Compression Train,Deck B,ABB,INS-2869,2018-05-20,MAINTENANCE,LOW
+AREA-LP-COMP:VT-201,VT-201,K-201 Vibration Sensor DE,Instrument,VibrationTransmitter,AREA-LP-COMP,LP Compression Train,Deck B,Yokogawa,INS-4954,2016-11-15,MAINTENANCE,LOW
+AREA-LP-COMP:VT-202,VT-202,K-201 Vibration Sensor NDE,Instrument,VibrationTransmitter,AREA-LP-COMP,LP Compression Train,Deck B,Yokogawa,INS-5050,2016-08-23,OPERATING,LOW
+AREA-LP-COMP:VT-203,VT-203,K-202 Vibration Sensor DE,Instrument,VibrationTransmitter,AREA-LP-COMP,LP Compression Train,Deck B,Honeywell,INS-5910,2022-06-25,MAINTENANCE,LOW
+AREA-LP-COMP:TT-201,TT-201,LP Comp A Discharge Temp,Instrument,TemperatureTransmitter,AREA-LP-COMP,LP Compression Train,Deck B,Endress+Hauser,INS-1481,2015-03-15,STANDBY,LOW
+AREA-LP-COMP:TT-202,TT-202,LP Comp B Discharge Temp,Instrument,TemperatureTransmitter,AREA-LP-COMP,LP Compression Train,Deck B,Endress+Hauser,INS-9923,2021-08-24,MAINTENANCE,LOW
+AREA-LP-COMP:LT-201,LT-201,LP Scrubber A Level Tx,Instrument,LevelTransmitter,AREA-LP-COMP,LP Compression Train,Deck B,ABB,INS-4159,2018-11-20,OPERATING,LOW
+AREA-LP-COMP:SDV-201,SDV-201,LP Comp A Suction SDV,Valve,ShutdownValve,AREA-LP-COMP,LP Compression Train,Deck B,Neles,VAL-6633,2017-11-05,OPERATING,LOW
+AREA-LP-COMP:SDV-202,SDV-202,LP Comp B Suction SDV,Valve,ShutdownValve,AREA-LP-COMP,LP Compression Train,Deck B,Emerson Fisher,VAL-1769,2020-09-27,MAINTENANCE,LOW
+AREA-LP-COMP:PCV-201,PCV-201,LP Comp A Anti-Surge Valve,Valve,ControlValve,AREA-LP-COMP,LP Compression Train,Deck B,Velan,VAL-7367,2016-04-04,OPERATING,LOW
+AREA-WATER,AREA-WATER,Water Treatment,Area,ProcessArea,FAC-001,Water Treatment,Deck C,,,2008-06-15,OPERATING,HIGH
+AREA-WATER:V-301,V-301,Produced Water Vessel,Vessel,SeparationVessel,AREA-WATER,Water Treatment,Deck C,Peerless,VES-4968,2019-09-23,STANDBY,MEDIUM
+AREA-WATER:V-302,V-302,Deoiling Hydrocyclone Package,Vessel,Hydrocyclone,AREA-WATER,Water Treatment,Deck C,Exterran,VES-6997,2019-06-14,OPERATING,MEDIUM
+AREA-WATER:E-301,E-301,Produced Water Cooler,HeatExchanger,Shell&Tube,AREA-WATER,Water Treatment,Deck C,Tranter,HEA-3987,2017-02-15,OPERATING,MEDIUM
+AREA-WATER:P-301,P-301,Produced Water Transfer Pump A,Pump,CentrifugalPump,AREA-WATER,Water Treatment,Deck C,KSB,PUM-5931,2020-06-04,OPERATING,HIGH
+AREA-WATER:P-302,P-302,Produced Water Transfer Pump B,Pump,CentrifugalPump,AREA-WATER,Water Treatment,Deck C,Sulzer,PUM-9489,2015-11-13,OPERATING,HIGH
+AREA-WATER:P-303,P-303,Cooling Water Pump A,Pump,CentrifugalPump,AREA-WATER,Water Treatment,Deck C,Sulzer,PUM-8395,2015-05-07,STANDBY,HIGH
+AREA-WATER:P-304,P-304,Cooling Water Pump B,Pump,CentrifugalPump,AREA-WATER,Water Treatment,Deck C,KSB,PUM-1851,2022-10-19,STANDBY,HIGH
+AREA-WATER:FT-301,FT-301,PW Transfer Flow Meter,Instrument,FlowTransmitter,AREA-WATER,Water Treatment,Deck C,ABB,INS-8243,2019-03-03,OPERATING,LOW
+AREA-WATER:PT-301,PT-301,PW Vessel Pressure Tx,Instrument,PressureTransmitter,AREA-WATER,Water Treatment,Deck C,Emerson,INS-3364,2020-09-16,MAINTENANCE,LOW
+AREA-WATER:LT-301,LT-301,PW Vessel Level Tx A,Instrument,LevelTransmitter,AREA-WATER,Water Treatment,Deck C,Emerson,INS-4570,2017-04-24,OPERATING,LOW
+AREA-WATER:LT-302,LT-302,PW Vessel Level Tx B,Instrument,LevelTransmitter,AREA-WATER,Water Treatment,Deck C,Honeywell,INS-9498,2022-04-15,MAINTENANCE,LOW
+AREA-WATER:TT-301,TT-301,PW Cooler Outlet Temp A,Instrument,TemperatureTransmitter,AREA-WATER,Water Treatment,Deck C,Yokogawa,INS-7164,2019-10-09,OPERATING,LOW
+AREA-WATER:TT-302,TT-302,PW Cooler Outlet Temp B,Instrument,TemperatureTransmitter,AREA-WATER,Water Treatment,Deck C,Endress+Hauser,INS-5947,2020-07-16,MAINTENANCE,LOW
+AREA-WATER:TT-303,TT-303,PW Cooler Inlet Temp,Instrument,TemperatureTransmitter,AREA-WATER,Water Treatment,Deck C,Yokogawa,INS-7899,2017-08-19,MAINTENANCE,LOW
+AREA-WATER:VT-301,VT-301,P-301 Pump Vibration,Instrument,VibrationTransmitter,AREA-WATER,Water Treatment,Deck C,Honeywell,INS-8901,2017-11-12,OPERATING,LOW
+AREA-WATER:VT-302,VT-302,P-303 CW Pump Vibration,Instrument,VibrationTransmitter,AREA-WATER,Water Treatment,Deck C,ABB,INS-8530,2019-11-20,OPERATING,LOW
+AREA-WATER:AT-301,AT-301,PW Oil-in-Water Analyser,Instrument,Analyser,AREA-WATER,Water Treatment,Deck C,Honeywell,INS-9652,2018-04-18,STANDBY,LOW
+AREA-WATER:LCV-301,LCV-301,PW Vessel Level Control Valve,Valve,ControlValve,AREA-WATER,Water Treatment,Deck C,Flowserve,VAL-7433,2016-11-26,OPERATING,LOW
+AREA-WATER:SDV-301,SDV-301,PW Transfer SDV,Valve,ShutdownValve,AREA-WATER,Water Treatment,Deck C,Velan,VAL-1652,2018-11-19,OPERATING,LOW
+AREA-UTIL,AREA-UTIL,Utilities,Area,ProcessArea,FAC-001,Utilities,Deck D,,,2008-06-15,OPERATING,HIGH
+AREA-UTIL:K-401,K-401,Instrument Air Compressor A,Compressor,Reciprocating,AREA-UTIL,Utilities,Deck D,Dresser-Rand,COM-6542,2020-07-02,OPERATING,HIGH
+AREA-UTIL:K-402,K-402,Instrument Air Compressor B,Compressor,Reciprocating,AREA-UTIL,Utilities,Deck D,Siemens,COM-2090,2018-10-24,STANDBY,HIGH
+AREA-UTIL:V-401,V-401,Instrument Air Receiver,Vessel,Receiver,AREA-UTIL,Utilities,Deck D,Exterran,VES-1295,2017-09-08,MAINTENANCE,MEDIUM
+AREA-UTIL:V-402,V-402,Fuel Gas Scrubber,Vessel,Scrubber,AREA-UTIL,Utilities,Deck D,Forum Energy Technologies,VES-9180,2022-05-03,STANDBY,MEDIUM
+AREA-UTIL:P-401,P-401,Fire Water Pump A,Pump,CentrifugalPump,AREA-UTIL,Utilities,Deck D,Flowserve,PUM-5321,2017-04-21,OPERATING,HIGH
+AREA-UTIL:P-402,P-402,Fire Water Pump B,Pump,CentrifugalPump,AREA-UTIL,Utilities,Deck D,KSB,PUM-6327,2015-10-20,MAINTENANCE,HIGH
+AREA-UTIL:G-401,G-401,Main Generator A,Generator,DieselGenerator,AREA-UTIL,Utilities,Deck D,Caterpillar,GEN-1529,2015-05-07,OPERATING,HIGH
+AREA-UTIL:G-402,G-402,Main Generator B,Generator,DieselGenerator,AREA-UTIL,Utilities,Deck D,Rolls-Royce,GEN-6230,2021-05-19,OPERATING,HIGH
+AREA-UTIL:G-403,G-403,Emergency Generator,Generator,DieselGenerator,AREA-UTIL,Utilities,Deck D,MTU,GEN-8187,2018-03-22,OPERATING,HIGH
+AREA-UTIL:PT-401,PT-401,IA Header Pressure Tx,Instrument,PressureTransmitter,AREA-UTIL,Utilities,Deck D,Emerson,INS-1742,2021-06-25,STANDBY,LOW
+AREA-UTIL:PT-402,PT-402,Fuel Gas Pressure Tx,Instrument,PressureTransmitter,AREA-UTIL,Utilities,Deck D,ABB,INS-9564,2016-02-16,STANDBY,LOW
+AREA-UTIL:PT-145,PT-145,Export Header Pressure Tx A,Instrument,PressureTransmitter,AREA-UTIL,Utilities,Deck D,Honeywell,INS-7931,2016-02-19,STANDBY,LOW
+AREA-UTIL:PT-146,PT-146,Export Header Pressure Tx B,Instrument,PressureTransmitter,AREA-UTIL,Utilities,Deck D,ABB,INS-2847,2022-07-21,OPERATING,LOW
+AREA-UTIL:TT-401,TT-401,Generator A Exhaust Temp,Instrument,TemperatureTransmitter,AREA-UTIL,Utilities,Deck D,Yokogawa,INS-6223,2017-01-10,STANDBY,LOW
+AREA-UTIL:TT-402,TT-402,Generator B Exhaust Temp,Instrument,TemperatureTransmitter,AREA-UTIL,Utilities,Deck D,Endress+Hauser,INS-3259,2021-06-06,STANDBY,LOW
+AREA-UTIL:ESD-001,ESD-001,Platform Emergency Shutdown,Safety,ESDSystem,AREA-UTIL,Utilities,Deck D,Siemens,SAF-2695,2021-02-04,MAINTENANCE,LOW
+AREA-UTIL:F-401,F-401,Flare KO Drum,Vessel,KnockoutDrum,AREA-UTIL,Utilities,Deck D,Peerless,VES-5244,2019-08-14,STANDBY,MEDIUM
+AREA-UTIL:PSV-401,PSV-401,Flare Header PSV,Valve,SafetyValve,AREA-UTIL,Utilities,Deck D,Emerson Fisher,VAL-9811,2021-05-06,OPERATING,LOW
+AREA-EXPORT,AREA-EXPORT,Metering & Export,Area,ProcessArea,FAC-001,Metering & Export,Deck E,,,2008-06-15,OPERATING,HIGH
+AREA-EXPORT:V-501,V-501,Export Buffer Tank A,Vessel,StorageTank,AREA-EXPORT,Metering & Export,Deck E,Forum Energy Technologies,VES-5013,2018-04-14,OPERATING,MEDIUM
+AREA-EXPORT:V-502,V-502,Export Buffer Tank B,Vessel,StorageTank,AREA-EXPORT,Metering & Export,Deck E,Frames,VES-4272,2018-04-15,OPERATING,MEDIUM
+AREA-EXPORT:P-501,P-501,Export Crude Pump A,Pump,CentrifugalPump,AREA-EXPORT,Metering & Export,Deck E,Grundfos,PUM-1582,2022-10-19,MAINTENANCE,HIGH
+AREA-EXPORT:P-502,P-502,Export Crude Pump B,Pump,CentrifugalPump,AREA-EXPORT,Metering & Export,Deck E,Sulzer,PUM-6280,2019-06-15,OPERATING,HIGH
+AREA-EXPORT:E-501,E-501,Export Crude Heater,HeatExchanger,Shell&Tube,AREA-EXPORT,Metering & Export,Deck E,Tranter,HEA-6194,2015-09-01,STANDBY,MEDIUM
+AREA-EXPORT:FT-501,FT-501,Export Flow Meter A,Instrument,FlowTransmitter,AREA-EXPORT,Metering & Export,Deck E,Emerson,INS-4320,2020-12-08,STANDBY,LOW
+AREA-EXPORT:FT-502,FT-502,Export Flow Meter B,Instrument,FlowTransmitter,AREA-EXPORT,Metering & Export,Deck E,Yokogawa,INS-5159,2015-07-14,OPERATING,LOW
+AREA-EXPORT:PT-501,PT-501,Export Line Pressure Tx A,Instrument,PressureTransmitter,AREA-EXPORT,Metering & Export,Deck E,ABB,INS-7784,2015-09-17,MAINTENANCE,LOW
+AREA-EXPORT:PT-502,PT-502,Export Line Pressure Tx B,Instrument,PressureTransmitter,AREA-EXPORT,Metering & Export,Deck E,Yokogawa,INS-5313,2015-11-02,OPERATING,LOW
+AREA-EXPORT:TT-501,TT-501,Export Crude Temp A,Instrument,TemperatureTransmitter,AREA-EXPORT,Metering & Export,Deck E,ABB,INS-7137,2019-08-24,STANDBY,LOW
+AREA-EXPORT:TT-502,TT-502,Export Crude Temp B,Instrument,TemperatureTransmitter,AREA-EXPORT,Metering & Export,Deck E,Yokogawa,INS-9815,2022-10-27,MAINTENANCE,LOW
+AREA-EXPORT:LT-501,LT-501,Export Tank A Level Tx,Instrument,LevelTransmitter,AREA-EXPORT,Metering & Export,Deck E,Emerson,INS-1803,2022-01-14,MAINTENANCE,LOW
+AREA-EXPORT:LT-502,LT-502,Export Tank B Level Tx,Instrument,LevelTransmitter,AREA-EXPORT,Metering & Export,Deck E,Endress+Hauser,INS-7984,2017-11-13,MAINTENANCE,LOW
+AREA-EXPORT:SDV-501,SDV-501,Export Line Shutdown Valve,Valve,ShutdownValve,AREA-EXPORT,Metering & Export,Deck E,Flowserve,VAL-3254,2016-05-21,OPERATING,LOW
+AREA-EXPORT:PCV-501,PCV-501,Export Pressure Control Valve,Valve,ControlValve,AREA-EXPORT,Metering & Export,Deck E,Emerson Fisher,VAL-3154,2019-05-18,MAINTENANCE,LOW

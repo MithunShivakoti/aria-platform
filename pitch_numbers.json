@@ -1,0 +1,42 @@
+{
+  "P-101-VIB": {
+    "first_warning": "2025-10-04 13:00:00+00:00",
+    "failure_time": "2025-11-10 07:00:00+00:00",
+    "days_early": 36.8,
+    "max_z": 8.37,
+    "readings_count": 17568,
+    "alarm_readings": 761
+  },
+  "K-201-VIBDE": {
+    "first_warning": "2025-10-06 03:15:00+00:00",
+    "failure_time": "2025-11-25 07:00:00+00:00",
+    "days_early": 50.2,
+    "max_z": 8.37,
+    "readings_count": 17568,
+    "alarm_readings": 789
+  },
+  "V-201-LEVEL": {
+    "first_warning": "2025-10-06 13:45:00+00:00",
+    "failure_time": "2025-11-25 07:00:00+00:00",
+    "days_early": 49.7,
+    "max_z": 8.37,
+    "readings_count": 17568,
+    "alarm_readings": 764
+  },
+  "E-301-TOUTLET": {
+    "first_warning": "2025-10-04 17:00:00+00:00",
+    "failure_time": "2026-02-01 07:00:00+00:00",
+    "days_early": 119.6,
+    "max_z": 8.37,
+    "readings_count": 17568,
+    "alarm_readings": 695
+  },
+  "PT-145-PV": {
+    "first_warning": "2025-10-04 14:30:00+00:00",
+    "failure_time": "2025-12-11 07:00:00+00:00",
+    "days_early": 67.7,
+    "max_z": 8.37,
+    "readings_count": 17568,
+    "alarm_readings": 762
+  }
+}
