@@ -121,13 +121,18 @@ async function getAlertEmailTransporter() {
   const user = process.env.SMTP_USER;
   const pass = process.env.SMTP_PASS;
   if (!host || !user || !pass) return null;
-  const ip = await resolveSmtpHost(host);
+  const forceIpv4 = process.env.SMTP_RESOLVE_IPV4 === "true";
+  const smtpHost = forceIpv4 ? await resolveSmtpHost(host) : host;
   return nodemailer.createTransport({
-    host: ip,
+    host: smtpHost,
     port,
     secure: port === 465,
+    requireTLS: port === 587,
     auth: { user, pass },
-    tls: { servername: host }, // keep SNI as original hostname for TLS handshake
+    connectionTimeout: Number(process.env.SMTP_CONNECTION_TIMEOUT_MS || 10000),
+    greetingTimeout: Number(process.env.SMTP_GREETING_TIMEOUT_MS || 10000),
+    socketTimeout: Number(process.env.SMTP_SOCKET_TIMEOUT_MS || 15000),
+    tls: { servername: host },
   });
 }
 
