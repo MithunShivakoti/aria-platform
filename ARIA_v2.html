@@ -2860,7 +2860,11 @@ async function notifyCriticalAlertEmail(alert) {
     });
     const data = await resp.json().catch(() => ({}));
     if (!resp.ok) throw new Error(data.error || `HTTP ${resp.status}`);
-    showToast(`📧 ${alert.severity === 'CRITICAL' ? 'Critical' : 'Warning'} email sent → ${data.to || ''}`);
+    if (data.skipped) return; // server skipped it (cooldown / generic alert) — no toast
+    const meta = SENSOR_META[alert.sensor];
+    const assetTag = meta ? (getAssetById(meta.asset)?.tag || meta.asset) : alert.sensor;
+    const label = alert.severity === 'CRITICAL' ? '🔴 Critical' : '⚠️ Warning';
+    showToast(`📧 ${label} email sent — ${assetTag} · ${alert.sensor}`);
     console.log("Critical alert email sent", data);
   } catch (err) {
     emailedCriticalAlertIds.delete(alert.id);
