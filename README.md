@@ -82,6 +82,26 @@ Open browser at `http://localhost:3000/ARIA.html`
 
 ---
 
+## Hosting
+
+The fastest hosted demo path is a Node web service with Kafka disabled. In that mode, ARIA still serves the dashboard, OpenAI proxy, alert email API, and live digital twin stream through the internal WebSocket fallback.
+
+### Render Blueprint
+
+1. Push this repository to GitHub.
+2. In Render, create a new Blueprint from the repository.
+3. Render will use `render.yaml` with:
+   - Build command: `npm ci`
+   - Start command: `npm start`
+   - Health check: `/api/health`
+   - `KAFKA_ENABLED=false`
+4. Add `OPENAI_API_KEY` as a secret environment variable.
+5. Optional email alerts require `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM`, and `ALERT_EMAIL_TO`.
+
+Open the deployed URL at `/ARIA.html`. The dashboard WebSocket automatically connects back to the same hosted domain.
+
+---
+
 ## Running with Live Kafka Streaming
 
 Requires 4 terminals running simultaneously.
