@@ -1107,6 +1107,8 @@ let liveMode = false;
 let ws = null;
 const liveReadings = {}; // sensor_id -> { value, unit, quality, timestamp }
 const liveAlertThrottle = new Map(); // sensor_id -> last alert timestamp ms
+const liveValueHistory = {}; // sensor_id -> rolling array of recent values (for live Z-score)
+const LIVE_Z_WINDOW = 60; // number of readings to keep per sensor
 
 // ============================================================
 // THEME
@@ -1210,7 +1212,8 @@ const ALERT_DEFS = [
   {
     id:"AL-P101-VIB-ZONE-C",
     sensor:"P-101-VIB",
-    triggerHour: 620,
+    // Fires when vibration enters ISO 10816-3 Zone C (4.5–7.1 mm/s)
+    condition: { type: "above", value: 4.5 },
     severity:"HIGH",
     title:"P-101 Vibration — Zone C (Alert Threshold)",
     desc:"Pump P-101A vibration has entered ISO 10816-3 Zone C (4.5–7.1 mm/s). Bearing failure probable within days. Standby pump should be readied.",
@@ -1221,7 +1224,8 @@ const ALERT_DEFS = [
   {
     id:"AL-P101-FAIL",
     sensor:"P-101-VIB",
-    triggerHour: 870,
+    // Fires when vibration enters Zone D — imminent failure (>7.1 mm/s)
+    condition: { type: "above", value: 7.1 },
     severity:"CRITICAL",
     title:"P-101 BEARING FAILURE — PUMP TRIP",
     desc:"P-101A pump has tripped. Drive End bearing complete failure. Standby P-102A must be started immediately. Production impact: est. 180 barrels if not recovered within 48h.",
@@ -1232,7 +1236,8 @@ const ALERT_DEFS = [
   {
     id:"AL-V201-LEVEL",
     sensor:"V-201-LEVEL",
-    triggerHour: 492,
+    // Fires when scrubber level breaches alarm_high (46%) — surge risk develops
+    condition: { type: "above", value: 46 },
     severity:"HIGH",
     title:"V-201 Scrubber Level Rising — K-201 Surge Risk",
     desc:"LP Suction Scrubber V-201 level rising abnormally. Suspected LCV-101 actuator sticking. If level exceeds 75%, liquid carryover to K-201 compressor will cause surge event.",
@@ -1243,7 +1248,8 @@ const ALERT_DEFS = [
   {
     id:"AL-K201-SURGE",
     sensor:"K-201-VIBDE",
-    triggerHour: 504,
+    // Fires when compressor vibration exceeds alarm_high (5.75 mm/s) — surge signature
+    condition: { type: "above", value: 5.75 },
     severity:"CRITICAL",
     title:"K-201 COMPRESSOR SURGE EVENT",
     desc:"K-201 compressor surge detected. Liquid carryover from V-201. Compressor tripped on surge protection. K-202 standby must be started. Production loss: est. 320 barrels.",
@@ -1254,7 +1260,8 @@ const ALERT_DEFS = [
   {
     id:"AL-E301-FOUL",
     sensor:"E-301-TOUTLET",
-    triggerHour: 350,
+    // Fires when outlet temp breaches alarm_high (80.5°C) — 12°C above design point of 70°C
+    condition: { type: "above", value: 80.5 },
     severity:"MEDIUM",
     title:"E-301 Outlet Temp Trending High — Fouling Suspected",
     desc:"E-301 produced water cooler outlet temperature is trending 12°C above design. Calcium carbonate fouling suspected on shell-side tubes. SOP-MAINT-010 chemical clean may be required.",
@@ -1265,7 +1272,8 @@ const ALERT_DEFS = [
   {
     id:"AL-PT145-DRIFT",
     sensor:"PT-145-PV",
-    triggerHour: 280,
+    // Fires when pressure reads above normal_max + 5 bar — positive drift signature vs PT-146 redundant
+    condition: { type: "above", value: 75 },
     severity:"LOW",
     title:"PT-145 Reading Drift Detected",
     desc:"PT-145 export header pressure transmitter showing positive drift vs PT-146 redundant. Suspected diaphragm fill fluid leak — H2S stress corrosion on Hastelloy C-276. Transmitter should be flagged as bad actor.",
@@ -1320,15 +1328,26 @@ function calculateRiskScore(asset) {
   alertScore = Math.min(40, critCount * 20 + highCount * 10);
 
   // Factor 2 — Z-score trend (max 30 pts)
+  // In live mode: computed from rolling window of real Kafka readings
+  // In sim mode: from precomputed zscore_results.json
   let rawZ = 0;
   sensors.forEach(sid => {
-    const zdata = ZSCORE_DATA[sid];
-    if (!zdata || zdata.length === 0) return;
-    const recentZ = zdata.slice(-10).map(d => Math.abs(d.z || 0));
-    const maxZ = Math.max(...recentZ);
-    if (maxZ > 3.5) rawZ += 15;
-    else if (maxZ > 2.5) rawZ += 10;
-    else if (maxZ > 1.5) rawZ += 5;
+    if (liveMode) {
+      const z = getCurrentZScore(sid);
+      if (z === null) return;
+      const absZ = Math.abs(z);
+      if (absZ > 3.5) rawZ += 15;
+      else if (absZ > 2.5) rawZ += 10;
+      else if (absZ > 1.5) rawZ += 5;
+    } else {
+      const zdata = ZSCORE_DATA[sid];
+      if (!zdata || zdata.length === 0) return;
+      const recentZ = zdata.slice(-10).map(d => Math.abs(d.z || 0));
+      const maxZ = Math.max(...recentZ);
+      if (maxZ > 3.5) rawZ += 15;
+      else if (maxZ > 2.5) rawZ += 10;
+      else if (maxZ > 1.5) rawZ += 5;
+    }
   });
   zScore = Math.min(30, rawZ);
 
@@ -2019,6 +2038,15 @@ const CORRELATION_GROUPS = [
 ];
 
 function getCurrentZScore(sid) {
+  if (liveMode) {
+    const hist = liveValueHistory[sid];
+    if (!hist || hist.length < 5) return null;
+    const n = hist.length;
+    const mean = hist.reduce((s, v) => s + v, 0) / n;
+    const std = Math.sqrt(hist.reduce((s, v) => s + (v - mean) ** 2, 0) / n);
+    if (std < 0.0001) return 0;
+    return +((hist[hist.length - 1] - mean) / std).toFixed(2);
+  }
   const data = ZSCORE_DATA[sid];
   if (!data || data.length === 0) return null;
   const t0 = new Date(data[0].timestamp).getTime();
@@ -2745,7 +2773,15 @@ function closeTrendChart(event) {
 
 function checkAlerts() {
   ALERT_DEFS.forEach(def => {
-    if(currentHour >= def.triggerHour && !shownAlertHours.has(def.id)) {
+    if (shownAlertHours.has(def.id)) return;
+    const cond = def.condition;
+    if (!cond) return;
+    const val = getCurrentValue(def.sensor);
+    if (val === null) return;
+    const triggered =
+      (cond.type === 'above' && val >= cond.value) ||
+      (cond.type === 'below' && val <= cond.value);
+    if (triggered) {
       shownAlertHours.add(def.id);
       fireAlert(def);
     }
@@ -3812,6 +3848,10 @@ function connectKafka() {
         quality: r.quality_flag,
         timestamp: r.timestamp || data.timestamp
       };
+      // Build rolling window for live Z-score computation
+      if (!liveValueHistory[r.sensor_id]) liveValueHistory[r.sensor_id] = [];
+      liveValueHistory[r.sensor_id].push(r.value);
+      if (liveValueHistory[r.sensor_id].length > LIVE_Z_WINDOW) liveValueHistory[r.sensor_id].shift();
     });
     // Update sim clock to show Kafka timestamp
     const clockEl = document.getElementById('tc-time-label');
@@ -3841,8 +3881,23 @@ function checkAlertsLive(readings) {
   readings.forEach(r => {
     const meta = SENSOR_META[r.sensor_id];
     if (!meta) return;
+
+    // First: try to fire a rich ALERT_DEF if conditions are met
+    const matchedDef = ALERT_DEFS.find(def =>
+      def.sensor === r.sensor_id &&
+      !shownAlertHours.has(def.id) &&
+      def.condition &&
+      ((def.condition.type === 'above' && r.value >= def.condition.value) ||
+       (def.condition.type === 'below' && r.value <= def.condition.value))
+    );
+    if (matchedDef) {
+      shownAlertHours.add(matchedDef.id);
+      fireAlert({ ...matchedDef, sensorVal: r.value, sensorUnit: r.unit, timestamp: r.timestamp || new Date().toISOString() });
+      return;
+    }
+
+    // Fallback: generic alarm breach for sensors not covered by ALERT_DEFS
     if (r.value > meta.ah || r.value < meta.al) {
-      // Don't re-fire the same sensor alert within 5 minutes
       const lastFiredAt = liveAlertThrottle.get(r.sensor_id) || 0;
       if (now - lastFiredAt < 300000) return;
       liveAlertThrottle.set(r.sensor_id, now);
@@ -3852,13 +3907,13 @@ function checkAlertsLive(readings) {
         sensor: r.sensor_id,
         severity: isCritical ? 'CRITICAL' : 'HIGH',
         title: r.sensor_id + ' — Live Alarm',
-        desc: r.sensor_id + ' reading ' + r.value + ' ' + r.unit + ' has breached alarm threshold',
+        desc: r.sensor_id + ' reading ' + r.value + ' ' + (r.unit || meta.unit) + ' has breached alarm threshold (' + meta.ah + ' ' + meta.unit + ')',
         failureMode: 'Live threshold breach detected',
-        sop: meta.sop || 'See relevant SOP for asset ' + r.asset_id,
-        woPrompt: 'Sensor ' + r.sensor_id + ' on asset ' + (r.asset_id || meta.asset) + ' is reading ' + r.value + ' ' + r.unit + ' which breaches the alarm threshold of ' + meta.ah + '. Generate an appropriate work order.',
-        timestamp: r.timestamp,
+        sop: 'See relevant SOP for asset ' + (r.asset_id || meta.asset),
+        woPrompt: 'Sensor ' + r.sensor_id + ' on asset ' + (r.asset_id || meta.asset) + ' is reading ' + r.value + ' ' + (r.unit || meta.unit) + ' which breaches the alarm threshold of ' + meta.ah + '. Generate an appropriate work order.',
+        timestamp: r.timestamp || new Date().toISOString(),
         sensorVal: r.value,
-        sensorUnit: r.unit,
+        sensorUnit: r.unit || meta.unit,
         firedAt: now
       };
       fireAlert(alertDef);
