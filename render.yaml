@@ -30,3 +30,9 @@ services:
         sync: false
       - key: ALERT_EMAIL_COOLDOWN_MS
         value: "300000"
+      - key: RESEND_API_KEY
+        sync: false
+      - key: RESEND_FROM
+        sync: false
+      - key: RESEND_TIMEOUT_MS
+        value: "10000"

@@ -182,6 +182,58 @@ function formatAlertEmail(alert, asset) {
   };
 }
 
+function sendViaResend({ from, to, subject, text, html }) {
+  const key = process.env.RESEND_API_KEY;
+  if (!key) return null;
+
+  const body = JSON.stringify({
+    from: process.env.RESEND_FROM || from,
+    to: [to],
+    subject,
+    text,
+    html,
+  });
+
+  return new Promise((resolve, reject) => {
+    const req = https.request({
+      hostname: "api.resend.com",
+      path: "/emails",
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${key}`,
+        "Content-Type": "application/json",
+        "Content-Length": Buffer.byteLength(body),
+      },
+      timeout: Number(process.env.RESEND_TIMEOUT_MS || 10000),
+    }, apiRes => {
+      let raw = "";
+      apiRes.on("data", chunk => raw += chunk);
+      apiRes.on("end", () => {
+        if (apiRes.statusCode >= 200 && apiRes.statusCode < 300) {
+          resolve({ provider: "resend", response: raw });
+        } else {
+          reject(new Error(`Resend ${apiRes.statusCode}: ${raw.slice(0, 300)}`));
+        }
+      });
+    });
+
+    req.on("timeout", () => req.destroy(new Error("Resend request timeout")));
+    req.on("error", reject);
+    req.write(body);
+    req.end();
+  });
+}
+
+async function sendAlertEmail({ from, to, subject, text, html }) {
+  const resendResult = await sendViaResend({ from, to, subject, text, html });
+  if (resendResult) return resendResult;
+
+  const transporter = await getAlertEmailTransporter();
+  if (!transporter) return null;
+  await transporter.sendMail({ from, to, subject, text, html });
+  return { provider: "smtp" };
+}
+
 app.post("/api/alerts/email", async (req, res) => {
   const alert = req.body?.alert || {};
   const asset = req.body?.asset || {};
@@ -198,28 +250,28 @@ app.post("/api/alerts/email", async (req, res) => {
     return res.json({ ok: true, skipped: true, reason: "cooldown" });
   }
 
-  const transporter = await getAlertEmailTransporter();
-  if (!transporter) {
-    console.warn("Critical alert email not sent: SMTP_HOST, SMTP_USER, or SMTP_PASS is missing.");
-    return res.status(503).json({ ok: false, error: "Email is not configured. Set SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, and SMTP_FROM in .env." });
-  }
-
   const subjectTag = asset.tag || alert.sensor || "ARIA";
   const subjectPrefix = alert.severity === "CRITICAL" ? "[ARIA CRITICAL]" : "[ARIA WARNING]";
   const content = formatAlertEmail(alert, asset);
+  const from = process.env.SMTP_FROM || process.env.RESEND_FROM || process.env.SMTP_USER;
+  if (!from || (!process.env.RESEND_API_KEY && (!process.env.SMTP_HOST || !process.env.SMTP_USER || !process.env.SMTP_PASS))) {
+    console.warn("Alert email not sent: email provider is not configured.");
+    return res.status(503).json({ ok: false, error: "Email is not configured. Set RESEND_API_KEY + RESEND_FROM, or SMTP_HOST + SMTP_USER + SMTP_PASS + SMTP_FROM." });
+  }
+
   try {
-    await transporter.sendMail({
-      from: process.env.SMTP_FROM || process.env.SMTP_USER,
+    const result = await sendAlertEmail({
+      from,
       to: ALERT_EMAIL_TO,
       subject: `${subjectPrefix} ${subjectTag} - ${alert.title || "Alert"}`,
       text: content.text,
       html: content.html,
     });
     emailedCriticalAlertIds.set(cooldownKey, Date.now());
-    console.log(`Alert email sent to ${ALERT_EMAIL_TO}: ${alertId}`);
-    res.json({ ok: true, to: ALERT_EMAIL_TO });
+    console.log(`Alert email sent to ${ALERT_EMAIL_TO} via ${result.provider}: ${alertId}`);
+    res.json({ ok: true, to: ALERT_EMAIL_TO, provider: result.provider });
   } catch (err) {
-    console.error("Critical alert email failed:", err.message);
+    console.error("Alert email failed:", err.message);
     res.status(502).json({ ok: false, error: err.message });
   }
 });

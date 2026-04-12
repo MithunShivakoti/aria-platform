@@ -56,6 +56,12 @@ ALERT_EMAIL_COOLDOWN_MS=300000
 ```
 For Gmail, use an app password for `SMTP_PASS`; do not use your normal account password. `ALERT_EMAIL_COOLDOWN_MS` prevents repeat emails for the same critical alert ID for 5 minutes by default.
 
+On hosted platforms where SMTP times out, use the Resend HTTPS API instead:
+```
+RESEND_API_KEY=your-resend-api-key
+RESEND_FROM=ARIA Alerts <onboarding@resend.dev>
+```
+
 ### 4. Download Kafka (first time only)
 ```bash
 curl -L -o kafka.tgz "https://archive.apache.org/dist/kafka/3.7.0/kafka_2.13-3.7.0.tgz"
