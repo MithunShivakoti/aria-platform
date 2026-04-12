@@ -2,6 +2,7 @@ services:
   - type: web
     name: aria-platform
     env: node
+    plan: free
     buildCommand: npm ci
     startCommand: npm start
     healthCheckPath: /api/health
@@ -15,3 +16,17 @@ services:
         value: "1000"
       - key: OPENAI_API_KEY
         sync: false
+      - key: ALERT_EMAIL_TO
+        sync: false
+      - key: SMTP_HOST
+        sync: false
+      - key: SMTP_PORT
+        value: "587"
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false
+      - key: SMTP_FROM
+        sync: false
+      - key: ALERT_EMAIL_COOLDOWN_MS
+        value: "300000"

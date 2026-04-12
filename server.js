@@ -52,9 +52,10 @@ console.log("Serving files from:", DIR);
 console.log("ARIA.html exists:", fs.existsSync(path.join(DIR, "ARIA.html")));
 console.log(`Loaded ${sensorMetadata.length} live sensors from sensor_metadata.csv`);
 
+app.get("/", (req, res) => res.sendFile(path.join(DIR, "ARIA_v2.html")));
+app.get("/ARIA", (req, res) => res.sendFile(path.join(DIR, "ARIA_v2.html")));
+app.get("/ARIA.html", (req, res) => res.sendFile(path.join(DIR, "ARIA_v2.html")));
 app.use(express.static(DIR));
-app.get("/",     (req, res) => res.sendFile(path.join(DIR, "ARIA.html")));
-app.get("/ARIA", (req, res) => res.sendFile(path.join(DIR, "ARIA.html")));
 
 app.get("/api/key", (req, res) => {
   res.json({ configured: !!process.env.OPENAI_API_KEY });
