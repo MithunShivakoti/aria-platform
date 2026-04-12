@@ -690,6 +690,16 @@
   .wo-sop-banner { background:rgba(0,212,255,0.06); border:1px solid var(--cyan); padding:8px 12px; font-family:var(--font-mono); font-size:9px; color:var(--cyan); letter-spacing:1px; margin-bottom:16px; line-height:1.8; }
   .wo-sop-banner-label { color:var(--text3); display:block; margin-bottom:2px; }
 
+  #aria-toast {
+    position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(80px);
+    background:var(--bg2); border:1px solid var(--cyan); border-radius:6px;
+    padding:10px 20px; font-family:var(--font-mono); font-size:12px; color:var(--cyan);
+    z-index:9999; opacity:0; transition:opacity 0.3s, transform 0.3s; pointer-events:none;
+    white-space:nowrap; box-shadow:0 4px 20px rgba(0,0,0,0.5);
+  }
+  #aria-toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+  #aria-toast.error { border-color:var(--red); color:var(--red); }
+
   .severity-badge { display:inline-block; padding:3px 10px; font-family:var(--font-mono); font-size:11px; font-weight:bold; letter-spacing:1px; }
   .severity-badge.HIGH { background:var(--amber-dim); color:var(--amber); border:1px solid var(--amber); }
   .severity-badge.CRITICAL { background:var(--red-dim); color:var(--red); border:1px solid var(--red); }
@@ -784,6 +794,7 @@
 </style>
 </head>
 <body>
+<div id="aria-toast"></div>
 <div class="app">
 
 <!-- HEADER -->
@@ -2811,6 +2822,17 @@ function fireAlert(def) {
   notifyCriticalAlertEmail(alert);
 }
 
+let _toastTimer = null;
+function showToast(msg, isError = false) {
+  const el = document.getElementById('aria-toast');
+  if (!el) return;
+  clearTimeout(_toastTimer);
+  el.textContent = msg;
+  el.classList.toggle('error', isError);
+  el.classList.add('show');
+  _toastTimer = setTimeout(() => el.classList.remove('show'), 4000);
+}
+
 async function notifyCriticalAlertEmail(alert) {
   if (!alert || alert.severity !== "CRITICAL" || emailedCriticalAlertIds.has(alert.id)) return;
   emailedCriticalAlertIds.add(alert.id);
@@ -2838,9 +2860,11 @@ async function notifyCriticalAlertEmail(alert) {
     });
     const data = await resp.json().catch(() => ({}));
     if (!resp.ok) throw new Error(data.error || `HTTP ${resp.status}`);
+    showToast(`📧 Critical alert email sent → ${data.to || ALERT_EMAIL_TO}`);
     console.log("Critical alert email sent", data);
   } catch (err) {
     emailedCriticalAlertIds.delete(alert.id);
+    showToast(`Email failed: ${err.message}`, true);
     console.warn("Critical alert email not sent:", err.message);
   }
 }
@@ -3305,6 +3329,8 @@ function jumpToFailure() {
   // Reset all fired alerts so they fire fresh during demo
   shownAlertHours.clear();
   alertLog.length = 0;
+  emailedCriticalAlertIds.clear();
+  acknowledgedAlerts.clear();
   renderAlerts();
   updateAlertCount();
   // Jump to hour 790 — just before P-101 values start crossing Zone C (4.5 mm/s at ~hr 796)
