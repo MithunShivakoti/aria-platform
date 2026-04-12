@@ -1408,23 +1408,15 @@ function renderRiskTab() {
     : '';
 
   panel.innerHTML = `<div style="padding:8px 10px;font-family:var(--font-mono);font-size:9px;color:var(--text3);letter-spacing:1px;border-bottom:1px solid var(--border)">PLATFORM RISK OVERVIEW — ${allAssets.length} ASSETS${platformSummary}</div>
-  <div style="padding:4px 10px 4px;display:grid;grid-template-columns:60px 1fr 80px 28px 80px 110px;gap:6px;font-family:var(--font-mono);font-size:8px;color:var(--text3);letter-spacing:1px;border-bottom:1px solid var(--border)">
-    <span>TAG</span><span>NAME</span><span>RISK</span><span></span><span>LEVEL</span><span style="text-align:right">PROD LOSS</span>
-  </div>
   <div style="flex:1;overflow-y:auto">` +
   allAssets.map(({asset, total}) => {
     const rc = getRiskColor(total);
-    const pl = getAssetProdLoss(asset);
-    const prodCell = pl
-      ? `<span class="risk-tab-prod">${pl.bbl.toFixed(1)} bbl<br><span style="color:var(--red);opacity:0.8">$${Math.round(pl.usd).toLocaleString()}</span></span>`
-      : `<span class="risk-tab-prod" style="color:var(--text3)">—</span>`;
     return `<div class="risk-tab-row" onclick="selectAsset(AREAS.flatMap(a=>a.assets).find(a=>a.id==='${asset.id}'))">
       <span class="risk-tab-tag">${asset.tag}</span>
       <span class="risk-tab-name">${asset.name}</span>
       <div class="risk-tab-bar"><div class="risk-tab-fill" style="width:${total}%;background:${rc.color}"></div></div>
       <span class="risk-tab-score" style="color:${rc.color}">${total}</span>
       <span class="risk-tab-lbl" style="color:${rc.color}">${rc.label}</span>
-      ${prodCell}
     </div>`;
   }).join('') + '</div>';
 }
@@ -2016,6 +2008,19 @@ function renderSensorGrid() {
           <div class="risk-factor-score" style="color:var(--green)">${risk.histScore}<span style="color:var(--text3);font-size:8px">/10</span></div>
         </div>
       </div>
+      ${(() => {
+        const pl = getAssetProdLoss(selectedAsset);
+        if (!pl) return '';
+        return `<div style="margin-top:10px;padding:8px 10px;background:rgba(255,51,85,0.12);border:1px solid var(--red);border-radius:4px">
+          <div style="font-family:var(--font-mono);font-size:9px;color:var(--text3);letter-spacing:1px;margin-bottom:4px">LIVE PRODUCTION LOSS</div>
+          <div style="display:flex;gap:16px;align-items:baseline">
+            <span style="font-family:var(--font-mono);font-size:20px;font-weight:bold;color:var(--red)">${pl.bbl.toFixed(1)}<span style="font-size:11px;margin-left:3px">bbl</span></span>
+            <span style="font-family:var(--font-mono);font-size:16px;color:var(--red);opacity:0.85">$${Math.round(pl.usd).toLocaleString()}</span>
+            <span style="font-family:var(--font-mono);font-size:9px;color:var(--text3);margin-left:auto">@ Brent $${OIL_PRICE}/bbl</span>
+          </div>
+          <div style="font-family:var(--font-mono);font-size:9px;color:var(--text3);margin-top:3px">${getAssetProdLossRate(selectedAsset.id)} bbl/hr × ${Math.max(0, currentHour - (alertLog.find(a=>a.severity==='CRITICAL'&&SENSOR_META[a.sensor]?.asset===selectedAsset.id)?.firedHour??currentHour)).toFixed(1)} hrs elapsed</div>
+        </div>`;
+      })()}
     </div>`;
   grid.appendChild(riskCard);
 
