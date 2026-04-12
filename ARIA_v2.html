@@ -44,6 +44,7 @@
     --header-bg: linear-gradient(90deg, #071a28 0%, #0a2035 50%, #071a28 100%);
     --scanline: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 4px);
     --modal-overlay-bg: rgba(4,13,20,0.92);
+    --tour-shadow: rgba(4,13,20,0.76);
     --chart-bg: rgba(0,0,0,0.35);
     --left-panel-width: 260px;
     --right-panel-width: 320px;
@@ -78,6 +79,7 @@
     --header-bg: linear-gradient(90deg, #ffffff 0%, #e8f4fb 50%, #ffffff 100%);
     --scanline: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,124,153,0.035) 2px, rgba(0,124,153,0.035) 4px);
     --modal-overlay-bg: rgba(235,242,248,0.88);
+    --tour-shadow: rgba(23,39,54,0.28);
     --chart-bg: rgba(255,255,255,0.76);
   }
   * { margin:0; padding:0; box-sizing:border-box; }
@@ -176,6 +178,7 @@
     min-width:90px;
   }
   .theme-toggle:hover { border-color:var(--cyan); color:var(--cyan); background:var(--cyan-dim); }
+  .tour-toggle { min-width:36px; padding:7px 10px; }
 
   /* LEFT PANEL — ASSET TREE */
   .left-panel {
@@ -507,6 +510,80 @@
   .floating-chat .chat-area { min-height:0; }
   .floating-chat .chat-input-area { background:var(--bg2); }
 
+  .tour-backdrop {
+    position:fixed;
+    inset:0;
+    background:var(--tour-shadow);
+    z-index:8000;
+  }
+  .tour-backdrop.clear { background:transparent; }
+  .tour-highlight {
+    position:fixed;
+    border:2px solid var(--cyan);
+    border-radius:6px;
+    box-shadow:0 0 0 4000px var(--tour-shadow), 0 0 24px var(--cyan);
+    z-index:8001;
+    pointer-events:none;
+    animation:tourPulse 1.4s ease-in-out infinite;
+  }
+  .tour-card {
+    position:fixed;
+    width:min(340px, calc(100vw - 32px));
+    z-index:8002;
+    background:var(--bg2);
+    border:1px solid var(--cyan);
+    border-radius:8px;
+    box-shadow:0 18px 54px rgba(0,0,0,0.32), 0 0 24px var(--cyan-dim);
+    padding:18px 20px;
+    color:var(--text);
+  }
+  .tour-count {
+    font-family:var(--font-mono);
+    font-size:9px;
+    letter-spacing:1px;
+    color:var(--text3);
+    margin-bottom:8px;
+    text-transform:uppercase;
+  }
+  .tour-title {
+    font-family:var(--font-ui);
+    font-size:18px;
+    font-weight:700;
+    color:var(--cyan);
+    letter-spacing:1px;
+    margin-bottom:8px;
+  }
+  .tour-body {
+    font-size:13px;
+    line-height:1.45;
+    color:var(--text2);
+  }
+  .tour-actions {
+    margin-top:16px;
+    display:flex;
+    justify-content:flex-end;
+    gap:8px;
+    flex-wrap:wrap;
+  }
+  .tour-actions button {
+    border:1px solid var(--border2);
+    border-radius:6px;
+    background:transparent;
+    color:var(--text2);
+    font-family:var(--font-ui);
+    font-size:11px;
+    letter-spacing:1px;
+    padding:7px 12px;
+    cursor:pointer;
+    text-transform:uppercase;
+  }
+  .tour-actions button:hover { border-color:var(--cyan); color:var(--cyan); background:var(--cyan-dim); }
+  .tour-actions .primary { border-color:var(--cyan); color:var(--cyan); background:var(--cyan-dim); font-weight:700; }
+  @keyframes tourPulse {
+    0%,100% { box-shadow:0 0 0 4000px var(--tour-shadow), 0 0 16px var(--cyan); }
+    50% { box-shadow:0 0 0 4000px var(--tour-shadow), 0 0 32px var(--cyan); }
+  }
+
   @media (max-width: 720px) {
     .floating-chat { right:12px; bottom:12px; }
     .floating-chat-nudge { right:64px; bottom:13px; font-size:9px; }
@@ -650,6 +727,7 @@
     <div class="date">SIMULATION TIME</div>
   </div>
   <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" aria-label="Toggle light and dark theme">THEME</button>
+  <button class="theme-toggle tour-toggle" onclick="startTour()" aria-label="Open dashboard tour" title="Open dashboard tour">?</button>
 </header>
 
 <!-- MAIN -->
@@ -3339,6 +3417,205 @@ function getChatAreas() {
 function scrollChat() {
   getChatAreas().forEach(ca => { ca.scrollTop = ca.scrollHeight; });
 }
+
+// ============================================================
+// GUIDED DASHBOARD TOUR
+// ============================================================
+const TOUR_STEPS = [
+  {
+    title: "Welcome to ARIA",
+    body: "Use this quick intro to learn the dashboard zones: assets, timeline, sensors, alerts, risk, live mode, and the ARIA chat bubble.",
+    target: null,
+    position: "center"
+  },
+  {
+    title: "Asset Hierarchy",
+    body: "Search or select plant assets here. Choosing an asset loads its sensors, history, alerts, and risk context across the dashboard.",
+    target: "#asset-tree",
+    position: "right"
+  },
+  {
+    title: "Timeline Controls",
+    body: "Move through the simulation, change playback speed, jump to the failure scenario, or switch to the live Kafka stream.",
+    target: ".time-controls",
+    position: "bottom"
+  },
+  {
+    title: "Sensor View",
+    body: "This middle pane shows the selected asset readings. Sensor cards show status, value, and threshold position. Click a card to open its trend chart.",
+    target: "#sensor-grid",
+    position: "top"
+  },
+  {
+    title: "Asset History",
+    body: "Use this tab to review maintenance and failure history for the selected asset without leaving the center workspace.",
+    target: "#ctab-history",
+    position: "bottom"
+  },
+  {
+    title: "Alerts, Risk, and Correlation",
+    body: "The right panel is for active alerts, asset risk/cost exposure, and correlation evidence across sensors.",
+    target: ".tabs",
+    position: "left"
+  },
+  {
+    title: "Resizable Panes",
+    body: "Drag the vertical handles to make the asset tree, middle workspace, or right-side analysis panel wider.",
+    target: "#right-resize-handle",
+    position: "left"
+  },
+  {
+    title: "Theme Toggle",
+    body: "Switch between dark and light themes here. The dashboard tour follows the same theme colors.",
+    target: "#theme-toggle",
+    position: "bottom"
+  },
+  {
+    title: "ARIA Chat",
+    body: "Use the bottom-right AI bubble to ask about alerts, SOP steps, maintenance priorities, handover notes, or selected asset status.",
+    target: ".floating-chat-toggle",
+    position: "left"
+  }
+];
+
+let tourStep = 0;
+let tourCard = null;
+let tourBackdrop = null;
+let tourHighlight = null;
+let tourResizeTimer = null;
+
+function startTour() {
+  toggleFloatingChat(false);
+  tourStep = 0;
+  renderTourStep();
+}
+
+function removeTourElements() {
+  if (tourCard) tourCard.remove();
+  if (tourBackdrop) tourBackdrop.remove();
+  if (tourHighlight) tourHighlight.remove();
+  tourCard = null;
+  tourBackdrop = null;
+  tourHighlight = null;
+}
+
+function finishTour() {
+  removeTourElements();
+  localStorage.setItem("aria-tour-done", "1");
+}
+
+function skipTour() {
+  finishTour();
+}
+
+function nextTourStep() {
+  tourStep += 1;
+  renderTourStep();
+}
+
+function prevTourStep() {
+  tourStep = Math.max(0, tourStep - 1);
+  renderTourStep();
+}
+
+function getTourTarget(selector) {
+  if (!selector) return null;
+  const el = document.querySelector(selector);
+  if (!el) return null;
+  const style = window.getComputedStyle(el);
+  const rect = el.getBoundingClientRect();
+  if (style.display === "none" || style.visibility === "hidden" || rect.width === 0 || rect.height === 0) return null;
+  return { el, rect };
+}
+
+function renderTourStep() {
+  removeTourElements();
+
+  if (tourStep >= TOUR_STEPS.length) {
+    finishTour();
+    return;
+  }
+
+  const step = TOUR_STEPS[tourStep];
+  const isFirst = tourStep === 0;
+  const isLast = tourStep === TOUR_STEPS.length - 1;
+  let target = getTourTarget(step.target);
+
+  if (step.target === ".floating-chat-toggle" && !target) {
+    toggleFloatingChat(false);
+    target = getTourTarget(step.target);
+  }
+
+  tourBackdrop = document.createElement("div");
+  tourBackdrop.className = `tour-backdrop${target ? " clear" : ""}`;
+  document.body.appendChild(tourBackdrop);
+
+  if (target) {
+    const pad = 6;
+    tourHighlight = document.createElement("div");
+    tourHighlight.className = "tour-highlight";
+    tourHighlight.style.top = `${target.rect.top - pad}px`;
+    tourHighlight.style.left = `${target.rect.left - pad}px`;
+    tourHighlight.style.width = `${target.rect.width + pad * 2}px`;
+    tourHighlight.style.height = `${target.rect.height + pad * 2}px`;
+    document.body.appendChild(tourHighlight);
+  }
+
+  tourCard = document.createElement("div");
+  tourCard.className = "tour-card";
+  tourCard.innerHTML = `
+    <div class="tour-count">Step ${tourStep + 1} of ${TOUR_STEPS.length}</div>
+    <div class="tour-title">${step.title}</div>
+    <div class="tour-body">${step.body}</div>
+    <div class="tour-actions">
+      <button onclick="skipTour()">Skip</button>
+      ${isFirst ? "" : '<button onclick="prevTourStep()">Back</button>'}
+      <button class="primary" onclick="nextTourStep()">${isLast ? "Done" : "Next"}</button>
+    </div>
+  `;
+  document.body.appendChild(tourCard);
+  positionTourCard(tourCard, step, target ? target.rect : null);
+}
+
+function positionTourCard(card, step, rect) {
+  const margin = 14;
+  const viewportW = window.innerWidth;
+  const viewportH = window.innerHeight;
+  const cardRect = card.getBoundingClientRect();
+  let top = (viewportH - cardRect.height) / 2;
+  let left = (viewportW - cardRect.width) / 2;
+
+  if (rect) {
+    if (step.position === "right") {
+      left = rect.right + margin;
+      top = rect.top;
+    } else if (step.position === "left") {
+      left = rect.left - cardRect.width - margin;
+      top = rect.top;
+    } else if (step.position === "bottom") {
+      left = rect.left;
+      top = rect.bottom + margin;
+    } else if (step.position === "top") {
+      left = rect.left;
+      top = rect.top - cardRect.height - margin;
+    }
+  }
+
+  left = Math.max(16, Math.min(left, viewportW - cardRect.width - 16));
+  top = Math.max(16, Math.min(top, viewportH - cardRect.height - 16));
+  card.style.left = `${left}px`;
+  card.style.top = `${top}px`;
+}
+
+window.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && tourCard) skipTour();
+});
+
+window.addEventListener("resize", () => {
+  if (!tourCard) return;
+  window.clearTimeout(tourResizeTimer);
+  tourResizeTimer = window.setTimeout(renderTourStep, 80);
+});
 
 // ============================================================
 // INIT
