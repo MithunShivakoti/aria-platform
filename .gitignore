@@ -1,5 +1,6 @@
 .env
 node_modules/
+.venv/
 timeseries.csv
 kafka_2.13-3.7.0/
 .claude/

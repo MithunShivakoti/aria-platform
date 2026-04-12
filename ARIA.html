@@ -244,6 +244,32 @@
   .btn.active { border-color:var(--cyan); color:var(--cyan); background:var(--cyan-dim); }
   .btn.danger { border-color:var(--red); color:var(--red); }
   .speed-btns { display:flex; gap:4px; }
+  .stream-controls { display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
+  .stream-select {
+    background:var(--panel);
+    border:1px solid var(--border2);
+    color:var(--text2);
+    font-family:var(--font-ui);
+    font-size:11px;
+    letter-spacing:1px;
+    padding:5px 8px;
+    min-width:132px;
+    outline:none;
+    text-transform:uppercase;
+  }
+  .stream-select:focus { border-color:var(--cyan); color:var(--cyan); }
+  .live-badge {
+    font-family:var(--font-mono);
+    font-size:9px;
+    letter-spacing:1px;
+    color:var(--text3);
+    border:1px solid var(--border);
+    background:var(--panel);
+    padding:5px 8px;
+    white-space:nowrap;
+  }
+  .live-badge.connected { color:var(--green); border-color:var(--green); background:var(--green-dim); }
+  .live-badge.warn { color:var(--amber); border-color:var(--amber); background:var(--amber-dim); }
 
   /* SENSOR GRID */
   .sensor-grid { flex:1; overflow-y:auto; padding:16px 20px; display:grid; grid-template-columns:repeat(auto-fill, minmax(180px, 1fr)); gap:12px; align-content:start; }
@@ -559,6 +585,21 @@
     </div>
     <button class="btn" id="play-btn" onclick="togglePlay()">▶ PLAY</button>
     <button class="btn danger" onclick="jumpToFailure()">⚡ JUMP TO FAILURE</button>
+    <div class="stream-controls">
+      <select class="stream-select" id="data-mode-select" onchange="setDataMode(this.value)">
+        <option value="historical">Historical Replay</option>
+        <option value="live">Live Digital Twin</option>
+      </select>
+      <select class="stream-select" id="live-scenario-select" onchange="setLiveScenario(this.value)" disabled>
+        <option value="normal">Normal Operations</option>
+        <option value="p101_bearing">P-101 Bearing</option>
+        <option value="k201_surge">K-201 Surge</option>
+        <option value="e301_fouling">E-301 Fouling</option>
+        <option value="pt145_drift">PT-145 Drift</option>
+        <option value="p501_export_leak">P-501 Leak</option>
+      </select>
+      <span class="live-badge" id="live-status">LIVE OFF</span>
+    </div>
   </div>
   <div class="center-tabs">
     <div class="center-tab active" id="ctab-sensors" onclick="switchCenterTab('sensors')">⊙ Sensors</div>
@@ -1009,6 +1050,13 @@ let activeAlerts = [];
 let alertLog = [];
 let apiKey = false; // true = key configured server-side, false = demo mode
 let shownAlertHours = new Set();
+let dataMode = "historical";
+let liveSocket = null;
+let liveReadings = {};
+let liveTimestamp = null;
+let liveTransport = "disconnected";
+let liveScenario = "normal";
+let liveAlertedSensors = new Set();
 
 // ============================================================
 // THEME
@@ -1103,6 +1151,140 @@ function initResizablePanes() {
 
   leftHandle.addEventListener("pointerdown", (event) => startDrag("left", event));
   rightHandle.addEventListener("pointerdown", (event) => startDrag("right", event));
+}
+
+// ============================================================
+// LIVE DIGITAL TWIN STREAM
+// ============================================================
+function formatLiveTimestamp(timestamp) {
+  if (!timestamp) return "--";
+  return new Date(timestamp).toISOString().replace('T',' ').replace('Z',' UTC').slice(0,23);
+}
+
+function updateLiveStatus(label, state = "") {
+  const badge = document.getElementById("live-status");
+  if (!badge) return;
+  badge.textContent = label;
+  badge.className = `live-badge ${state}`;
+}
+
+function setHistoricalControlsEnabled(enabled) {
+  ["time-slider", "play-btn", "spd1", "spd5", "spd20"].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.disabled = !enabled;
+  });
+}
+
+function setDataMode(mode) {
+  dataMode = mode === "live" ? "live" : "historical";
+  const scenarioSelect = document.getElementById("live-scenario-select");
+  const modeSelect = document.getElementById("data-mode-select");
+  if (modeSelect) modeSelect.value = dataMode;
+  if (scenarioSelect) scenarioSelect.disabled = dataMode !== "live";
+
+  if (dataMode === "live") {
+    stopPlayback();
+    playing = false;
+    document.getElementById("play-btn").textContent = "▶ PLAY";
+    document.getElementById("play-btn").classList.remove("active");
+    setHistoricalControlsEnabled(false);
+    connectLiveStream();
+    updateLiveStatus(`CONNECTING ${liveScenario.toUpperCase()}`, "warn");
+  } else {
+    setHistoricalControlsEnabled(true);
+    if (liveSocket) {
+      liveSocket.close();
+      liveSocket = null;
+    }
+    updateLiveStatus("LIVE OFF");
+    updateDisplay();
+  }
+}
+
+function setLiveScenario(scenario) {
+  liveScenario = scenario || "normal";
+  liveAlertedSensors.clear();
+  const scenarioSelect = document.getElementById("live-scenario-select");
+  if (scenarioSelect) scenarioSelect.value = liveScenario;
+  if (liveSocket && liveSocket.readyState === WebSocket.OPEN) {
+    liveSocket.send(JSON.stringify({ type: "set_scenario", scenario: liveScenario }));
+  }
+  fetch("/api/live/scenario", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ scenario: liveScenario })
+  }).catch(() => {});
+}
+
+function connectLiveStream() {
+  if (liveSocket && (liveSocket.readyState === WebSocket.OPEN || liveSocket.readyState === WebSocket.CONNECTING)) return;
+  const protocol = location.protocol === "https:" ? "wss:" : "ws:";
+  liveSocket = new WebSocket(`${protocol}//${location.host}/ws/live`);
+
+  liveSocket.addEventListener("open", () => {
+    updateLiveStatus(`LIVE ${liveTransport.toUpperCase()}`, "connected");
+    liveSocket.send(JSON.stringify({ type: "set_scenario", scenario: liveScenario }));
+  });
+
+  liveSocket.addEventListener("message", event => {
+    const payload = JSON.parse(event.data);
+    if (payload.type === "live_status") {
+      liveTransport = payload.transport || liveTransport;
+      if (payload.scenario) liveScenario = payload.scenario;
+      updateLiveStatus(`LIVE ${liveTransport.toUpperCase()}`, "connected");
+      return;
+    }
+    if (payload.type === "live_batch") processLiveBatch(payload);
+  });
+
+  liveSocket.addEventListener("close", () => {
+    liveSocket = null;
+    if (dataMode === "live") {
+      updateLiveStatus("LIVE RECONNECTING", "warn");
+      setTimeout(connectLiveStream, 1500);
+    }
+  });
+
+  liveSocket.addEventListener("error", () => updateLiveStatus("LIVE ERROR", "warn"));
+}
+
+function processLiveBatch(payload) {
+  liveTimestamp = payload.timestamp;
+  liveTransport = payload.transport || payload.source || "live";
+  liveScenario = payload.scenario || liveScenario;
+  payload.readings.forEach(reading => {
+    liveReadings[reading.sensor_id] = reading;
+  });
+  if (dataMode !== "live") return;
+  updateLiveStatus(`LIVE ${liveTransport.toUpperCase()} · ${payload.summary?.total || payload.readings.length} SENSORS`, "connected");
+  processLiveAlerts(payload.readings);
+  updateDisplay();
+}
+
+function processLiveAlerts(readings) {
+  readings
+    .filter(r => r.severity === "HIGH" || r.severity === "CRITICAL")
+    .slice(0, 5)
+    .forEach(reading => {
+      const alertId = `LIVE-${liveScenario}-${reading.sensor_id}-${reading.severity}`;
+      if (liveAlertedSensors.has(alertId)) return;
+      liveAlertedSensors.add(alertId);
+      alertLog.unshift({
+        id: alertId,
+        sensor: reading.sensor_id,
+        severity: reading.severity,
+        title: `${reading.tag || reading.sensor_id} ${reading.state.replace('_', ' ')} — Live Digital Twin`,
+        desc: `${reading.name} is ${reading.state.toLowerCase().replace('_', ' ')} in scenario ${liveScenario}. Source=${reading.source}; quality=${reading.quality_flag}.`,
+        failureMode: "Live simulated anomaly from ARIA digital twin",
+        sop: "LIVE-DIGITAL-TWIN",
+        woPrompt: `Generate a maintenance work order for ${reading.name} (${reading.sensor_id}) in live digital twin scenario ${liveScenario}. Current state ${reading.state}, value ${reading.value} ${reading.unit}.`,
+        timestamp: formatLiveTimestamp(reading.timestamp),
+        sensorVal: reading.value.toFixed(2),
+        sensorUnit: reading.unit,
+      });
+    });
+  renderAlerts();
+  updateAlertCount();
 }
 
 // ============================================================
@@ -1261,6 +1443,9 @@ function getSensorStatus(sid) {
 }
 
 function getCurrentValue(sid) {
+  if (dataMode === "live") {
+    return liveReadings[sid] ? liveReadings[sid].value : null;
+  }
   const h = Math.floor(currentHour);
   return TS[h] && TS[h][sid] !== undefined ? TS[h][sid] : null;
 }
@@ -1689,9 +1874,10 @@ function getTimeAtHour(h) {
 
 function updateDisplay() {
   // Clock
-  document.getElementById("sim-clock").textContent = getTimeAtHour(currentHour);
-  document.getElementById("tc-time-label").textContent = getTimeAtHour(currentHour);
-  document.getElementById("time-slider").value = (currentHour/TOTAL_HOURS)*100;
+  const displayTime = dataMode === "live" ? formatLiveTimestamp(liveTimestamp) : getTimeAtHour(currentHour);
+  document.getElementById("sim-clock").textContent = displayTime;
+  document.getElementById("tc-time-label").textContent = dataMode === "live" ? `LIVE ${liveScenario.toUpperCase()} · ${displayTime}` : displayTime;
+  if (dataMode !== "live") document.getElementById("time-slider").value = (currentHour/TOTAL_HOURS)*100;
 
   // Update sensor cards
   if(selectedAsset) {
@@ -1738,6 +1924,7 @@ function updateDisplay() {
 }
 
 function checkAlerts() {
+  if (dataMode === "live") return;
   ALERT_DEFS.forEach(def => {
     if(currentHour >= def.triggerHour && !shownAlertHours.has(def.id)) {
       shownAlertHours.add(def.id);
@@ -1751,7 +1938,7 @@ function fireAlert(def) {
   const meta = SENSOR_META[def.sensor];
   const alert = {
     ...def,
-    timestamp: getTimeAtHour(currentHour),
+    timestamp: dataMode === "live" ? formatLiveTimestamp(liveTimestamp) : getTimeAtHour(currentHour),
     sensorVal: val ? val.toFixed(2) : '--',
     sensorUnit: meta ? meta.unit : '',
   };
@@ -1973,6 +2160,7 @@ function closeModal() { document.getElementById("wo-modal").style.display = "non
 // PLAYBACK CONTROLS
 // ============================================================
 function togglePlay() {
+  if (dataMode === "live") return;
   playing = !playing;
   const btn = document.getElementById("play-btn");
   if(playing) {
@@ -2008,6 +2196,7 @@ function setSpeed(s) {
 }
 
 function jumpToFailure() {
+  if (dataMode === "live") setDataMode("historical");
   stopPlayback();
   playing = false;
   document.getElementById("play-btn").textContent = "▶ PLAY";
@@ -2022,6 +2211,7 @@ function jumpToFailure() {
 
 // Slider
 document.getElementById("time-slider").addEventListener("input", function() {
+  if (dataMode === "live") return;
   currentHour = (this.value/100) * TOTAL_HOURS;
   updateDisplay();
 });
@@ -2157,7 +2347,7 @@ async function sendChat() {
     contextMsg[contextMsg.length-1] = {
       role:"user",
       content: msg +
-        `\n\n[Current simulation time: ${getTimeAtHour(currentHour)}. Active alerts: ${alertLog.length}. ${alertLog.length>0 ? 'Latest: '+alertLog[0].title : 'None.'}. Selected asset: ${selectedAsset ? selectedAsset.tag + ' — ' + selectedAsset.name : 'None'}.]` +
+        `\n\n[Data mode: ${dataMode}. Current time: ${dataMode === 'live' ? formatLiveTimestamp(liveTimestamp) : getTimeAtHour(currentHour)}. Live scenario: ${dataMode === 'live' ? liveScenario : 'none'}. Active alerts: ${alertLog.length}. ${alertLog.length>0 ? 'Latest: '+alertLog[0].title : 'None.'}. Selected asset: ${selectedAsset ? selectedAsset.tag + ' — ' + selectedAsset.name : 'None'}.]` +
         (selectedAsset ? getAssetHistoryContext(selectedAsset.id, selectedAsset.tag) : "")
     };
 
@@ -2227,6 +2417,7 @@ async function init() {
     (docSection ? "\n\n====================\nPLATFORM DOCUMENTS (FOR REFERENCE):\n\n" + docSection : "");
   setTheme(document.documentElement.dataset.theme || "dark");
   initResizablePanes();
+  setDataMode("historical");
   const notice = document.getElementById("api-key-notice");
   if (notice) {
     notice.textContent = apiKey ? "✓ AI responses enabled." : "⚠ No API key — demo mode.";

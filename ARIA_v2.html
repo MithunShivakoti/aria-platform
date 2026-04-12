@@ -4,6 +4,17 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ARIA — Autonomous Risk Intelligence Agent | North Sea Platform Alpha</title>
+<script>
+  (() => {
+    const savedTheme = localStorage.getItem("aria-theme");
+    const prefersLight = window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches;
+    document.documentElement.dataset.theme = savedTheme || (prefersLight ? "light" : "dark");
+    const leftPanelWidth = parseFloat(localStorage.getItem("aria-left-panel-width"));
+    const rightPanelWidth = parseFloat(localStorage.getItem("aria-right-panel-width"));
+    if (Number.isFinite(leftPanelWidth)) document.documentElement.style.setProperty("--left-panel-width", leftPanelWidth + "px");
+    if (Number.isFinite(rightPanelWidth)) document.documentElement.style.setProperty("--right-panel-width", rightPanelWidth + "px");
+  })();
+</script>
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&family=Exo+2:wght@300;400;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -28,9 +39,43 @@
     --text: #c8e4f0;
     --text2: #7aaabb;
     --text3: #4a7080;
+    --header-bg: linear-gradient(90deg, #071a28 0%, #0a2035 50%, #071a28 100%);
+    --scanline: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 4px);
+    --modal-overlay-bg: rgba(4,13,20,0.92);
+    --chart-bg: rgba(0,0,0,0.35);
+    --left-panel-width: 260px;
+    --right-panel-width: 320px;
+    --resize-handle-width: 8px;
     --font-mono: 'Share Tech Mono', monospace;
     --font-ui: 'Rajdhani', sans-serif;
     --font-body: 'Exo 2', sans-serif;
+  }
+  html[data-theme="light"] {
+    --bg: #f4f7fb;
+    --bg2: #ffffff;
+    --bg3: #eaf1f8;
+    --panel: #ffffff;
+    --panel2: #edf4fb;
+    --border: #d5e3ef;
+    --border2: #abc3d8;
+    --cyan: #007c99;
+    --cyan2: #0099b8;
+    --cyan-dim: rgba(0,124,153,0.12);
+    --green: #0b8f5a;
+    --green2: #0a7249;
+    --green-dim: rgba(11,143,90,0.12);
+    --amber: #b66f00;
+    --amber-dim: rgba(182,111,0,0.13);
+    --red: #c92846;
+    --red2: #a51f37;
+    --red-dim: rgba(201,40,70,0.13);
+    --text: #172736;
+    --text2: #4b6174;
+    --text3: #758da1;
+    --header-bg: linear-gradient(90deg, #ffffff 0%, #e8f4fb 50%, #ffffff 100%);
+    --scanline: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,124,153,0.035) 2px, rgba(0,124,153,0.035) 4px);
+    --modal-overlay-bg: rgba(235,242,248,0.88);
+    --chart-bg: rgba(255,255,255,0.76);
   }
   * { margin:0; padding:0; box-sizing:border-box; }
   html, body { height:100%; background:var(--bg); color:var(--text); font-family:var(--font-body); overflow:hidden; }
@@ -38,16 +83,50 @@
   /* SCANLINE OVERLAY */
   body::before {
     content:''; position:fixed; inset:0; pointer-events:none; z-index:9999;
-    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 4px);
+    background: var(--scanline);
   }
 
   /* LAYOUT */
   .app { display:grid; grid-template-rows:56px 1fr; height:100vh; }
-  .main { display:grid; grid-template-columns:260px 1fr 320px; overflow:hidden; }
+  .main {
+    display:grid;
+    grid-template-columns:var(--left-panel-width) var(--resize-handle-width) minmax(360px, 1fr) var(--resize-handle-width) var(--right-panel-width);
+    overflow:hidden;
+  }
+  body.resizing-panes { cursor:col-resize; user-select:none; }
+  body.resizing-panes * { cursor:col-resize !important; }
+  .resize-handle {
+    background:linear-gradient(90deg, transparent, var(--border), transparent);
+    border-left:1px solid transparent;
+    border-right:1px solid transparent;
+    cursor:col-resize;
+    position:relative;
+    z-index:20;
+    transition:background 0.2s, border-color 0.2s;
+  }
+  .resize-handle::after {
+    content:'';
+    position:absolute;
+    top:50%;
+    left:50%;
+    width:2px;
+    height:42px;
+    transform:translate(-50%, -50%);
+    background:var(--border2);
+    border-radius:2px;
+    box-shadow:0 0 0 1px var(--bg2);
+  }
+  .resize-handle:hover,
+  .resize-handle.active {
+    background:var(--cyan-dim);
+    border-color:var(--cyan);
+  }
+  .resize-handle:hover::after,
+  .resize-handle.active::after { background:var(--cyan); }
 
   /* HEADER */
   header {
-    background: linear-gradient(90deg, #071a28 0%, #0a2035 50%, #071a28 100%);
+    background: var(--header-bg);
     border-bottom: 1px solid var(--border2);
     display:flex; align-items:center; padding:0 20px; gap:20px;
     position:relative; overflow:hidden;
@@ -81,6 +160,20 @@
 
   .time-display { font-family:var(--font-mono); font-size:12px; color:var(--cyan); text-align:right; }
   .time-display .date { font-size:9px; color:var(--text3); }
+  .theme-toggle {
+    border:1px solid var(--border2);
+    background:var(--panel);
+    color:var(--text2);
+    font-family:var(--font-mono);
+    font-size:10px;
+    letter-spacing:1px;
+    padding:7px 10px;
+    cursor:pointer;
+    transition:all 0.2s;
+    text-transform:uppercase;
+    min-width:90px;
+  }
+  .theme-toggle:hover { border-color:var(--cyan); color:var(--cyan); background:var(--cyan-dim); }
 
   /* LEFT PANEL — ASSET TREE */
   .left-panel {
@@ -336,7 +429,7 @@
 
   /* WORK ORDER MODAL */
   .modal-overlay {
-    position:fixed; inset:0; background:rgba(4,13,20,0.92); z-index:1000;
+    position:fixed; inset:0; background:var(--modal-overlay-bg); z-index:1000;
     display:flex; align-items:center; justify-content:center; padding:20px;
     backdrop-filter:blur(4px);
   }
@@ -467,6 +560,7 @@
     <div id="sim-clock">--</div>
     <div class="date">SIMULATION TIME</div>
   </div>
+  <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" aria-label="Toggle light and dark theme">THEME</button>
 </header>
 
 <!-- MAIN -->
@@ -477,6 +571,8 @@
   <div class="panel-header">Asset Hierarchy</div>
   <div class="asset-list" id="asset-tree"></div>
 </div>
+
+<div class="resize-handle" id="left-resize-handle" title="Drag to resize left panel"></div>
 
 <!-- CENTER: SENSOR GRID / DETAIL -->
 <div class="center-panel">
@@ -504,6 +600,8 @@
     <div class="history-panel" id="history-panel"></div>
   </div>
 </div>
+
+<div class="resize-handle" id="right-resize-handle" title="Drag to resize right panel"></div>
 
 <!-- RIGHT: ALERTS + AI -->
 <div class="right-panel">
@@ -956,6 +1054,101 @@ let shownAlertHours = new Set();
 let liveMode = false;
 let ws = null;
 const liveReadings = {}; // sensor_id -> { value, unit, quality, timestamp }
+
+// ============================================================
+// THEME
+// ============================================================
+function setTheme(theme) {
+  const nextTheme = theme === "light" ? "light" : "dark";
+  document.documentElement.dataset.theme = nextTheme;
+  localStorage.setItem("aria-theme", nextTheme);
+  const btn = document.getElementById("theme-toggle");
+  if (btn) btn.textContent = nextTheme === "light" ? "☀ LIGHT" : "☾ DARK";
+}
+
+function toggleTheme() {
+  const current = document.documentElement.dataset.theme || "dark";
+  setTheme(current === "light" ? "dark" : "light");
+}
+
+// ============================================================
+// RESIZABLE PANES
+// ============================================================
+const PANE_LIMITS = {
+  leftMin: 180,
+  leftMax: 560,
+  rightMin: 240,
+  rightMax: 640,
+  centerMin: 420,
+  handleTotal: 16,
+};
+
+function clampPaneWidth(value, min, max) {
+  return Math.max(min, Math.min(max, value));
+}
+
+function setPaneWidth(side, width) {
+  const cssVar = side === "left" ? "--left-panel-width" : "--right-panel-width";
+  const storageKey = side === "left" ? "aria-left-panel-width" : "aria-right-panel-width";
+  const rounded = Math.round(width);
+  document.documentElement.style.setProperty(cssVar, rounded + "px");
+  localStorage.setItem(storageKey, String(rounded));
+}
+
+function getPaneWidth(side) {
+  const cssVar = side === "left" ? "--left-panel-width" : "--right-panel-width";
+  const value = parseFloat(getComputedStyle(document.documentElement).getPropertyValue(cssVar));
+  return Number.isFinite(value) ? value : (side === "left" ? 260 : 320);
+}
+
+function initResizablePanes() {
+  const main = document.querySelector(".main");
+  const leftHandle = document.getElementById("left-resize-handle");
+  const rightHandle = document.getElementById("right-resize-handle");
+  if (!main || !leftHandle || !rightHandle) return;
+
+  const startDrag = (side, event) => {
+    event.preventDefault();
+    const handle = side === "left" ? leftHandle : rightHandle;
+    handle.classList.add("active");
+    document.body.classList.add("resizing-panes");
+
+    const onPointerMove = (moveEvent) => {
+      const rect = main.getBoundingClientRect();
+      const leftWidth = getPaneWidth("left");
+      const rightWidth = getPaneWidth("right");
+
+      if (side === "left") {
+        const maxLeft = Math.max(
+          PANE_LIMITS.leftMin,
+          Math.min(PANE_LIMITS.leftMax, rect.width - rightWidth - PANE_LIMITS.centerMin - PANE_LIMITS.handleTotal)
+        );
+        setPaneWidth("left", clampPaneWidth(moveEvent.clientX - rect.left, PANE_LIMITS.leftMin, maxLeft));
+      } else {
+        const maxRight = Math.max(
+          PANE_LIMITS.rightMin,
+          Math.min(PANE_LIMITS.rightMax, rect.width - leftWidth - PANE_LIMITS.centerMin - PANE_LIMITS.handleTotal)
+        );
+        setPaneWidth("right", clampPaneWidth(rect.right - moveEvent.clientX, PANE_LIMITS.rightMin, maxRight));
+      }
+    };
+
+    const stopDrag = () => {
+      handle.classList.remove("active");
+      document.body.classList.remove("resizing-panes");
+      window.removeEventListener("pointermove", onPointerMove);
+      window.removeEventListener("pointerup", stopDrag);
+      window.removeEventListener("pointercancel", stopDrag);
+    };
+
+    window.addEventListener("pointermove", onPointerMove);
+    window.addEventListener("pointerup", stopDrag);
+    window.addEventListener("pointercancel", stopDrag);
+  };
+
+  leftHandle.addEventListener("pointerdown", (event) => startDrag("left", event));
+  rightHandle.addEventListener("pointerdown", (event) => startDrag("right", event));
+}
 
 // ============================================================
 // ALERT DEFINITIONS
@@ -1565,7 +1758,7 @@ function renderSparkline(card, sid) {
   }
 
   const svg = `<svg viewBox="0 0 ${W} ${H}" width="100%"
-    style="display:block;margin-top:8px;background:rgba(0,0,0,0.35);border:1px solid var(--border);border-radius:2px;">
+    style="display:block;margin-top:8px;background:var(--chart-bg);border:1px solid var(--border);border-radius:2px;">
     <line x1="${PAD.l}" y1="${tz(0).toFixed(1)}" x2="${W - PAD.r}" y2="${tz(0).toFixed(1)}"
       stroke="var(--border2)" stroke-width="0.5"/>
     <line x1="${PAD.l}" y1="${y25}" x2="${W - PAD.r}" y2="${y25}"
@@ -2282,6 +2475,8 @@ async function init() {
     .join("\n\n---\n\n");
   RAG_SYSTEM_PROMPT = SYSTEM_PROMPT +
     (docSection ? "\n\n====================\nPLATFORM DOCUMENTS (FOR REFERENCE):\n\n" + docSection : "");
+  setTheme(document.documentElement.dataset.theme || "dark");
+  initResizablePanes();
   const notice = document.getElementById("api-key-notice");
   if (notice) {
     notice.textContent = apiKey ? "✓ AI responses enabled." : "⚠ No API key — demo mode.";
