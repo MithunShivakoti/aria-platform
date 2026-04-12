@@ -1479,68 +1479,7 @@ function selectArea(areaId) {
 // ============================================================
 // ASSET HISTORY — key failure events per asset (from failure_events.csv)
 // ============================================================
-const ASSET_HISTORY = {
-  "AREA-HP-SEP:P-101": [
-    {
-      event_id:"FE-0002", wo:"WO-01001", date:"2025-11-10", severity:"HIGH",
-      failure_mode:"Bearing failure",
-      root_cause:"Grease nipple blocked by debris — re-lubrication interval exceeded by 3 weeks",
-      mechanism:"Metal fatigue and spalling on inner race of Drive End bearing (SKF 6316-2RS1)",
-      immediate_action:"P-101A isolated and locked out; standby pump P-102A started immediately",
-      corrective_action:"Replace DE and NDE bearings; flush and refill with Shell Gadus S2 V220 2 grease; re-establish 2-weekly lubrication schedule",
-      parts:"SKF 6316-2RS1 bearing ×2; bearing housing seal ×1",
-      production_loss:180, downtime:48
-    }
-  ],
-  "AREA-LP-COMP:K-201": [
-    {
-      event_id:"FE-0003", wo:"WO-01002", date:"2025-11-25", severity:"CRITICAL",
-      failure_mode:"Compressor surge",
-      root_cause:"LCV-101 actuator diaphragm failed — valve stuck 70% open, causing V-201 high level and liquid carryover",
-      mechanism:"Liquid slug ingested into compressor impeller stages causing reverse flow and pressure oscillation",
-      immediate_action:"K-201 tripped on surge protection; PCV-201 (anti-surge) opened; K-202 started from standby",
-      corrective_action:"Overhaul LCV-101 actuator and positioner; clean scrubber mist eliminator; recalibrate surge controller setpoints",
-      parts:"LCV-101 actuator diaphragm; positioner feedback arm; scrubber mist eliminator pad",
-      production_loss:320, downtime:22
-    }
-  ],
-  "AREA-WATER:E-301": [
-    {
-      event_id:"FE-0004", wo:"WO-01003", date:"2026-02-01", severity:"MEDIUM",
-      failure_mode:"Heat exchanger fouling — gradual",
-      root_cause:"Calcium carbonate scale on tube bundle — scale inhibitor injection pump under-dosing by ~30% due to plugged check valve",
-      mechanism:"Crystalline scale deposit on shell-side tubes reducing heat transfer coefficient by ~40%; first 3 baffles blocked >60%",
-      immediate_action:"Process routed through E-301 bypass; unit isolated for chemical clean",
-      corrective_action:"Chemical descaling 15% HCl + Rodine 213; hydroblast tube bundle; scale inhibitor dosing increased 25%; dP indicator installed",
-      parts:"Tube bundle gaskets ×4; inlet nozzle isolation valve packing",
-      production_loss:0, downtime:24
-    }
-  ],
-  "AREA-UTIL:PT-145": [
-    {
-      event_id:"FE-0005", wo:"WO-01004", date:"2025-12-11", severity:"LOW",
-      failure_mode:"Instrument drift — positive",
-      root_cause:"Hastelloy C-276 diaphragm micro-fracture from H2S stress corrosion — fill fluid (silicone oil) leaked into impulse line",
-      mechanism:"Diaphragm deflects as if higher pressure applied; reading drifted 8–12 bar above redundant PT-146",
-      immediate_action:"PT-145 flagged as bad actor; PT-146 promoted to primary; alarm limits adjusted",
-      corrective_action:"Replace with Emerson 3051S HART transmitter; upgrade to Alloy 400 wetted parts; review all transmitters from same diaphragm batch",
-      parts:"Emerson 3051S transmitter; impulse tubing; isolation valve",
-      production_loss:0, downtime:4
-    }
-  ],
-  "AREA-EXPORT:P-501": [
-    {
-      event_id:"FE-0008", wo:"WO-01007", date:"2026-03-15", severity:"CRITICAL",
-      failure_mode:"Process leak — export pipeline flange",
-      root_cause:"Spiral wound gasket blowout at NPA-EXP-FLG-047 — over-torqued during AT2023 (bolts at 125% spec) + H2S pitting on flange face (0.4mm loss)",
-      mechanism:"Gasket blowout under operating pressure; hydrocarbon vapour release detected by fixed gas detector GD-501 at 20% LEL",
-      immediate_action:"ESD activated; export header depressurised; area evacuated; gas cloud safe after 45 minutes; hot work suspended",
-      corrective_action:"Replace with ASME B16.20 Inconel 825 ring gasket; dress flange faces; re-torque with calibrated wrench; add anti-seize to bolting procedure",
-      parts:"Spiral wound gasket ×1; flange bolting set ×1; GD-501 sensor cartridge",
-      production_loss:2100, downtime:6.5
-    }
-  ]
-};
+let ASSET_HISTORY = {};
 
 function getAssetHistory(assetId) {
   return ASSET_HISTORY[assetId] || [];
@@ -3537,20 +3476,22 @@ window.addEventListener("resize", () => {
 // ============================================================
 async function init() {
   try {
-    const [zRes, pRes, keyRes, ragRes, mhRes, assetsRes, sensorsRes] = await Promise.all([
+    const [zRes, pRes, keyRes, ragRes, mhRes, assetsRes, sensorsRes, feRes] = await Promise.all([
       fetch("zscore_results.json"),
       fetch("pitch_numbers.json"),
       fetch("/api/key"),
       fetch("rag_documents.json"),
       fetch("maintenance_history.json"),
       fetch("all_assets.json"),
-      fetch("all_sensors.json")
+      fetch("all_sensors.json"),
+      fetch("failure_events.json")
     ]);
     if (zRes.ok)   ZSCORE_DATA         = await zRes.json();
     if (pRes.ok)   PITCH_DATA          = await pRes.json();
     if (keyRes.ok) { const { configured } = await keyRes.json(); apiKey = !!configured; }
     if (ragRes.ok) RAG_DOCS            = await ragRes.json();
     if (mhRes.ok)  MAINTENANCE_HISTORY = await mhRes.json();
+    if (feRes.ok)  ASSET_HISTORY       = await feRes.json();
 
     // Build SENSOR_META from all_sensors.json (175 sensors)
     if (sensorsRes.ok) {
