@@ -15,18 +15,20 @@ echo [1/3] Generating cluster UUID...
 FOR /F "tokens=*" %%i IN ('K:\bin\windows\kafka-storage.bat random-uuid') DO SET KAFKA_UUID=%%i
 echo UUID: %KAFKA_UUID%
 
-REM Step 2 — Format storage (only needed first time)
+REM Step 2 — Clear old logs and format storage fresh
 echo.
 echo [2/3] Formatting storage at %LOG_DIR%...
-IF NOT EXIST "%LOG_DIR%" mkdir "%LOG_DIR%"
-K:\bin\windows\kafka-storage.bat format -t %KAFKA_UUID% -c K:\config\kraft\server.properties --ignore-formatted 2>nul
+IF EXIST "%LOG_DIR%" rmdir /s /q "%LOG_DIR%"
+mkdir "%LOG_DIR%"
+K:\bin\windows\kafka-storage.bat format -t %KAFKA_UUID% -c K:\config\kraft\server.properties
+echo Format step done (exit code: %ERRORLEVEL%)
 
-REM Step 3 — Start broker
+REM Step 3 — Start broker in a new window
 echo.
-echo [3/3] Starting Kafka broker...
-start "Kafka KRaft" cmd /k "K:\bin\windows\kafka-server-start.bat K:\config\kraft\server.properties"
-echo Waiting for broker to start...
-timeout /t 8 /nobreak >nul
+echo [3/3] Starting Kafka broker in new window...
+powershell -command "Start-Process cmd -ArgumentList '/k K:\bin\windows\kafka-server-start.bat K:\config\kraft\server.properties' -WindowStyle Normal"
+echo Waiting for broker to start (10 seconds)...
+timeout /t 10 /nobreak
 
 REM Step 4 — Create topic
 echo.
