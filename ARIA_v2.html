@@ -685,6 +685,40 @@
 
   .progress-bar-outer { height:2px; background:var(--border); margin-top:2px; }
   .progress-bar-inner { height:100%; background:var(--cyan); transition:width 1s linear; }
+
+  /* SENSOR TYPE FILTER BAR */
+  .sensor-filter-bar {
+    grid-column:1/-1; display:flex; align-items:center; gap:6px; flex-wrap:wrap;
+    padding:10px 0 12px 0; border-bottom:1px solid var(--border); margin-bottom:4px;
+  }
+  .sensor-filter-label {
+    font-family:var(--font-mono); font-size:9px; color:var(--text3); letter-spacing:1px;
+    text-transform:uppercase; flex-shrink:0;
+  }
+  .sensor-filter-chip {
+    font-family:var(--font-mono); font-size:9px; padding:3px 9px;
+    border:1px solid var(--border2); color:var(--text3); cursor:pointer;
+    transition:all 0.2s; letter-spacing:1px; border-radius:2px; text-transform:uppercase;
+    background:transparent;
+  }
+  .sensor-filter-chip:hover { border-color:var(--cyan); color:var(--cyan); background:var(--cyan-dim); }
+  .sensor-filter-chip.active { border-color:var(--cyan); color:var(--cyan); background:var(--cyan-dim); font-weight:700; }
+  .sensor-filter-chip.active-red   { border-color:var(--red);   color:var(--red);   background:var(--red-dim); }
+  .sensor-filter-chip.active-amber { border-color:var(--amber); color:var(--amber); background:var(--amber-dim); }
+  .sensor-filter-count {
+    font-family:var(--font-mono); font-size:8px; padding:0 4px;
+    border-radius:2px; margin-left:2px; opacity:0.75;
+  }
+
+  /* ASK ARIA BUTTON */
+  .alert-actions { display:flex; gap:6px; margin-top:8px; }
+  .ask-aria-btn {
+    flex:0 0 auto; padding:6px 10px; background:transparent;
+    border:1px solid var(--cyan2); color:var(--cyan2); font-family:var(--font-ui);
+    font-size:10px; letter-spacing:1px; cursor:pointer; transition:all 0.2s;
+    text-transform:uppercase; white-space:nowrap;
+  }
+  .ask-aria-btn:hover { background:var(--cyan-dim); border-color:var(--cyan); color:var(--cyan); }
 </style>
 </head>
 <body>
@@ -726,6 +760,7 @@
     <div class="date">SIMULATION TIME</div>
   </div>
   <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" aria-label="Toggle light and dark theme">THEME</button>
+  <button class="theme-toggle tour-toggle" id="mute-btn" onclick="toggleMute()" aria-label="Toggle alert sounds" title="Toggle alert sounds">🔔</button>
   <button class="theme-toggle tour-toggle" onclick="startTour()" aria-label="Open dashboard tour" title="Open dashboard tour">?</button>
 </header>
 
@@ -1256,6 +1291,8 @@ let apiKey = false; // true = key configured server-side, false = demo mode
 let woCounter = 2000;
 function nextWONumber() { return 'WO-' + String(++woCounter).padStart(5,'0'); }
 let shownAlertHours = new Set();
+let activeSensorFilter = null; // null = show all types
+let alertSoundMuted = localStorage.getItem("aria-muted") === "1";
 
 // ============================================================
 // PRODUCTION LOSS RATES  (bbl/hr per asset — from failure_events.csv)
@@ -1699,7 +1736,13 @@ function getCurrentValue(sid) {
 // ============================================================
 function selectAsset(asset) {
   selectedAsset = asset;
+  activeSensorFilter = null; // reset filter when switching assets
   renderAssetTree();
+  renderSensorGrid();
+}
+
+function setSensorFilter(type) {
+  activeSensorFilter = type;
   renderSensorGrid();
 }
 
@@ -2499,9 +2542,46 @@ function renderSensorGrid() {
     </div>`;
   grid.appendChild(riskCard);
 
+  // Sensor type filter bar — only shown when asset has more than one sensor type
+  const allTypes = [...new Set(selectedAsset.sensors.map(sid => SENSOR_META[sid]?.type).filter(Boolean))].sort();
+  if (allTypes.length > 1) {
+    // Count sensors per type so chips show e.g. "PRESSURE (4)"
+    const typeCounts = {};
+    selectedAsset.sensors.forEach(sid => {
+      const t = SENSOR_META[sid]?.type;
+      if (t) typeCounts[t] = (typeCounts[t] || 0) + 1;
+    });
+    // Count alerted sensors per type for chip colouring
+    const typeAlerts = {};
+    selectedAsset.sensors.forEach(sid => {
+      const t = SENSOR_META[sid]?.type;
+      const st = getSensorStatus(sid);
+      if (t && (st === 'red' || st === 'amber')) {
+        if (!typeAlerts[t] || st === 'red') typeAlerts[t] = st;
+      }
+    });
+    const filterBar = document.createElement("div");
+    filterBar.className = "sensor-filter-bar";
+    filterBar.id = "sensor-filter-bar";
+    const allActive = activeSensorFilter === null;
+    filterBar.innerHTML = `
+      <span class="sensor-filter-label">TYPE:</span>
+      <button class="sensor-filter-chip ${allActive ? 'active' : ''}" onclick="setSensorFilter(null)">ALL <span class="sensor-filter-count">${selectedAsset.sensors.length}</span></button>
+      ${allTypes.map(t => {
+        const isActive = activeSensorFilter === t;
+        const alertCls = isActive && typeAlerts[t] === 'red' ? ' active-red' : isActive && typeAlerts[t] === 'amber' ? ' active-amber' : isActive ? ' active' : '';
+        const dotStyle = typeAlerts[t] === 'red' ? 'color:var(--red)' : typeAlerts[t] === 'amber' ? 'color:var(--amber)' : '';
+        return `<button class="sensor-filter-chip${alertCls}" onclick="setSensorFilter('${t}')" style="${!isActive && dotStyle ? dotStyle : ''}">${t} <span class="sensor-filter-count">${typeCounts[t]}</span></button>`;
+      }).join('')}
+    `;
+    grid.appendChild(filterBar);
+  }
+
   selectedAsset.sensors.forEach(sid => {
     const meta = SENSOR_META[sid];
     if(!meta) return;
+    // Apply active type filter
+    if (activeSensorFilter && meta.type !== activeSensorFilter) return;
     const val = getCurrentValue(sid);
     const status = getSensorStatus(sid);
     const pct = val !== null ? Math.max(0, Math.min(100, ((val - meta.nmin)/(meta.nmax - meta.nmin))*100)) : 50;
@@ -2908,6 +2988,10 @@ function fireAlert(def) {
   };
   alertLog.unshift(alert);
   renderAlerts();
+  // Play tone for HIGH and CRITICAL alerts
+  if (def.severity === "CRITICAL" || def.severity === "HIGH") {
+    playAlertTone(def.severity);
+  }
   // Switch to alerts tab
   switchTab('alerts');
   // Update count
@@ -2933,7 +3017,10 @@ function renderAlerts() {
       <div class="alert-title">${alert.title}</div>
       <div class="alert-desc">${alert.desc}</div>
       <div class="alert-sensor">Sensor: <span class="${alert.severity==='CRITICAL'?'red':''}">${alert.sensor} = ${alert.sensorVal} ${alert.sensorUnit}</span> &nbsp;|&nbsp; SOP: ${alert.sop}</div>
-      <button class="gen-wo-btn" onclick="generateWO(${i})">⚙ GENERATE WORK ORDER</button>
+      <div class="alert-actions">
+        <button class="gen-wo-btn" style="flex:1;margin-top:0" onclick="generateWO(${i})">⚙ GENERATE WORK ORDER</button>
+        <button class="ask-aria-btn" onclick="askARIAAboutAlert(${i})">💬 ASK ARIA</button>
+      </div>
     `;
     list.appendChild(div);
   });
@@ -3131,6 +3218,69 @@ function renderWOFromJSON(wo, alert) {
 }
 
 function closeModal() { document.getElementById("wo-modal").style.display = "none"; }
+
+// ============================================================
+// ASK ARIA FROM ALERT
+// ============================================================
+function askARIAAboutAlert(alertIdx) {
+  const alert = alertLog[alertIdx];
+  if (!alert) return;
+  const assetTag = SENSOR_META[alert.sensor]?.asset?.split(':')[1] || alert.sensor;
+  const question = `What's happening with "${alert.title}" on ${assetTag}? What should I do first?`;
+  toggleFloatingChat(true);
+  setTimeout(() => {
+    const input = document.getElementById("floating-chat-input");
+    if (!input) return;
+    input.value = question;
+    sendChat("floating");
+  }, 120);
+}
+
+// ============================================================
+// ALERT SOUND + MUTE
+// ============================================================
+function toggleMute() {
+  alertSoundMuted = !alertSoundMuted;
+  localStorage.setItem("aria-muted", alertSoundMuted ? "1" : "0");
+  const btn = document.getElementById("mute-btn");
+  if (btn) btn.textContent = alertSoundMuted ? "🔕" : "🔔";
+}
+
+function playAlertTone(severity) {
+  if (alertSoundMuted) return;
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    if (severity === "CRITICAL") {
+      // Two sharp urgent pulses
+      [0, 0.28].forEach(offset => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.type = "sine";
+        osc.frequency.value = 880;
+        gain.gain.setValueAtTime(0, ctx.currentTime + offset);
+        gain.gain.linearRampToValueAtTime(0.28, ctx.currentTime + offset + 0.015);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + offset + 0.22);
+        osc.start(ctx.currentTime + offset);
+        osc.stop(ctx.currentTime + offset + 0.22);
+      });
+    } else {
+      // Single softer pulse for HIGH
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.type = "sine";
+      osc.frequency.value = 620;
+      gain.gain.setValueAtTime(0, ctx.currentTime);
+      gain.gain.linearRampToValueAtTime(0.16, ctx.currentTime + 0.015);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.32);
+      osc.start(ctx.currentTime);
+      osc.stop(ctx.currentTime + 0.32);
+    }
+  } catch(e) { /* AudioContext unavailable */ }
+}
 
 function downloadWO() {
   const body = document.getElementById("wo-modal-body").innerHTML;
@@ -3615,6 +3765,9 @@ async function init() {
   // Keep the system prompt small. Relevant SOP/manual excerpts are retrieved per question.
   RAG_SYSTEM_PROMPT = SYSTEM_PROMPT;
   setTheme(document.documentElement.dataset.theme || "dark");
+  // Sync mute button icon with persisted preference
+  const muteBtn = document.getElementById("mute-btn");
+  if (muteBtn) muteBtn.textContent = alertSoundMuted ? "🔕" : "🔔";
   initResizablePanes();
   const notice = document.getElementById("api-key-notice");
   if (notice) {
