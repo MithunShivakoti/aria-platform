@@ -1400,7 +1400,9 @@ function getAssetProdLoss(asset) {
   if (!critAlert) return null;
   const rate = getAssetProdLossRate(asset.id);
   if (!rate) return null; // null or 0 = no loss data
-  const hoursElapsed = Math.max(0, currentHour - (critAlert.firedHour ?? currentHour));
+  const hoursElapsed = (liveMode && critAlert.firedAt)
+    ? (Date.now() - critAlert.firedAt) / 3600000
+    : Math.max(0, currentHour - (critAlert.firedHour ?? currentHour));
   const bbl = rate * hoursElapsed;
   const usd = bbl * OIL_PRICE;
   return { bbl, usd };
@@ -1543,8 +1545,10 @@ function getSensorStatus(sid) {
 }
 
 function getCurrentValue(sid) {
-  if (liveMode && liveReadings[sid] !== undefined) {
-    return liveReadings[sid].value;
+  if (liveMode) {
+    // In live mode only use real-time readings — never fall back to TS (avoids showing
+    // stale hour-0 values as 0.00 ALARM before the first batch arrives)
+    return liveReadings[sid] !== undefined ? liveReadings[sid].value : null;
   }
   const h = Math.floor(currentHour);
   return TS[h] && TS[h][sid] !== undefined ? TS[h][sid] : null;
@@ -2349,7 +2353,7 @@ function renderSensorGrid() {
             <span style="font-family:var(--font-mono);font-size:16px;color:var(--red);opacity:0.85">$${Math.round(pl.usd).toLocaleString()}</span>
             <span style="font-family:var(--font-mono);font-size:9px;color:var(--text3);margin-left:auto">@ Brent $${OIL_PRICE}/bbl</span>
           </div>
-          <div style="font-family:var(--font-mono);font-size:9px;color:var(--text3);margin-top:3px">${getAssetProdLossRate(selectedAsset.id)} bbl/hr × ${Math.max(0, currentHour - (alertLog.find(a=>a.severity==='CRITICAL'&&SENSOR_META[a.sensor]?.asset===selectedAsset.id)?.firedHour??currentHour)).toFixed(1)} hrs elapsed</div>
+          <div style="font-family:var(--font-mono);font-size:9px;color:var(--text3);margin-top:3px">${getAssetProdLossRate(selectedAsset.id)} bbl/hr × ${(() => { const ca = alertLog.find(a=>a.severity==='CRITICAL'&&SENSOR_META[a.sensor]?.asset===selectedAsset.id); const h = (liveMode && ca?.firedAt) ? (Date.now()-ca.firedAt)/3600000 : Math.max(0, currentHour-(ca?.firedHour??currentHour)); return h.toFixed(2); })()} hrs elapsed</div>
         </div>`;
       })()}
     </div>`;
@@ -2499,7 +2503,10 @@ function updateDisplay() {
     activeCritAlerts.forEach(a => {
       const assetId = SENSOR_META[a.sensor]?.asset || '';
       const rate = getAssetProdLossRate(assetId);
-      const hoursElapsed = Math.max(0, currentHour - (a.firedHour ?? currentHour));
+      if (!rate) return; // skip assets with no data
+      const hoursElapsed = (liveMode && a.firedAt)
+        ? (Date.now() - a.firedAt) / 3600000
+        : Math.max(0, currentHour - (a.firedHour ?? currentHour));
       totalBbl += rate * hoursElapsed;
     });
     const totalUsd = totalBbl * OIL_PRICE;
@@ -2804,6 +2811,7 @@ function fireAlert(def) {
     ...def,
     timestamp: def.timestamp || getTimeAtHour(currentHour),
     firedHour: def.firedHour ?? currentHour,
+    firedAt: def.firedAt ?? Date.now(), // wall-clock ms — used for live-mode elapsed time
     sensorVal: def.sensorVal ?? (val ? val.toFixed(2) : '--'),
     sensorUnit: def.sensorUnit || (meta ? meta.unit : ''),
   };
@@ -3932,7 +3940,7 @@ function checkAlertsLive(readings) {
     );
     if (matchedDef) {
       shownAlertHours.add(matchedDef.id);
-      fireAlert({ ...matchedDef, sensorVal: r.value, sensorUnit: r.unit, timestamp: r.timestamp || new Date().toISOString() });
+      fireAlert({ ...matchedDef, sensorVal: r.value, sensorUnit: r.unit, timestamp: r.timestamp || new Date().toISOString(), firedAt: Date.now() });
       return;
     }
 
