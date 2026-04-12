@@ -3302,11 +3302,23 @@ function jumpToFailure() {
   playing = false;
   document.getElementById("play-btn").textContent = "▶ PLAY";
   document.getElementById("play-btn").classList.remove("active");
-  // Jump to just before P-101 failure
-  currentHour = 860;
-  selectAsset(AREAS[0].assets[1]); // P-101
+  // Reset all fired alerts so they fire fresh during demo
+  shownAlertHours.clear();
+  alertLog.length = 0;
+  renderAlerts();
+  updateAlertCount();
+  // Jump to hour 790 — just before P-101 values start crossing Zone C (4.5 mm/s at ~hr 796)
+  // Sequence: ~6s real-time → HIGH fires (Zone C), ~34s → CRITICAL fires (bearing failure at 828)
+  currentHour = 790;
+  // Find P-101 by tag so it works regardless of area ordering
+  let p101 = null;
+  for (const area of AREAS) {
+    p101 = area.assets.find(a => a.tag === 'P-101' || a.id.endsWith(':P-101'));
+    if (p101) break;
+  }
+  if (p101) selectAsset(p101);
   updateDisplay();
-  // Then auto-play to failure
+  // Auto-play at 20x to failure
   setTimeout(() => { playing=true; document.getElementById("play-btn").textContent="⏸ PAUSE"; document.getElementById("play-btn").classList.add("active"); setSpeed(20); startPlayback(); }, 300);
 }
 
