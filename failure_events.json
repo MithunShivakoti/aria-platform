@@ -1,0 +1,128 @@
+{
+  "AREA-HP-SEP:P-101": [
+    {
+      "event_id": "FE-0002",
+      "scenario_id": "SC-001",
+      "wo": "SC-001",
+      "date": "2025-11-10",
+      "severity": "HIGH",
+      "safety_impact": "NONE",
+      "detected_by": "Ahmed Al-Rashid",
+      "failure_mode": "Bearing failure",
+      "root_cause": "Inadequate lubrication \u2014 grease nipple blocked by debris; re-lubrication interval exceeded by 3 weeks",
+      "mechanism": "Metal fatigue and spalling on inner race of Drive End bearing",
+      "immediate_action": "Pump P-101A isolated and locked out; standby pump P-102A started",
+      "corrective_action": "Replace Drive End and Non-Drive End bearings; flush and refill bearing housing with Shell Gadus S2 V220 2 grease; re-establish 2-weekly lubrication schedule",
+      "production_loss": 180,
+      "downtime": 48.0
+    }
+  ],
+  "AREA-LP-COMP:K-201": [
+    {
+      "event_id": "FE-0003",
+      "scenario_id": "SC-002",
+      "wo": "SC-002",
+      "date": "2025-11-25",
+      "severity": "CRITICAL",
+      "safety_impact": "LOW",
+      "detected_by": "Automated alarm / DCS",
+      "failure_mode": "Compressor surge",
+      "root_cause": "Liquid carryover from LP Suction Scrubber V-201 due to high level caused by LP separator level control valve LCV-101 sticking open",
+      "mechanism": "Liquid slug ingested into compressor impeller stages, causing reverse flow and pressure oscillation (surge)",
+      "immediate_action": "K-201 tripped on surge protection; anti-surge valve PCV-201 opened; K-202 started in standby",
+      "corrective_action": "Overhaul LCV-101 actuator and positioner; clean scrubber mist eliminator; recalibrate surge controller setpoints; update operating procedure",
+      "production_loss": 320,
+      "downtime": 22.0
+    }
+  ],
+  "AREA-WATER:E-301": [
+    {
+      "event_id": "FE-0004",
+      "scenario_id": "SC-003",
+      "wo": "SC-003",
+      "date": "2026-02-01",
+      "severity": "MEDIUM",
+      "safety_impact": "NONE",
+      "detected_by": "Priya Patel",
+      "failure_mode": "Heat exchanger fouling (gradual)",
+      "root_cause": "Produced water scale buildup on tube bundle \u2014 calcium carbonate scaling due to high bicarbonate content in produced water; scale inhibitor injection rate was insufficient",
+      "mechanism": "Crystalline scale deposit on shell-side tubes reducing heat transfer coefficient by ~40%",
+      "immediate_action": "Process routed through bypass; E-301 isolated for cleaning",
+      "corrective_action": "Chemical descaling with 15% HCl solution; hydroblast tube bundle; re-assess scale inhibitor dosing rate (increase by 25%); install differential pressure indicator across bundle for early detection",
+      "production_loss": 0,
+      "downtime": 24.0
+    }
+  ],
+  "AREA-UTIL:PT-145": [
+    {
+      "event_id": "FE-0005",
+      "scenario_id": "SC-004",
+      "wo": "SC-004",
+      "date": "2025-12-11",
+      "severity": "LOW",
+      "safety_impact": "NONE",
+      "detected_by": "Astrid Johanssen",
+      "failure_mode": "Instrument drift",
+      "root_cause": "PT-145 process isolation diaphragm ruptured \u2014 fill fluid (silicone oil) leaked into impulse line, causing reading to drift positively",
+      "mechanism": "Micro-fracture in Hastelloy C-276 diaphragm, likely due to process fluid H2S stress corrosion",
+      "immediate_action": "PT-145 flagged as bad actor; PT-146 (redundant) used as primary measurement; alarm limits adjusted",
+      "corrective_action": "Replace PT-145 with Emerson 3051S HART transmitter; upgrade wetted materials to Alloy 400; review remaining pressure transmitters for same diaphragm batch",
+      "production_loss": 0,
+      "downtime": 4.0
+    }
+  ],
+  "AREA-WATER:P-303": [
+    {
+      "event_id": "FE-0006",
+      "scenario_id": "SC-005",
+      "wo": "SC-005",
+      "date": "2026-01-20",
+      "severity": "HIGH",
+      "safety_impact": "NONE",
+      "detected_by": "James Mackenzie",
+      "failure_mode": "Pump mechanical seal failure",
+      "root_cause": "Cooling water pump P-303 mechanical seal failed \u2014 O-ring degraded due to intermittent dry running caused by low suction head during low tide window",
+      "mechanism": "Seal face wear and O-ring elastomer swelling/cracking due to thermal cycling",
+      "immediate_action": "P-303 isolated; standby cooling pump P-304 started; temperatures monitored; no process trips",
+      "corrective_action": "Replace dual mechanical seal assembly with upgraded AISI 316 faces; install low-suction-pressure trip at 0.3 bar; review suction vessel level control",
+      "production_loss": 0,
+      "downtime": 6.0
+    }
+  ],
+  "AREA-UTIL:FAC-001": [
+    {
+      "event_id": "FE-0007",
+      "scenario_id": "SC-006",
+      "wo": "SC-006",
+      "date": "2026-02-21",
+      "severity": "PLANNED",
+      "safety_impact": "NONE",
+      "detected_by": "Priya Patel",
+      "failure_mode": "Planned shutdown",
+      "root_cause": "Annual scheduled turnaround (AT2024) \u2014 planned statutory inspection and maintenance",
+      "mechanism": "N/A \u2014 planned activity",
+      "immediate_action": "Controlled facility shutdown per AT-SOP-002",
+      "corrective_action": "Complete all planned maintenance activities per turnaround scope: vessel inspections, PSV testing, relief valve overhauls, instrumentation calibration, electrical thermography",
+      "production_loss": 5600,
+      "downtime": 120.0
+    }
+  ],
+  "AREA-EXPORT:P-501": [
+    {
+      "event_id": "FE-0008",
+      "scenario_id": "SC-007",
+      "wo": "SC-007",
+      "date": "2026-03-15",
+      "severity": "CRITICAL",
+      "safety_impact": "HIGH",
+      "detected_by": "Automated alarm / DCS",
+      "failure_mode": "Process leak \u2014 export pipeline",
+      "root_cause": "Flange leak on export header at 8\" weld neck flange NPA-EXP-FLG-047 \u2014 spiral wound gasket failure caused by over-torquing during previous maintenance; combined with H2S pitting on flange face",
+      "mechanism": "Gasket blowout under operating pressure; hydrocarbon vapour release detected by fixed gas detector GD-501",
+      "immediate_action": "ESD activated; export header depressurised; area evacuated; gas cloud confirmed safe after 45 minutes; hot work permit system suspended",
+      "corrective_action": "Replace spiral wound gasket with ASME B16.20 Inconel 825 ring gasket; dress flange faces; re-torque to specification using calibrated torque wrench; update bolting procedure to include anti-seize compound",
+      "production_loss": 2100,
+      "downtime": 6.5
+    }
+  ]
+}
