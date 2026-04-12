@@ -1875,59 +1875,105 @@ function renderHistory() {
     return;
   }
 
-  const events = getAssetHistory(selectedAsset.id);
+  // Use real maintenance work orders from maintenance_history.json
+  const wos = MAINTENANCE_HISTORY[selectedAsset.id] || [];
+  // Also keep failure events for pattern matching
+  const failureEvents = getAssetHistory(selectedAsset.id);
+  const activeAssetAlerts = alertLog.filter(a => SENSOR_META[a.sensor]?.asset === selectedAsset.id);
 
-  if (events.length === 0) {
-    panel.innerHTML = `<div class="history-empty"><div>✓</div><div style="color:var(--green)">No failure events on record for ${selectedAsset.tag}</div></div>`;
+  if (wos.length === 0 && failureEvents.length === 0) {
+    panel.innerHTML = `<div class="history-empty"><div>✓</div><div style="color:var(--green)">No maintenance history recorded for ${selectedAsset.tag}</div></div>`;
     return;
   }
 
-  // Check for active alerts on this asset — used for pattern match warning
-  const activeAssetAlerts = alertLog.filter(a => {
-    const meta = SENSOR_META[a.sensor];
-    return meta && meta.asset === selectedAsset.id;
-  });
+  // Section header
+  if (wos.length > 0) {
+    const hdr = document.createElement('div');
+    hdr.style.cssText = 'padding:8px 16px 6px;font-family:var(--font-mono);font-size:9px;color:var(--text3);letter-spacing:2px;border-bottom:1px solid var(--border)';
+    hdr.textContent = `MAINTENANCE WORK ORDERS — ${selectedAsset.tag} (${wos.length} records)`;
+    panel.appendChild(hdr);
+  }
 
-  events.forEach(e => {
-    const sevColor = e.severity === 'CRITICAL' ? 'var(--red)' : e.severity === 'HIGH' ? 'var(--amber)' : e.severity === 'MEDIUM' ? 'var(--cyan)' : 'var(--text3)';
-    const bblColor = e.production_loss > 0 ? 'var(--red)' : 'var(--green)';
+  wos.forEach(wo => {
+    const prioColor = wo.priority === 'CRITICAL' || wo.priority === 'EMERGENCY' ? 'var(--red)'
+      : wo.priority === 'HIGH' ? 'var(--amber)'
+      : wo.priority === 'MEDIUM' ? 'var(--cyan)'
+      : 'var(--text3)';
+    const statusColor = wo.status === 'COMPLETED' ? 'var(--green)' : wo.status === 'IN_PROGRESS' ? 'var(--amber)' : 'var(--text3)';
+    const bblColor = (wo.production_loss_bbl || 0) > 0 ? 'var(--red)' : 'var(--green)';
+    const raised = wo.raised_date ? wo.raised_date.slice(0, 10) : '—';
+    const completed = wo.completed_date ? wo.completed_date.slice(0, 10) : 'Ongoing';
 
-    const patternMatch = activeAssetAlerts.length > 0 &&
-      (e.failure_mode.toLowerCase().includes('bearing') || e.failure_mode.toLowerCase().includes('vibration') ||
-       activeAssetAlerts.some(a => a.title.toLowerCase().includes(selectedAsset.tag.toLowerCase())));
+    // Pattern match check against failure events
+    const hasActiveAlert = activeAssetAlerts.length > 0;
+    const descLower = (wo.work_description || '').toLowerCase();
+    const patternMatch = hasActiveAlert && (
+      descLower.includes('bearing') || descLower.includes('vibration') ||
+      descLower.includes('surge') || descLower.includes('trip')
+    );
 
     const card = document.createElement('div');
-    card.className = `history-event sev-${e.severity}`;
+    card.className = 'history-event';
+    card.style.borderColor = prioColor.replace('var(', '').replace(')', '');
     card.innerHTML = `
-      <span class="history-sev sev-${e.severity}">${e.severity}</span>
-      <span style="font-family:var(--font-mono);font-size:9px;color:var(--text3);margin-left:8px">${e.event_id} · ${e.wo} · ${e.date}</span>
-      <div style="font-family:var(--font-ui);font-size:13px;font-weight:600;color:var(--text);margin:6px 0 8px">${e.failure_mode}</div>
-
-      <div class="history-row"><span class="history-label">ROOT CAUSE</span><span class="history-val">${e.root_cause}</span></div>
-      <div class="history-row"><span class="history-label">MECHANISM</span><span class="history-val">${e.mechanism}</span></div>
-      <div class="history-row"><span class="history-label">IMM. ACTION</span><span class="history-val">${e.immediate_action}</span></div>
-      <div class="history-row"><span class="history-label">CORRECTIVE</span><span class="history-val">${e.corrective_action}</span></div>
-      <div class="history-row"><span class="history-label">PARTS USED</span><span class="history-val" style="color:var(--text3)">${e.parts}</span></div>
-
-      <div class="history-stats">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap">
+        <span class="history-sev" style="background:${prioColor}22;color:${prioColor};border:1px solid ${prioColor};padding:2px 8px;font-family:var(--font-mono);font-size:9px;letter-spacing:1px">${wo.priority}</span>
+        <span style="font-family:var(--font-mono);font-size:10px;font-weight:bold;color:var(--cyan)">${wo.work_order_id}</span>
+        <span style="font-family:var(--font-mono);font-size:9px;color:var(--text3)">${wo.work_order_type}</span>
+        <span style="font-family:var(--font-mono);font-size:9px;color:${statusColor};margin-left:auto">${wo.status}</span>
+      </div>
+      <div style="font-family:var(--font-ui);font-size:13px;font-weight:600;color:var(--text);margin-bottom:8px;line-height:1.3">${wo.work_description}</div>
+      <div style="font-family:var(--font-mono);font-size:8px;color:var(--text3);margin-bottom:8px">
+        RAISED: <span style="color:var(--text2)">${raised}</span> &nbsp;·&nbsp; COMPLETED: <span style="color:var(--text2)">${completed}</span>
+      </div>
+      ${wo.findings ? `<div class="history-row"><span class="history-label">FINDINGS</span><span class="history-val">${wo.findings}</span></div>` : ''}
+      ${wo.actions_taken ? `<div class="history-row"><span class="history-label">ACTIONS</span><span class="history-val">${wo.actions_taken}</span></div>` : ''}
+      ${wo.parts_replaced ? `<div class="history-row"><span class="history-label">PARTS</span><span class="history-val" style="color:var(--text3)">${wo.parts_replaced}</span></div>` : ''}
+      <div class="history-stats" style="margin-top:10px">
         <div class="history-stat">
-          <div class="history-stat-val" style="color:${bblColor}">${e.production_loss}</div>
+          <div class="history-stat-val" style="color:${bblColor}">${wo.production_loss_bbl || 0}</div>
           <div class="history-stat-lbl">BBL LOST</div>
         </div>
         <div class="history-stat">
-          <div class="history-stat-val" style="color:var(--amber)">${e.downtime}h</div>
+          <div class="history-stat-val" style="color:var(--amber)">${wo.downtime_hours || 0}h</div>
           <div class="history-stat-lbl">DOWNTIME</div>
         </div>
-        <div class="history-stat" style="flex:1;text-align:right">
-          <div style="font-family:var(--font-mono);font-size:9px;color:var(--text3)">REF SOP</div>
-          <div style="font-family:var(--font-mono);font-size:10px;color:var(--cyan)">SOP-MAINT-001 / MAN-MECH-001</div>
+        <div class="history-stat">
+          <div class="history-stat-val" style="color:var(--text2)">${wo.labor_hours || 0}h</div>
+          <div class="history-stat-lbl">LABOUR</div>
         </div>
       </div>
-
-      ${patternMatch ? `<div class="history-pattern-match">⚠ PATTERN MATCH — Current alert shows same failure signature as ${e.event_id}. Prior root cause: blocked grease nipple.</div>` : ''}
+      ${patternMatch ? `<div class="history-pattern-match">⚠ PATTERN MATCH — Active alert signature matches this work order. Review findings and actions.</div>` : ''}
     `;
     panel.appendChild(card);
   });
+
+  // Show failure events section if they exist (supplementary)
+  if (failureEvents.length > 0) {
+    const hdr2 = document.createElement('div');
+    hdr2.style.cssText = 'padding:10px 16px 6px;font-family:var(--font-mono);font-size:9px;color:var(--text3);letter-spacing:2px;border-bottom:1px solid var(--border);border-top:1px solid var(--border);margin-top:8px';
+    hdr2.textContent = `FAILURE EVENT LOG — ${failureEvents.length} event(s)`;
+    panel.appendChild(hdr2);
+
+    failureEvents.forEach(e => {
+      const sevColor = e.severity === 'CRITICAL' ? 'var(--red)' : e.severity === 'HIGH' ? 'var(--amber)' : e.severity === 'MEDIUM' ? 'var(--cyan)' : 'var(--text3)';
+      const card = document.createElement('div');
+      card.className = `history-event sev-${e.severity}`;
+      card.innerHTML = `
+        <span class="history-sev sev-${e.severity}">${e.severity}</span>
+        <span style="font-family:var(--font-mono);font-size:9px;color:var(--text3);margin-left:8px">${e.event_id} · ${e.wo} · ${e.date}</span>
+        <div style="font-family:var(--font-ui);font-size:13px;font-weight:600;color:var(--text);margin:6px 0 8px">${e.failure_mode}</div>
+        <div class="history-row"><span class="history-label">ROOT CAUSE</span><span class="history-val">${e.root_cause}</span></div>
+        <div class="history-row"><span class="history-label">MECHANISM</span><span class="history-val">${e.mechanism}</span></div>
+        <div class="history-row"><span class="history-label">CORRECTIVE</span><span class="history-val">${e.corrective_action}</span></div>
+        <div class="history-stats">
+          <div class="history-stat"><div class="history-stat-val" style="color:${e.production_loss>0?'var(--red)':'var(--green)'}">${e.production_loss}</div><div class="history-stat-lbl">BBL LOST</div></div>
+          <div class="history-stat"><div class="history-stat-val" style="color:var(--amber)">${e.downtime}h</div><div class="history-stat-lbl">DOWNTIME</div></div>
+        </div>
+      `;
+      panel.appendChild(card);
+    });
+  }
 }
 
 // ============================================================
@@ -3117,28 +3163,22 @@ function switchTab(tab) {
 // ============================================================
 // AI CHAT
 // ============================================================
-const SYSTEM_PROMPT = `You are ARIA (Autonomous Risk Intelligence Agent), an expert AI system for North Sea Platform Alpha, an offshore oil and gas platform. You have deep knowledge of:
+// SYSTEM_PROMPT is built dynamically in init() after RAG_DOCS and MAINTENANCE_HISTORY are loaded
+let SYSTEM_PROMPT = "";
 
-EQUIPMENT: HP Production Separator V-101, LP Compressors K-201/K-202, Pumps P-101/P-102, Heat Exchangers E-101/E-301, Pressure Transmitter PT-145, LP Suction Scrubbers V-201/V-202
+function buildSystemPrompt() {
+  // Base instructions
+  let prompt = `You are ARIA (Autonomous Risk Intelligence Agent), an expert AI system for North Sea Platform Alpha, an offshore oil and gas platform operating in the UK North Sea, Block 14/29.
 
-DOCUMENTS AVAILABLE:
-- SOP-OPS-001: V-101 Startup Procedure
-- SOP-OPS-002: V-101 Shutdown Procedure  
-- SOP-OPS-010: K-201 Compressor Restart After Trip
-- SOP-MAINT-001: Pump P-101 Lubrication and Vibration Inspection (14-day interval, Shell Gadus S2 V220 2 grease, ISO 10816-3 vibration zones)
-- SOP-MAINT-010: E-301 Chemical Cleaning (15% HCl, Rodine 213 inhibitor)
-- SOP-ENV-001: Produced Water Discharge / Oil-in-Water Monitoring (OSPAR 30mg/L limit)
-- SOP-SAFE-001: Emergency Shutdown Response
-- MAN-INST-001: Emerson Rosemount 3051 Pressure Transmitter Troubleshooting
-- MAN-MECH-001: Sulzer ZE Pump Bearing Maintenance (SKF 6316-2RS1 DE, SKF 6312-2RS1 NDE)
-- PID-NPA-001: HP Separation Train P&ID (V-101 interlocks: PSHH 72 barg, LSHH 80%)
-- RPT-INSPECT-001: V-101 Inspection 2020 (corrosion rate 0.25mm/yr, fit for service until AT2024)
+PLATFORM SCOPE: 5 process areas — HP Separation Train, LP Compression Train, Water Treatment, Utilities, Metering & Export. 90 assets, 175 sensors.
 
 Use the CURRENT OPERATING CONTEXT supplied with each question as the source of truth for selected asset, active/latest alert, current readings, thresholds, top risk assets, and time-filtered asset history. If the UI selected asset conflicts with a tag or alert in the operator's question, follow the explicitly mentioned tag or resolved alert context.
 
 For questions that explicitly ask for the "current selected asset" and "latest alert", report the UI selected asset and active alert log from the current context. Do not continue the previous chat topic unless the question uses follow-up wording without asking for the UI snapshot.
 
 Do not cite failure events dated after the current simulation time unless the context explicitly says they are future demo/reference events, and then label them as future reference only. If the context does not provide enough live data for a requested asset or tag, say: "I don't have enough live data for that asset. Please select the asset or provide the tag."
+
+When answering questions about a specific asset, also reference its maintenance work order history if relevant — including past findings, parts replaced, corrective actions, and downtime. Use this history to identify repeat failure patterns or recurring issues.
 
 For vibration questions, keep Zone C and Zone D distinct:
 - Zone C 4.5-7.1 mm/s: alert state; monitor closely, notify supervisor, inspect/lubricate per SOP, and plan corrective action.
@@ -3149,9 +3189,35 @@ Prefer these answer shapes when requested:
 - Work order justification: problem, evidence, risk, requested maintenance action, SOP reference.
 - Troubleshooting checklist: first check, safety/isolation trigger, inspection steps, escalation rule.
 - Alarm explanation: plain-English cause, threshold, immediate concern, first action.
-- Maintenance priority: rank by active alerts, risk score, consequence, and supporting evidence. Do not choose the UI selected asset just because it is selected. If no active alerts exist and all top risk scores are low, say there is no urgent maintenance priority and give the highest routine priority from the risk list.
+- Maintenance priority: rank by active alerts, risk score, consequence, and supporting evidence.
 
 Answer concisely and technically. Reference specific SOP steps, part numbers, and thresholds only when present in the dynamic context or relevant document excerpts. Keep responses under 200 words.`;
+
+  // Append full SOP/manual document content from RAG_DOCS
+  if (RAG_DOCS && Object.keys(RAG_DOCS).length > 0) {
+    prompt += "\n\n====================\nPLATFORM DOCUMENTS (FULL TEXT):\n\n";
+    prompt += Object.entries(RAG_DOCS)
+      .map(([id, doc]) => `[${id}] ${doc.title}\n${doc.content}`)
+      .join("\n\n---\n\n");
+  }
+
+  // Append complete maintenance work order history
+  if (MAINTENANCE_HISTORY && Object.keys(MAINTENANCE_HISTORY).length > 0) {
+    prompt += "\n\n====================\nMAINTENANCE WORK ORDER HISTORY (ALL ASSETS):\n\n";
+    prompt += Object.entries(MAINTENANCE_HISTORY).map(([assetId, wos]) => {
+      const tag = assetId.split(':')[1] || assetId;
+      return `${tag} (${assetId}):\n` + wos.map(wo =>
+        `  ${wo.work_order_id} | ${wo.work_order_type} | ${wo.priority} | ${wo.status} | Raised: ${wo.raised_date?.slice(0,10)} | Completed: ${wo.completed_date?.slice(0,10) || 'Ongoing'}\n` +
+        `  Description: ${wo.work_description}\n` +
+        `  Findings: ${wo.findings || 'None recorded'}\n` +
+        `  Actions: ${wo.actions_taken || 'None recorded'}\n` +
+        `  Parts: ${wo.parts_replaced || 'None'} | Labour: ${wo.labor_hours}h | Downtime: ${wo.downtime_hours}h | Prod loss: ${wo.production_loss_bbl} bbl`
+      ).join('\n');
+    }).join('\n\n');
+  }
+
+  return prompt;
+}
 
 
 let chatHistory = [];
@@ -3535,7 +3601,8 @@ async function init() {
   // Generate timeseries now that SENSOR_META has all 175 sensors
   TS = generateTimeseries();
 
-  // Keep the system prompt small. Relevant SOP/manual excerpts are retrieved per question.
+  // Build full system prompt with RAG docs + maintenance history
+  SYSTEM_PROMPT = buildSystemPrompt();
   RAG_SYSTEM_PROMPT = SYSTEM_PROMPT;
   setTheme(document.documentElement.dataset.theme || "dark");
   // Sync mute button icon with persisted preference
