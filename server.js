@@ -140,15 +140,22 @@ function escapeHtml(value) {
   }[char]));
 }
 
-function formatCriticalAlertEmail(alert, asset) {
+function formatAlertEmail(alert, asset) {
   const safeAlert = alert || {};
   const safeAsset = asset || {};
+  const sev = safeAlert.severity || "HIGH";
+  const isCritical = sev === "CRITICAL";
+  const headerColor = isCritical ? "#c92846" : "#d97706";
+  const headerLabel = isCritical ? "ARIA Critical Alert — Failure Detected" : "ARIA Predictive Warning — Failure Probable";
+  const footerMsg = isCritical
+    ? "Immediate action required. Generate an emergency work order and initiate the SOP."
+    : "Predictive warning issued before failure. Initiate maintenance now to prevent production loss.";
   const lines = [
-    `Severity: ${safeAlert.severity || "CRITICAL"}`,
+    `Severity: ${sev}`,
     `Asset: ${safeAsset.tag || "Unknown"}${safeAsset.name ? ` - ${safeAsset.name}` : ""}`,
     `Sensor: ${safeAlert.sensor || "Unknown"} = ${safeAlert.sensorVal ?? "--"} ${safeAlert.sensorUnit || ""}`,
     `Time: ${safeAlert.timestamp || new Date().toISOString()}`,
-    `Title: ${safeAlert.title || "Critical ARIA alert"}`,
+    `Title: ${safeAlert.title || "ARIA alert"}`,
     `Description: ${safeAlert.desc || "No description provided."}`,
     `Failure mode: ${safeAlert.failureMode || "Not specified"}`,
     `SOP: ${safeAlert.sop || "Not specified"}`,
@@ -158,12 +165,12 @@ function formatCriticalAlertEmail(alert, asset) {
     return `<tr><td style="padding:6px 10px;color:#64748b;font-weight:700">${escapeHtml(label)}</td><td style="padding:6px 10px">${escapeHtml(rest.join(":").trim())}</td></tr>`;
   }).join("");
   return {
-    text: `ARIA Critical Alert\n\n${lines.join("\n")}`,
+    text: `${headerLabel}\n\n${lines.join("\n")}\n\n${footerMsg}`,
     html: `
       <div style="font-family:Arial,sans-serif;color:#0f172a">
-        <h2 style="color:#c92846;margin:0 0 12px">ARIA Critical Alert</h2>
+        <h2 style="color:${headerColor};margin:0 0 12px">${escapeHtml(headerLabel)}</h2>
         <table style="border-collapse:collapse;border:1px solid #d8e1ea">${htmlRows}</table>
-        <p style="margin-top:14px;color:#475569">Review the dashboard and generate the required work order if this alert is still active.</p>
+        <p style="margin-top:14px;color:#475569">${escapeHtml(footerMsg)}</p>
       </div>
     `,
   };
@@ -172,8 +179,8 @@ function formatCriticalAlertEmail(alert, asset) {
 app.post("/api/alerts/email", async (req, res) => {
   const alert = req.body?.alert || {};
   const asset = req.body?.asset || {};
-  if (alert.severity !== "CRITICAL") {
-    return res.status(400).json({ ok: false, error: "Only CRITICAL alerts trigger email." });
+  if (!["CRITICAL", "HIGH"].includes(alert.severity)) {
+    return res.json({ ok: true, skipped: true, reason: "severity-below-threshold" });
   }
 
   const alertId = alert.id || `${alert.sensor || "unknown"}-${alert.timestamp || Date.now()}`;
@@ -195,12 +202,13 @@ app.post("/api/alerts/email", async (req, res) => {
   }
 
   const subjectTag = asset.tag || alert.sensor || "ARIA";
-  const content = formatCriticalAlertEmail(alert, asset);
+  const subjectPrefix = alert.severity === "CRITICAL" ? "[ARIA CRITICAL]" : "[ARIA WARNING]";
+  const content = formatAlertEmail(alert, asset);
   try {
     await transporter.sendMail({
       from: process.env.SMTP_FROM || process.env.SMTP_USER,
       to: ALERT_EMAIL_TO,
-      subject: `[ARIA CRITICAL] ${subjectTag} - ${alert.title || "Critical alert"}`,
+      subject: `${subjectPrefix} ${subjectTag} - ${alert.title || "Alert"}`,
       text: content.text,
       html: content.html,
     });

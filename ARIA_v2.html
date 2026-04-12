@@ -2834,7 +2834,7 @@ function showToast(msg, isError = false) {
 }
 
 async function notifyCriticalAlertEmail(alert) {
-  if (!alert || alert.severity !== "CRITICAL" || emailedCriticalAlertIds.has(alert.id)) return;
+  if (!alert || !["CRITICAL","HIGH"].includes(alert.severity) || emailedCriticalAlertIds.has(alert.id)) return;
   emailedCriticalAlertIds.add(alert.id);
   const meta = SENSOR_META[alert.sensor];
   const asset = meta ? getAssetById(meta.asset) : null;
@@ -2860,7 +2860,7 @@ async function notifyCriticalAlertEmail(alert) {
     });
     const data = await resp.json().catch(() => ({}));
     if (!resp.ok) throw new Error(data.error || `HTTP ${resp.status}`);
-    showToast(`📧 Critical alert email sent → ${data.to || ''}`);
+    showToast(`📧 ${alert.severity === 'CRITICAL' ? 'Critical' : 'Warning'} email sent → ${data.to || ''}`);
     console.log("Critical alert email sent", data);
   } catch (err) {
     emailedCriticalAlertIds.delete(alert.id);
