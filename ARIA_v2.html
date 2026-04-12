@@ -22,6 +22,7 @@
     --bg: #040d14;
     --bg2: #071520;
     --bg3: #0a1e2e;
+    --center-bg: #06121c;
     --panel: #0d2236;
     --panel2: #0f2840;
     --border: #1a3a55;
@@ -43,6 +44,7 @@
     --header-bg: linear-gradient(90deg, #071a28 0%, #0a2035 50%, #071a28 100%);
     --scanline: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 4px);
     --modal-overlay-bg: rgba(4,13,20,0.92);
+    --tour-shadow: rgba(4,13,20,0.76);
     --chart-bg: rgba(0,0,0,0.35);
     --left-panel-width: 260px;
     --right-panel-width: 320px;
@@ -55,6 +57,7 @@
     --bg: #f4f7fb;
     --bg2: #ffffff;
     --bg3: #eaf1f8;
+    --center-bg: #eef3f7;
     --panel: #ffffff;
     --panel2: #edf4fb;
     --border: #d5e3ef;
@@ -76,6 +79,7 @@
     --header-bg: linear-gradient(90deg, #ffffff 0%, #e8f4fb 50%, #ffffff 100%);
     --scanline: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,124,153,0.035) 2px, rgba(0,124,153,0.035) 4px);
     --modal-overlay-bg: rgba(235,242,248,0.88);
+    --tour-shadow: rgba(23,39,54,0.28);
     --chart-bg: rgba(255,255,255,0.76);
   }
   * { margin:0; padding:0; box-sizing:border-box; }
@@ -83,8 +87,7 @@
 
   /* SCANLINE OVERLAY */
   body::before {
-    content:''; position:fixed; inset:0; pointer-events:none; z-index:9999;
-    background: var(--scanline);
+    content:none;
   }
 
   /* LAYOUT */
@@ -175,6 +178,7 @@
     min-width:90px;
   }
   .theme-toggle:hover { border-color:var(--cyan); color:var(--cyan); background:var(--cyan-dim); }
+  .tour-toggle { min-width:36px; padding:7px 10px; }
 
   /* LEFT PANEL — ASSET TREE */
   .left-panel {
@@ -248,7 +252,7 @@
   .asset-dot.grey { background:var(--text3); }
 
   /* CENTER — MAIN VIEW */
-  .center-panel { display:flex; flex-direction:column; overflow:hidden; background:var(--bg); }
+  .center-panel { display:flex; flex-direction:column; overflow:hidden; background:var(--center-bg); }
 
   /* TIME CONTROLS */
   .time-controls {
@@ -506,6 +510,80 @@
   .floating-chat .chat-area { min-height:0; }
   .floating-chat .chat-input-area { background:var(--bg2); }
 
+  .tour-backdrop {
+    position:fixed;
+    inset:0;
+    background:var(--tour-shadow);
+    z-index:8000;
+  }
+  .tour-backdrop.clear { background:transparent; }
+  .tour-highlight {
+    position:fixed;
+    border:2px solid var(--cyan);
+    border-radius:6px;
+    box-shadow:0 0 0 4000px var(--tour-shadow), 0 0 24px var(--cyan);
+    z-index:8001;
+    pointer-events:none;
+    animation:tourPulse 1.4s ease-in-out infinite;
+  }
+  .tour-card {
+    position:fixed;
+    width:min(340px, calc(100vw - 32px));
+    z-index:8002;
+    background:var(--bg2);
+    border:1px solid var(--cyan);
+    border-radius:8px;
+    box-shadow:0 18px 54px rgba(0,0,0,0.32), 0 0 24px var(--cyan-dim);
+    padding:18px 20px;
+    color:var(--text);
+  }
+  .tour-count {
+    font-family:var(--font-mono);
+    font-size:9px;
+    letter-spacing:1px;
+    color:var(--text3);
+    margin-bottom:8px;
+    text-transform:uppercase;
+  }
+  .tour-title {
+    font-family:var(--font-ui);
+    font-size:18px;
+    font-weight:700;
+    color:var(--cyan);
+    letter-spacing:1px;
+    margin-bottom:8px;
+  }
+  .tour-body {
+    font-size:13px;
+    line-height:1.45;
+    color:var(--text2);
+  }
+  .tour-actions {
+    margin-top:16px;
+    display:flex;
+    justify-content:flex-end;
+    gap:8px;
+    flex-wrap:wrap;
+  }
+  .tour-actions button {
+    border:1px solid var(--border2);
+    border-radius:6px;
+    background:transparent;
+    color:var(--text2);
+    font-family:var(--font-ui);
+    font-size:11px;
+    letter-spacing:1px;
+    padding:7px 12px;
+    cursor:pointer;
+    text-transform:uppercase;
+  }
+  .tour-actions button:hover { border-color:var(--cyan); color:var(--cyan); background:var(--cyan-dim); }
+  .tour-actions .primary { border-color:var(--cyan); color:var(--cyan); background:var(--cyan-dim); font-weight:700; }
+  @keyframes tourPulse {
+    0%,100% { box-shadow:0 0 0 4000px var(--tour-shadow), 0 0 16px var(--cyan); }
+    50% { box-shadow:0 0 0 4000px var(--tour-shadow), 0 0 32px var(--cyan); }
+  }
+
   @media (max-width: 720px) {
     .floating-chat { right:12px; bottom:12px; }
     .floating-chat-nudge { right:64px; bottom:13px; font-size:9px; }
@@ -563,8 +641,8 @@
   @keyframes flicker { 0%,100%{opacity:1} 50%{opacity:0.7} }
   .flicker { animation:flicker 0.5s ease 3; }
 
-  /* GRID BACKGROUND */
-  .center-panel { background-image: linear-gradient(var(--border) 1px, transparent 1px), linear-gradient(90deg, var(--border) 1px, transparent 1px); background-size:40px 40px; background-color:var(--bg); }
+  /* CLEAN CENTER BACKGROUND */
+  .center-panel { background-image:none; background-color:var(--center-bg); }
 
   /* TYPING INDICATOR */
   .typing { display:flex; gap:4px; padding:8px; align-items:center; }
@@ -599,7 +677,6 @@
   .risk-tab-fill { height:100%; border-radius:2px; }
   .risk-tab-score { font-family:var(--font-mono); font-size:10px; font-weight:bold; min-width:28px; text-align:right; }
   .risk-tab-lbl { font-family:var(--font-mono); font-size:8px; letter-spacing:1px; min-width:80px; }
-  .risk-tab-prod { font-family:var(--font-mono); font-size:9px; color:var(--red); text-align:right; min-width:110px; white-space:nowrap; }
 
   .api-key-notice {
     padding:8px 12px; background:rgba(255,170,0,0.08); border:1px solid var(--amber);
@@ -649,6 +726,7 @@
     <div class="date">SIMULATION TIME</div>
   </div>
   <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" aria-label="Toggle light and dark theme">THEME</button>
+  <button class="theme-toggle tour-toggle" onclick="startTour()" aria-label="Open dashboard tour" title="Open dashboard tour">?</button>
 </header>
 
 <!-- MAIN -->
@@ -1478,18 +1556,6 @@ function getAssetProdExposure(asset) {
   return { rate, usdPerHour, isFallback };
 }
 
-function renderProdLossCell(asset) {
-  const liveLoss = getAssetProdLoss(asset);
-  if (liveLoss) {
-    return `<span class="risk-tab-prod">${liveLoss.bbl.toFixed(1)} bbl<br><span style="color:var(--red);opacity:0.85">$${Math.round(liveLoss.usd).toLocaleString()}</span></span>`;
-  }
-  const exposure = getAssetProdExposure(asset);
-  if (exposure.rate === 0) {
-    return `<span class="risk-tab-prod" style="color:var(--text3)">No prod<br>impact</span>`;
-  }
-  return `<span class="risk-tab-prod" style="color:var(--amber)">${exposure.rate.toFixed(exposure.rate >= 10 ? 1 : 2)} bbl/hr<br><span style="color:var(--text3)">$${Math.round(exposure.usdPerHour).toLocaleString()}/hr${exposure.isFallback ? ' est.' : ''}</span></span>`;
-}
-
 function renderRiskTab() {
   const panel = document.getElementById('content-risk');
   if (!panel) return;
@@ -1500,32 +1566,19 @@ function renderRiskTab() {
   }));
   allAssets.sort((a,b) => b.total - a.total);
 
-  // Platform-level production loss summary
-  let platformBbl = 0;
-  allAssets.forEach(({asset}) => {
-    const pl = getAssetProdLoss(asset);
-    if (pl) platformBbl += pl.bbl;
-  });
-  const platformUsd = platformBbl * OIL_PRICE;
-  const platformSummary = platformBbl > 0
-    ? `<span style="color:var(--red);margin-left:12px">⚠ ${platformBbl.toFixed(1)} bbl lost · $${Math.round(platformUsd).toLocaleString()} @ Brent $${OIL_PRICE}/bbl</span>`
-    : '';
-
-  panel.innerHTML = `<div style="padding:8px 10px;font-family:var(--font-mono);font-size:9px;color:var(--text3);letter-spacing:1px;border-bottom:1px solid var(--border)">PLATFORM RISK OVERVIEW — ${allAssets.length} ASSETS${platformSummary}</div>
+  panel.innerHTML = `<div style="padding:8px 10px;font-family:var(--font-mono);font-size:9px;color:var(--text3);letter-spacing:1px;border-bottom:1px solid var(--border)">PLATFORM RISK OVERVIEW — ${allAssets.length} ASSETS</div>
   <div style="padding:4px 10px 4px;display:flex;gap:10px;font-family:var(--font-mono);font-size:8px;color:var(--text3);letter-spacing:1px;border-bottom:1px solid var(--border)">
-    <span style="min-width:60px">TAG</span><span style="flex:1">NAME</span><span style="width:80px">RISK</span><span style="min-width:28px"></span><span style="min-width:80px">LEVEL</span><span style="min-width:110px;text-align:right">COST EXPOSURE</span>
+    <span style="min-width:60px">TAG</span><span style="flex:1">NAME</span><span style="width:80px">RISK</span><span style="min-width:28px"></span><span style="min-width:80px">LEVEL</span>
   </div>
   <div style="flex:1;overflow-y:auto">` +
   allAssets.map(({asset, total}) => {
     const rc = getRiskColor(total);
-    const prodCell = renderProdLossCell(asset);
     return `<div class="risk-tab-row" onclick="selectAsset(AREAS.flatMap(a=>a.assets).find(a=>a.id==='${asset.id}'))">
       <span class="risk-tab-tag">${asset.tag}</span>
       <span class="risk-tab-name">${asset.name}</span>
       <div class="risk-tab-bar"><div class="risk-tab-fill" style="width:${total}%;background:${rc.color}"></div></div>
       <span class="risk-tab-score" style="color:${rc.color}">${total}</span>
       <span class="risk-tab-lbl" style="color:${rc.color}">${rc.label}</span>
-      ${prodCell}
     </div>`;
   }).join('') + '</div>';
 }
@@ -2573,7 +2626,7 @@ function updateDisplay() {
   checkAlerts();
   renderCorrelation();
 
-  // Refresh risk tab if it's visible (keeps production loss numbers live)
+  // Refresh risk tab if it's visible so risk scores stay current.
   const riskPanel = document.getElementById('content-risk');
   if (riskPanel && riskPanel.style.display !== 'none') renderRiskTab();
 }
@@ -3338,6 +3391,205 @@ function getChatAreas() {
 function scrollChat() {
   getChatAreas().forEach(ca => { ca.scrollTop = ca.scrollHeight; });
 }
+
+// ============================================================
+// GUIDED DASHBOARD TOUR
+// ============================================================
+const TOUR_STEPS = [
+  {
+    title: "Welcome to ARIA",
+    body: "Use this quick intro to learn the dashboard zones: assets, timeline, sensors, alerts, risk, live mode, and the ARIA chat bubble.",
+    target: null,
+    position: "center"
+  },
+  {
+    title: "Asset Hierarchy",
+    body: "Search or select plant assets here. Choosing an asset loads its sensors, history, alerts, and risk context across the dashboard.",
+    target: "#asset-tree",
+    position: "right"
+  },
+  {
+    title: "Timeline Controls",
+    body: "Move through the simulation, change playback speed, jump to the failure scenario, or switch to the live Kafka stream.",
+    target: ".time-controls",
+    position: "bottom"
+  },
+  {
+    title: "Sensor View",
+    body: "This middle pane shows the selected asset readings. Sensor cards show status, value, and threshold position. Click a card to open its trend chart.",
+    target: "#sensor-grid",
+    position: "top"
+  },
+  {
+    title: "Asset History",
+    body: "Use this tab to review maintenance and failure history for the selected asset without leaving the center workspace.",
+    target: "#ctab-history",
+    position: "bottom"
+  },
+  {
+    title: "Alerts, Risk, and Correlation",
+    body: "The right panel is for active alerts, asset risk ranking, and correlation evidence across sensors.",
+    target: ".tabs",
+    position: "left"
+  },
+  {
+    title: "Resizable Panes",
+    body: "Drag the vertical handles to make the asset tree, middle workspace, or right-side analysis panel wider.",
+    target: "#right-resize-handle",
+    position: "left"
+  },
+  {
+    title: "Theme Toggle",
+    body: "Switch between dark and light themes here. The dashboard tour follows the same theme colors.",
+    target: "#theme-toggle",
+    position: "bottom"
+  },
+  {
+    title: "ARIA Chat",
+    body: "Use the bottom-right AI bubble to ask about alerts, SOP steps, maintenance priorities, handover notes, or selected asset status.",
+    target: ".floating-chat-toggle",
+    position: "left"
+  }
+];
+
+let tourStep = 0;
+let tourCard = null;
+let tourBackdrop = null;
+let tourHighlight = null;
+let tourResizeTimer = null;
+
+function startTour() {
+  toggleFloatingChat(false);
+  tourStep = 0;
+  renderTourStep();
+}
+
+function removeTourElements() {
+  if (tourCard) tourCard.remove();
+  if (tourBackdrop) tourBackdrop.remove();
+  if (tourHighlight) tourHighlight.remove();
+  tourCard = null;
+  tourBackdrop = null;
+  tourHighlight = null;
+}
+
+function finishTour() {
+  removeTourElements();
+  localStorage.setItem("aria-tour-done", "1");
+}
+
+function skipTour() {
+  finishTour();
+}
+
+function nextTourStep() {
+  tourStep += 1;
+  renderTourStep();
+}
+
+function prevTourStep() {
+  tourStep = Math.max(0, tourStep - 1);
+  renderTourStep();
+}
+
+function getTourTarget(selector) {
+  if (!selector) return null;
+  const el = document.querySelector(selector);
+  if (!el) return null;
+  const style = window.getComputedStyle(el);
+  const rect = el.getBoundingClientRect();
+  if (style.display === "none" || style.visibility === "hidden" || rect.width === 0 || rect.height === 0) return null;
+  return { el, rect };
+}
+
+function renderTourStep() {
+  removeTourElements();
+
+  if (tourStep >= TOUR_STEPS.length) {
+    finishTour();
+    return;
+  }
+
+  const step = TOUR_STEPS[tourStep];
+  const isFirst = tourStep === 0;
+  const isLast = tourStep === TOUR_STEPS.length - 1;
+  let target = getTourTarget(step.target);
+
+  if (step.target === ".floating-chat-toggle" && !target) {
+    toggleFloatingChat(false);
+    target = getTourTarget(step.target);
+  }
+
+  tourBackdrop = document.createElement("div");
+  tourBackdrop.className = `tour-backdrop${target ? " clear" : ""}`;
+  document.body.appendChild(tourBackdrop);
+
+  if (target) {
+    const pad = 6;
+    tourHighlight = document.createElement("div");
+    tourHighlight.className = "tour-highlight";
+    tourHighlight.style.top = `${target.rect.top - pad}px`;
+    tourHighlight.style.left = `${target.rect.left - pad}px`;
+    tourHighlight.style.width = `${target.rect.width + pad * 2}px`;
+    tourHighlight.style.height = `${target.rect.height + pad * 2}px`;
+    document.body.appendChild(tourHighlight);
+  }
+
+  tourCard = document.createElement("div");
+  tourCard.className = "tour-card";
+  tourCard.innerHTML = `
+    <div class="tour-count">Step ${tourStep + 1} of ${TOUR_STEPS.length}</div>
+    <div class="tour-title">${step.title}</div>
+    <div class="tour-body">${step.body}</div>
+    <div class="tour-actions">
+      <button onclick="skipTour()">Skip</button>
+      ${isFirst ? "" : '<button onclick="prevTourStep()">Back</button>'}
+      <button class="primary" onclick="nextTourStep()">${isLast ? "Done" : "Next"}</button>
+    </div>
+  `;
+  document.body.appendChild(tourCard);
+  positionTourCard(tourCard, step, target ? target.rect : null);
+}
+
+function positionTourCard(card, step, rect) {
+  const margin = 14;
+  const viewportW = window.innerWidth;
+  const viewportH = window.innerHeight;
+  const cardRect = card.getBoundingClientRect();
+  let top = (viewportH - cardRect.height) / 2;
+  let left = (viewportW - cardRect.width) / 2;
+
+  if (rect) {
+    if (step.position === "right") {
+      left = rect.right + margin;
+      top = rect.top;
+    } else if (step.position === "left") {
+      left = rect.left - cardRect.width - margin;
+      top = rect.top;
+    } else if (step.position === "bottom") {
+      left = rect.left;
+      top = rect.bottom + margin;
+    } else if (step.position === "top") {
+      left = rect.left;
+      top = rect.top - cardRect.height - margin;
+    }
+  }
+
+  left = Math.max(16, Math.min(left, viewportW - cardRect.width - 16));
+  top = Math.max(16, Math.min(top, viewportH - cardRect.height - 16));
+  card.style.left = `${left}px`;
+  card.style.top = `${top}px`;
+}
+
+window.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && tourCard) skipTour();
+});
+
+window.addEventListener("resize", () => {
+  if (!tourCard) return;
+  window.clearTimeout(tourResizeTimer);
+  tourResizeTimer = window.setTimeout(renderTourStep, 80);
+});
 
 // ============================================================
 // INIT
