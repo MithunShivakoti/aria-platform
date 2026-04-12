@@ -22,6 +22,7 @@
     --bg: #040d14;
     --bg2: #071520;
     --bg3: #0a1e2e;
+    --center-bg: #06121c;
     --panel: #0d2236;
     --panel2: #0f2840;
     --border: #1a3a55;
@@ -55,6 +56,7 @@
     --bg: #f4f7fb;
     --bg2: #ffffff;
     --bg3: #eaf1f8;
+    --center-bg: #eef3f7;
     --panel: #ffffff;
     --panel2: #edf4fb;
     --border: #d5e3ef;
@@ -83,8 +85,7 @@
 
   /* SCANLINE OVERLAY */
   body::before {
-    content:''; position:fixed; inset:0; pointer-events:none; z-index:9999;
-    background: var(--scanline);
+    content:none;
   }
 
   /* LAYOUT */
@@ -248,7 +249,7 @@
   .asset-dot.grey { background:var(--text3); }
 
   /* CENTER — MAIN VIEW */
-  .center-panel { display:flex; flex-direction:column; overflow:hidden; background:var(--bg); }
+  .center-panel { display:flex; flex-direction:column; overflow:hidden; background:var(--center-bg); }
 
   /* TIME CONTROLS */
   .time-controls {
@@ -564,7 +565,7 @@
   .flicker { animation:flicker 0.5s ease 3; }
 
   /* CLEAN CENTER BACKGROUND */
-  .center-panel { background-image:none; background-color:var(--bg); }
+  .center-panel { background-image:none; background-color:var(--center-bg); }
 
   /* TYPING INDICATOR */
   .typing { display:flex; gap:4px; padding:8px; align-items:center; }
