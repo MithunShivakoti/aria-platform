@@ -2,6 +2,7 @@ services:
   - type: web
     name: aria-platform
     env: node
+    plan: free
     buildCommand: npm ci
     startCommand: npm start
     healthCheckPath: /api/health
