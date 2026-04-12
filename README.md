@@ -13,6 +13,18 @@ A real-time offshore oil & gas platform monitoring dashboard for **North Sea Pla
 
 ---
 
+## Tech Stack
+
+- **Frontend:** HTML, CSS, and vanilla JavaScript dashboards
+- **Backend:** Node.js, Express, and WebSocket streaming
+- **AI:** OpenAI API for operator chat and work order generation
+- **Data processing:** Python, Pandas, and pre-computed Z-score anomaly detection
+- **Streaming:** Kafka-compatible sensor event pipeline with local WebSocket fallback
+- **Operations data:** CSV and JSON asset registries, sensor metadata, maintenance history, SOP context, and failure events
+- **Notifications:** Nodemailer SMTP alerts for critical events
+
+---
+
 ## Setup
 
 ### 1. Install Node dependencies
@@ -67,6 +79,26 @@ node server.js
 ```
 
 Open browser at `http://localhost:3000/ARIA.html`
+
+---
+
+## Hosting
+
+The fastest hosted demo path is a Node web service with Kafka disabled. In that mode, ARIA still serves the dashboard, OpenAI proxy, alert email API, and live digital twin stream through the internal WebSocket fallback.
+
+### Render Blueprint
+
+1. Push this repository to GitHub.
+2. In Render, create a new Blueprint from the repository.
+3. Render will use `render.yaml` with:
+   - Build command: `npm ci`
+   - Start command: `npm start`
+   - Health check: `/api/health`
+   - `KAFKA_ENABLED=false`
+4. Add `OPENAI_API_KEY` as a secret environment variable.
+5. Optional email alerts require `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM`, and `ALERT_EMAIL_TO`.
+
+Open the deployed URL at `/ARIA.html`. The dashboard WebSocket automatically connects back to the same hosted domain.
 
 ---
 

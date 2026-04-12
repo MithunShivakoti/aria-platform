@@ -60,6 +60,17 @@ app.get("/api/key", (req, res) => {
   res.json({ configured: !!process.env.OPENAI_API_KEY });
 });
 
+app.get("/api/health", (req, res) => {
+  res.json({
+    ok: true,
+    service: "aria-platform",
+    live_transport: liveTransport,
+    kafka_enabled: KAFKA_ENABLED,
+    sensor_count: sensorMetadata.length,
+    uptime_seconds: Math.round(process.uptime()),
+  });
+});
+
 app.get("/api/live/status", (req, res) => {
   res.json({
     enabled: true,

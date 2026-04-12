@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: aria-platform
+    env: node
+    buildCommand: npm ci
+    startCommand: npm start
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: NODE_VERSION
+        value: "20"
+      - key: KAFKA_ENABLED
+        value: "false"
+      - key: LIVE_INTERVAL_MS
+        value: "1000"
+      - key: OPENAI_API_KEY
+        sync: false
