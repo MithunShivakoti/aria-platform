@@ -879,288 +879,9 @@ let PITCH_DATA = {};
 let RAG_DOCS = {};
 let RAG_SYSTEM_PROMPT = "";
 let MAINTENANCE_HISTORY = {};
-const SENSOR_META = {
-  // === HP SEPARATION TRAIN ===
-  "V-101-PRESS":   {name:"V-101 Pressure",               type:"PRESSURE",     unit:"bar",    nmin:30,  nmax:70,   al:25.5, ah:80.5, asset:"AREA-HP-SEP:V-101"},
-  "V-101-LEVEL":   {name:"V-101 Level",                  type:"LEVEL",        unit:"%",      nmin:30,  nmax:70,   al:25.5, ah:80.5, asset:"AREA-HP-SEP:V-101"},
-  "V-101-TEMP":    {name:"V-101 Temperature",            type:"TEMPERATURE",  unit:"°C",     nmin:40,  nmax:90,   al:34,   ah:103,  asset:"AREA-HP-SEP:V-101"},
-  "V-101-GAS_FLOW":{name:"V-101 Gas Flow",               type:"FLOW",         unit:"MMscfd", nmin:2,   nmax:20,   al:1.7,  ah:23,   asset:"AREA-HP-SEP:V-101"},
-  "V-101-OIL_FLOW":{name:"V-101 Oil Flow",               type:"FLOW",         unit:"m³/h",   nmin:20,  nmax:200,  al:17,   ah:230,  asset:"AREA-HP-SEP:V-101"},
-  "V-102-PRESS":   {name:"V-102 Pressure",               type:"PRESSURE",     unit:"bar",    nmin:30,  nmax:70,   al:25.5, ah:80.5, asset:"AREA-HP-SEP:V-102"},
-  "V-102-LEVEL":   {name:"V-102 Level",                  type:"LEVEL",        unit:"%",      nmin:30,  nmax:70,   al:25.5, ah:80.5, asset:"AREA-HP-SEP:V-102"},
-  "V-102-TEMP":    {name:"V-102 Temperature",            type:"TEMPERATURE",  unit:"°C",     nmin:40,  nmax:90,   al:34,   ah:103.5,asset:"AREA-HP-SEP:V-102"},
-  "V-102-GAS_FLOW":{name:"V-102 Gas Flow",               type:"FLOW",         unit:"MMscfd", nmin:2,   nmax:20,   al:1.7,  ah:23,   asset:"AREA-HP-SEP:V-102"},
-  "V-102-OIL_FLOW":{name:"V-102 Oil Flow",               type:"FLOW",         unit:"m³/h",   nmin:20,  nmax:200,  al:17,   ah:230,  asset:"AREA-HP-SEP:V-102"},
-  "E-101-TINLET":  {name:"E-101 Inlet Temp",             type:"TEMPERATURE",  unit:"°C",     nmin:50,  nmax:120,  al:42.5, ah:138,  asset:"AREA-HP-SEP:E-101"},
-  "E-101-TOUTLET": {name:"E-101 Outlet Temp",            type:"TEMPERATURE",  unit:"°C",     nmin:30,  nmax:70,   al:25.5, ah:80.5, asset:"AREA-HP-SEP:E-101"},
-  "E-101-PSHELL":  {name:"E-101 Shell Pressure",         type:"PRESSURE",     unit:"bar",    nmin:3,   nmax:15,   al:2.55, ah:17.25,asset:"AREA-HP-SEP:E-101"},
-  "E-101-FLOW":    {name:"E-101 Flow",                   type:"FLOW",         unit:"m³/h",   nmin:30,  nmax:150,  al:25.5, ah:172.5,asset:"AREA-HP-SEP:E-101"},
-  "E-102-TINLET":  {name:"E-102 Inlet Temp",             type:"TEMPERATURE",  unit:"°C",     nmin:50,  nmax:120,  al:42.5, ah:138,  asset:"AREA-HP-SEP:E-102"},
-  "E-102-TOUTLET": {name:"E-102 Outlet Temp",            type:"TEMPERATURE",  unit:"°C",     nmin:30,  nmax:70,   al:25.5, ah:80.5, asset:"AREA-HP-SEP:E-102"},
-  "E-102-PSHELL":  {name:"E-102 Shell Pressure",         type:"PRESSURE",     unit:"bar",    nmin:3,   nmax:15,   al:2.55, ah:17.25,asset:"AREA-HP-SEP:E-102"},
-  "E-102-FLOW":    {name:"E-102 Flow",                   type:"FLOW",         unit:"m³/h",   nmin:30,  nmax:150,  al:25.5, ah:172.5,asset:"AREA-HP-SEP:E-102"},
-  "P-101-VIB":     {name:"Pump P-101 Vibration DE",      type:"VIBRATION",    unit:"mm/s",   nmin:0,   nmax:4.5,  al:4.5,  ah:7.1,  asset:"AREA-HP-SEP:P-101"},
-  "P-101-TEMP":    {name:"Pump P-101 Bearing Temp",      type:"TEMPERATURE",  unit:"°C",     nmin:20,  nmax:70,   al:10,   ah:80,   asset:"AREA-HP-SEP:P-101"},
-  "P-101-FLOW":    {name:"Pump P-101 Flow",              type:"FLOW",         unit:"m³/h",   nmin:50,  nmax:300,  al:42.5, ah:345,  asset:"AREA-HP-SEP:P-101"},
-  "P-101-CURR":    {name:"Pump P-101 Motor Current",     type:"CURRENT",      unit:"A",      nmin:25,  nmax:50,   al:20,   ah:58,   asset:"AREA-HP-SEP:P-101"},
-  "P-101-PRESS":   {name:"Pump P-101 Pressure",          type:"PRESSURE",     unit:"bar",    nmin:3,   nmax:12,   al:2.55, ah:13.8, asset:"AREA-HP-SEP:P-101"},
-  "P-102-FLOW":    {name:"Pump P-102 Flow",              type:"FLOW",         unit:"m³/h",   nmin:50,  nmax:300,  al:42.5, ah:345,  asset:"AREA-HP-SEP:P-102"},
-  "P-102-PRESS":   {name:"Pump P-102 Pressure",          type:"PRESSURE",     unit:"bar",    nmin:3,   nmax:12,   al:2.55, ah:13.8, asset:"AREA-HP-SEP:P-102"},
-  "P-102-VIB":     {name:"Pump P-102 Vibration",         type:"VIBRATION",    unit:"mm/s",   nmin:0,   nmax:3,    al:0,    ah:3.45, asset:"AREA-HP-SEP:P-102"},
-  "P-102-CURR":    {name:"Pump P-102 Current",           type:"CURRENT",      unit:"A",      nmin:15,  nmax:55,   al:12.75,ah:63.25,asset:"AREA-HP-SEP:P-102"},
-  "P-102-TEMP":    {name:"Pump P-102 Temperature",       type:"TEMPERATURE",  unit:"°C",     nmin:30,  nmax:65,   al:25.5, ah:74.75,asset:"AREA-HP-SEP:P-102"},
-  "FT-101-PV":     {name:"HP Sep Gas Flow Meter",        type:"FLOW",         unit:"m³/h",   nmin:50,  nmax:300,  al:42.5, ah:345,  asset:"AREA-HP-SEP:FT-101"},
-  "FT-102-PV":     {name:"HP Sep Oil Flow Meter",        type:"FLOW",         unit:"m³/h",   nmin:50,  nmax:300,  al:42.5, ah:345,  asset:"AREA-HP-SEP:FT-102"},
-  "PT-101-PV":     {name:"HP Sep Pressure Tx A",         type:"PRESSURE",     unit:"bar",    nmin:30,  nmax:70,   al:25.5, ah:80.5, asset:"AREA-HP-SEP:PT-101"},
-  "PT-102-PV":     {name:"HP Sep Pressure Tx B",         type:"PRESSURE",     unit:"bar",    nmin:30,  nmax:70,   al:25.5, ah:80.5, asset:"AREA-HP-SEP:PT-102"},
-  "LT-101-PV":     {name:"HP Sep Level Tx A",            type:"LEVEL",        unit:"%",      nmin:20,  nmax:80,   al:17,   ah:92,   asset:"AREA-HP-SEP:LT-101"},
-  "LT-102-PV":     {name:"HP Sep Level Tx B",            type:"LEVEL",        unit:"%",      nmin:20,  nmax:80,   al:17,   ah:92,   asset:"AREA-HP-SEP:LT-102"},
-  "TT-101-PV":     {name:"HP Sep Temperature Tx A",      type:"TEMPERATURE",  unit:"°C",     nmin:40,  nmax:100,  al:34,   ah:115,  asset:"AREA-HP-SEP:TT-101"},
-  "TT-102-PV":     {name:"HP Sep Temperature Tx B",      type:"TEMPERATURE",  unit:"°C",     nmin:40,  nmax:100,  al:34,   ah:115,  asset:"AREA-HP-SEP:TT-102"},
-  // === LP COMPRESSION TRAIN ===
-  "K-201-SPRESS":  {name:"K-201 Suction Pressure",       type:"PRESSURE",     unit:"bar",    nmin:5,   nmax:25,   al:4.25, ah:28.75,asset:"AREA-LP-COMP:K-201"},
-  "K-201-DPRESS":  {name:"K-201 Discharge Pressure",     type:"PRESSURE",     unit:"bar",    nmin:30,  nmax:80,   al:25.5, ah:92,   asset:"AREA-LP-COMP:K-201"},
-  "K-201-FLOW":    {name:"K-201 Flow",                   type:"FLOW",         unit:"MMscfd", nmin:1,   nmax:8,    al:0.85, ah:9.2,  asset:"AREA-LP-COMP:K-201"},
-  "K-201-VIBDE":   {name:"K-201 Vibration DE",           type:"VIBRATION",    unit:"mm/s",   nmin:0,   nmax:4.5,  al:4.5,  ah:7.1,  asset:"AREA-LP-COMP:K-201"},
-  "K-201-VIBNDE":  {name:"K-201 Vibration NDE",          type:"VIBRATION",    unit:"mm/s",   nmin:0,   nmax:4.5,  al:3.5,  ah:7.1,  asset:"AREA-LP-COMP:K-201"},
-  "K-201-DTEMP":   {name:"K-201 Discharge Temp",         type:"TEMPERATURE",  unit:"°C",     nmin:60,  nmax:115,  al:50,   ah:120,  asset:"AREA-LP-COMP:K-201"},
-  "K-202-SPRESS":  {name:"K-202 Suction Pressure",       type:"PRESSURE",     unit:"bar",    nmin:5,   nmax:25,   al:4.25, ah:28.75,asset:"AREA-LP-COMP:K-202"},
-  "K-202-DPRESS":  {name:"K-202 Discharge Pressure",     type:"PRESSURE",     unit:"bar",    nmin:30,  nmax:80,   al:25.5, ah:92,   asset:"AREA-LP-COMP:K-202"},
-  "K-202-FLOW":    {name:"K-202 Flow",                   type:"FLOW",         unit:"MMscfd", nmin:1,   nmax:8,    al:0.85, ah:9.2,  asset:"AREA-LP-COMP:K-202"},
-  "K-202-VIBDE":   {name:"K-202 Vibration DE",           type:"VIBRATION",    unit:"mm/s",   nmin:0,   nmax:5,    al:0,    ah:5.75, asset:"AREA-LP-COMP:K-202"},
-  "K-202-VIBNDE":  {name:"K-202 Vibration NDE",          type:"VIBRATION",    unit:"mm/s",   nmin:0,   nmax:5,    al:0,    ah:5.75, asset:"AREA-LP-COMP:K-202"},
-  "K-202-DTEMP":   {name:"K-202 Discharge Temp",         type:"TEMPERATURE",  unit:"°C",     nmin:60,  nmax:120,  al:51,   ah:138,  asset:"AREA-LP-COMP:K-202"},
-  "V-201-PRESS":   {name:"V-201 Pressure",               type:"PRESSURE",     unit:"bar",    nmin:5,   nmax:30,   al:4.25, ah:34.5, asset:"AREA-LP-COMP:V-201"},
-  "V-201-LEVEL":   {name:"V-201 Scrubber Level",         type:"LEVEL",        unit:"%",      nmin:10,  nmax:50,   al:5,    ah:60,   asset:"AREA-LP-COMP:V-201"},
-  "V-201-TEMP":    {name:"V-201 Temperature",            type:"TEMPERATURE",  unit:"°C",     nmin:20,  nmax:50,   al:17,   ah:57.5, asset:"AREA-LP-COMP:V-201"},
-  "V-202-PRESS":   {name:"V-202 Pressure",               type:"PRESSURE",     unit:"bar",    nmin:5,   nmax:30,   al:4.25, ah:34.5, asset:"AREA-LP-COMP:V-202"},
-  "V-202-LEVEL":   {name:"V-202 Level",                  type:"LEVEL",        unit:"%",      nmin:10,  nmax:40,   al:8.5,  ah:46,   asset:"AREA-LP-COMP:V-202"},
-  "V-202-TEMP":    {name:"V-202 Temperature",            type:"TEMPERATURE",  unit:"°C",     nmin:20,  nmax:50,   al:17,   ah:57.5, asset:"AREA-LP-COMP:V-202"},
-  "E-201-TINLET":  {name:"E-201 Inlet Temp",             type:"TEMPERATURE",  unit:"°C",     nmin:80,  nmax:140,  al:68,   ah:161,  asset:"AREA-LP-COMP:E-201"},
-  "E-201-TOUTLET": {name:"E-201 Outlet Temp",            type:"TEMPERATURE",  unit:"°C",     nmin:40,  nmax:70,   al:34,   ah:80.5, asset:"AREA-LP-COMP:E-201"},
-  "E-201-PRESS":   {name:"E-201 Pressure",               type:"PRESSURE",     unit:"bar",    nmin:30,  nmax:80,   al:25.5, ah:92,   asset:"AREA-LP-COMP:E-201"},
-  "E-202-TINLET":  {name:"E-202 Inlet Temp",             type:"TEMPERATURE",  unit:"°C",     nmin:80,  nmax:140,  al:68,   ah:161,  asset:"AREA-LP-COMP:E-202"},
-  "E-202-TOUTLET": {name:"E-202 Outlet Temp",            type:"TEMPERATURE",  unit:"°C",     nmin:40,  nmax:70,   al:34,   ah:80.5, asset:"AREA-LP-COMP:E-202"},
-  "E-202-PRESS":   {name:"E-202 Pressure",               type:"PRESSURE",     unit:"bar",    nmin:30,  nmax:80,   al:25.5, ah:92,   asset:"AREA-LP-COMP:E-202"},
-  "PT-201-PV":     {name:"LP Suction Pressure Tx A",     type:"PRESSURE",     unit:"bar",    nmin:30,  nmax:70,   al:25.5, ah:80.5, asset:"AREA-LP-COMP:PT-201"},
-  "PT-202-PV":     {name:"LP Suction Pressure Tx B",     type:"PRESSURE",     unit:"bar",    nmin:30,  nmax:70,   al:25.5, ah:80.5, asset:"AREA-LP-COMP:PT-202"},
-  "PT-203-PV":     {name:"LP Discharge Pressure Tx A",   type:"PRESSURE",     unit:"bar",    nmin:30,  nmax:70,   al:25.5, ah:80.5, asset:"AREA-LP-COMP:PT-203"},
-  "PT-204-PV":     {name:"LP Discharge Pressure Tx B",   type:"PRESSURE",     unit:"bar",    nmin:30,  nmax:70,   al:25.5, ah:80.5, asset:"AREA-LP-COMP:PT-204"},
-  "FT-201-PV":     {name:"LP Compressor Suction Flow",   type:"FLOW",         unit:"m³/h",   nmin:50,  nmax:300,  al:42.5, ah:345,  asset:"AREA-LP-COMP:FT-201"},
-  "VT-201-PV":     {name:"K-201 Vibration Sensor DE",    type:"VIBRATION",    unit:"mm/s",   nmin:0,   nmax:5,    al:0,    ah:5.75, asset:"AREA-LP-COMP:VT-201"},
-  "VT-202-PV":     {name:"K-201 Vibration Sensor NDE",   type:"VIBRATION",    unit:"mm/s",   nmin:0,   nmax:5,    al:0,    ah:5.75, asset:"AREA-LP-COMP:VT-202"},
-  "VT-203-PV":     {name:"K-202 Vibration Sensor DE",    type:"VIBRATION",    unit:"mm/s",   nmin:0,   nmax:5,    al:0,    ah:5.75, asset:"AREA-LP-COMP:VT-203"},
-  "TT-201-PV":     {name:"LP Comp A Discharge Temp",     type:"TEMPERATURE",  unit:"°C",     nmin:40,  nmax:100,  al:34,   ah:115,  asset:"AREA-LP-COMP:TT-201"},
-  "TT-202-PV":     {name:"LP Comp B Discharge Temp",     type:"TEMPERATURE",  unit:"°C",     nmin:40,  nmax:100,  al:34,   ah:115,  asset:"AREA-LP-COMP:TT-202"},
-  "LT-201-PV":     {name:"LP Scrubber A Level Tx",       type:"LEVEL",        unit:"%",      nmin:20,  nmax:80,   al:17,   ah:92,   asset:"AREA-LP-COMP:LT-201"},
-  // === WATER TREATMENT ===
-  "V-301-LEVEL":   {name:"PW Vessel Level",              type:"LEVEL",        unit:"%",      nmin:25,  nmax:75,   al:21.25,ah:86.25,asset:"AREA-WATER:V-301"},
-  "V-301-PRESS":   {name:"PW Vessel Pressure",           type:"PRESSURE",     unit:"bar",    nmin:2,   nmax:8,    al:1.7,  ah:9.2,  asset:"AREA-WATER:V-301"},
-  "V-301-TEMP":    {name:"PW Vessel Temperature",        type:"TEMPERATURE",  unit:"°C",     nmin:30,  nmax:60,   al:25.5, ah:69,   asset:"AREA-WATER:V-301"},
-  "V-302-DPRES":   {name:"Hydrocyclone Diff Pressure",   type:"PRESSURE",     unit:"bar",    nmin:2,   nmax:6,    al:1.7,  ah:6.9,  asset:"AREA-WATER:V-302"},
-  "V-302-FLOW":    {name:"Hydrocyclone Flow",            type:"FLOW",         unit:"m³/h",   nmin:20,  nmax:100,  al:17,   ah:115,  asset:"AREA-WATER:V-302"},
-  "E-301-TINLET":  {name:"E-301 PW Inlet Temp",          type:"TEMPERATURE",  unit:"°C",     nmin:40,  nmax:80,   al:34,   ah:92,   asset:"AREA-WATER:E-301"},
-  "E-301-TOUTLET": {name:"E-301 PW Outlet Temp",         type:"TEMPERATURE",  unit:"°C",     nmin:20,  nmax:45,   al:17,   ah:52,   asset:"AREA-WATER:E-301"},
-  "E-301-PSHELL":  {name:"E-301 Shell Pressure",         type:"PRESSURE",     unit:"bar",    nmin:3,   nmax:15,   al:2.55, ah:17.25,asset:"AREA-WATER:E-301"},
-  "E-301-FLOW":    {name:"E-301 Flow",                   type:"FLOW",         unit:"m³/h",   nmin:30,  nmax:150,  al:25.5, ah:172.5,asset:"AREA-WATER:E-301"},
-  "P-301-FLOW":    {name:"PW Transfer Pump A Flow",      type:"FLOW",         unit:"m³/h",   nmin:50,  nmax:300,  al:42.5, ah:345,  asset:"AREA-WATER:P-301"},
-  "P-301-PRESS":   {name:"PW Transfer Pump A Pressure",  type:"PRESSURE",     unit:"bar",    nmin:3,   nmax:12,   al:2.55, ah:13.8, asset:"AREA-WATER:P-301"},
-  "P-301-VIB":     {name:"PW Transfer Pump A Vibration", type:"VIBRATION",    unit:"mm/s",   nmin:0,   nmax:3,    al:0,    ah:3.45, asset:"AREA-WATER:P-301"},
-  "P-301-CURR":    {name:"PW Transfer Pump A Current",   type:"CURRENT",      unit:"A",      nmin:15,  nmax:55,   al:12.75,ah:63.25,asset:"AREA-WATER:P-301"},
-  "P-301-TEMP":    {name:"PW Transfer Pump A Temp",      type:"TEMPERATURE",  unit:"°C",     nmin:30,  nmax:65,   al:25.5, ah:74.75,asset:"AREA-WATER:P-301"},
-  "P-302-FLOW":    {name:"PW Transfer Pump B Flow",      type:"FLOW",         unit:"m³/h",   nmin:50,  nmax:300,  al:42.5, ah:345,  asset:"AREA-WATER:P-302"},
-  "P-302-PRESS":   {name:"PW Transfer Pump B Pressure",  type:"PRESSURE",     unit:"bar",    nmin:3,   nmax:12,   al:2.55, ah:13.8, asset:"AREA-WATER:P-302"},
-  "P-302-VIB":     {name:"PW Transfer Pump B Vibration", type:"VIBRATION",    unit:"mm/s",   nmin:0,   nmax:3,    al:0,    ah:3.45, asset:"AREA-WATER:P-302"},
-  "P-302-CURR":    {name:"PW Transfer Pump B Current",   type:"CURRENT",      unit:"A",      nmin:15,  nmax:55,   al:12.75,ah:63.25,asset:"AREA-WATER:P-302"},
-  "P-302-TEMP":    {name:"PW Transfer Pump B Temp",      type:"TEMPERATURE",  unit:"°C",     nmin:30,  nmax:65,   al:25.5, ah:74.75,asset:"AREA-WATER:P-302"},
-  "P-303-FLOW":    {name:"CW Pump A Flow",               type:"FLOW",         unit:"m³/h",   nmin:50,  nmax:300,  al:42.5, ah:345,  asset:"AREA-WATER:P-303"},
-  "P-303-PRESS":   {name:"CW Pump A Pressure",           type:"PRESSURE",     unit:"bar",    nmin:3,   nmax:12,   al:2.55, ah:13.8, asset:"AREA-WATER:P-303"},
-  "P-303-VIB":     {name:"CW Pump A Vibration",          type:"VIBRATION",    unit:"mm/s",   nmin:0,   nmax:3,    al:0,    ah:3.45, asset:"AREA-WATER:P-303"},
-  "P-303-CURR":    {name:"CW Pump A Current",            type:"CURRENT",      unit:"A",      nmin:15,  nmax:55,   al:12.75,ah:63.25,asset:"AREA-WATER:P-303"},
-  "P-303-TEMP":    {name:"CW Pump A Temperature",        type:"TEMPERATURE",  unit:"°C",     nmin:30,  nmax:65,   al:25.5, ah:74.75,asset:"AREA-WATER:P-303"},
-  "P-304-FLOW":    {name:"CW Pump B Flow",               type:"FLOW",         unit:"m³/h",   nmin:50,  nmax:300,  al:42.5, ah:345,  asset:"AREA-WATER:P-304"},
-  "P-304-PRESS":   {name:"CW Pump B Pressure",           type:"PRESSURE",     unit:"bar",    nmin:3,   nmax:12,   al:2.55, ah:13.8, asset:"AREA-WATER:P-304"},
-  "P-304-VIB":     {name:"CW Pump B Vibration",          type:"VIBRATION",    unit:"mm/s",   nmin:0,   nmax:3,    al:0,    ah:3.45, asset:"AREA-WATER:P-304"},
-  "P-304-CURR":    {name:"CW Pump B Current",            type:"CURRENT",      unit:"A",      nmin:15,  nmax:55,   al:12.75,ah:63.25,asset:"AREA-WATER:P-304"},
-  "P-304-TEMP":    {name:"CW Pump B Temperature",        type:"TEMPERATURE",  unit:"°C",     nmin:30,  nmax:65,   al:25.5, ah:74.75,asset:"AREA-WATER:P-304"},
-  "FT-301-PV":     {name:"PW Transfer Flow Meter",       type:"FLOW",         unit:"m³/h",   nmin:50,  nmax:300,  al:42.5, ah:345,  asset:"AREA-WATER:FT-301"},
-  "PT-301-PV":     {name:"PW Vessel Pressure Tx",        type:"PRESSURE",     unit:"bar",    nmin:30,  nmax:70,   al:25.5, ah:80.5, asset:"AREA-WATER:PT-301"},
-  "LT-301-PV":     {name:"PW Vessel Level Tx A",         type:"LEVEL",        unit:"%",      nmin:20,  nmax:80,   al:17,   ah:92,   asset:"AREA-WATER:LT-301"},
-  "LT-302-PV":     {name:"PW Vessel Level Tx B",         type:"LEVEL",        unit:"%",      nmin:20,  nmax:80,   al:17,   ah:92,   asset:"AREA-WATER:LT-302"},
-  "TT-301-PV":     {name:"PW Cooler Outlet Temp A",      type:"TEMPERATURE",  unit:"°C",     nmin:40,  nmax:100,  al:34,   ah:115,  asset:"AREA-WATER:TT-301"},
-  "TT-302-PV":     {name:"PW Cooler Outlet Temp B",      type:"TEMPERATURE",  unit:"°C",     nmin:40,  nmax:100,  al:34,   ah:115,  asset:"AREA-WATER:TT-302"},
-  "TT-303-PV":     {name:"PW Cooler Inlet Temp",         type:"TEMPERATURE",  unit:"°C",     nmin:40,  nmax:100,  al:34,   ah:115,  asset:"AREA-WATER:TT-303"},
-  "VT-301-PV":     {name:"P-301 Pump Vibration",         type:"VIBRATION",    unit:"mm/s",   nmin:0,   nmax:5,    al:0,    ah:5.75, asset:"AREA-WATER:VT-301"},
-  "VT-302-PV":     {name:"P-303 CW Pump Vibration",      type:"VIBRATION",    unit:"mm/s",   nmin:0,   nmax:5,    al:0,    ah:5.75, asset:"AREA-WATER:VT-302"},
-  "AT-301-PV":     {name:"PW Oil-in-Water Analyser",     type:"CONCENTRATION",unit:"mg/L",   nmin:5,   nmax:50,   al:4.25, ah:57.5, asset:"AREA-WATER:AT-301"},
-  // === UTILITIES ===
-  "K-401-PRESS":   {name:"IA Compressor A Pressure",     type:"PRESSURE",     unit:"bar",    nmin:6,   nmax:10,   al:5.1,  ah:11.5, asset:"AREA-UTIL:K-401"},
-  "K-401-VIB":     {name:"IA Compressor A Vibration",    type:"VIBRATION",    unit:"mm/s",   nmin:0,   nmax:8,    al:0,    ah:9.2,  asset:"AREA-UTIL:K-401"},
-  "K-401-TEMP":    {name:"IA Compressor A Temperature",  type:"TEMPERATURE",  unit:"°C",     nmin:40,  nmax:90,   al:34,   ah:103.5,asset:"AREA-UTIL:K-401"},
-  "K-402-PRESS":   {name:"IA Compressor B Pressure",     type:"PRESSURE",     unit:"bar",    nmin:6,   nmax:10,   al:5.1,  ah:11.5, asset:"AREA-UTIL:K-402"},
-  "K-402-VIB":     {name:"IA Compressor B Vibration",    type:"VIBRATION",    unit:"mm/s",   nmin:0,   nmax:8,    al:0,    ah:9.2,  asset:"AREA-UTIL:K-402"},
-  "K-402-TEMP":    {name:"IA Compressor B Temperature",  type:"TEMPERATURE",  unit:"°C",     nmin:40,  nmax:90,   al:34,   ah:103.5,asset:"AREA-UTIL:K-402"},
-  "V-401-PRESS":   {name:"IA Receiver Pressure",         type:"PRESSURE",     unit:"bar",    nmin:7,   nmax:9,    al:5.95, ah:10.35,asset:"AREA-UTIL:V-401"},
-  "V-402-PRESS":   {name:"Fuel Gas Scrubber Pressure",   type:"PRESSURE",     unit:"bar",    nmin:5,   nmax:30,   al:4.25, ah:34.5, asset:"AREA-UTIL:V-402"},
-  "V-402-LEVEL":   {name:"Fuel Gas Scrubber Level",      type:"LEVEL",        unit:"%",      nmin:10,  nmax:40,   al:8.5,  ah:46,   asset:"AREA-UTIL:V-402"},
-  "V-402-TEMP":    {name:"Fuel Gas Scrubber Temp",       type:"TEMPERATURE",  unit:"°C",     nmin:20,  nmax:50,   al:17,   ah:57.5, asset:"AREA-UTIL:V-402"},
-  "P-401-FLOW":    {name:"Fire Water Pump A Flow",       type:"FLOW",         unit:"m³/h",   nmin:50,  nmax:300,  al:42.5, ah:345,  asset:"AREA-UTIL:P-401"},
-  "P-401-PRESS":   {name:"Fire Water Pump A Pressure",   type:"PRESSURE",     unit:"bar",    nmin:3,   nmax:12,   al:2.55, ah:13.8, asset:"AREA-UTIL:P-401"},
-  "P-401-VIB":     {name:"Fire Water Pump A Vibration",  type:"VIBRATION",    unit:"mm/s",   nmin:0,   nmax:3,    al:0,    ah:3.45, asset:"AREA-UTIL:P-401"},
-  "P-401-CURR":    {name:"Fire Water Pump A Current",    type:"CURRENT",      unit:"A",      nmin:15,  nmax:55,   al:12.75,ah:63.25,asset:"AREA-UTIL:P-401"},
-  "P-401-TEMP":    {name:"Fire Water Pump A Temp",       type:"TEMPERATURE",  unit:"°C",     nmin:30,  nmax:65,   al:25.5, ah:74.75,asset:"AREA-UTIL:P-401"},
-  "P-402-FLOW":    {name:"Fire Water Pump B Flow",       type:"FLOW",         unit:"m³/h",   nmin:50,  nmax:300,  al:42.5, ah:345,  asset:"AREA-UTIL:P-402"},
-  "P-402-PRESS":   {name:"Fire Water Pump B Pressure",   type:"PRESSURE",     unit:"bar",    nmin:3,   nmax:12,   al:2.55, ah:13.8, asset:"AREA-UTIL:P-402"},
-  "P-402-VIB":     {name:"Fire Water Pump B Vibration",  type:"VIBRATION",    unit:"mm/s",   nmin:0,   nmax:3,    al:0,    ah:3.45, asset:"AREA-UTIL:P-402"},
-  "P-402-CURR":    {name:"Fire Water Pump B Current",    type:"CURRENT",      unit:"A",      nmin:15,  nmax:55,   al:12.75,ah:63.25,asset:"AREA-UTIL:P-402"},
-  "P-402-TEMP":    {name:"Fire Water Pump B Temp",       type:"TEMPERATURE",  unit:"°C",     nmin:30,  nmax:65,   al:25.5, ah:74.75,asset:"AREA-UTIL:P-402"},
-  "G-401-LOAD":    {name:"Main Generator A Load",        type:"LOAD",         unit:"kW",     nmin:500, nmax:2000, al:425,  ah:2300, asset:"AREA-UTIL:G-401"},
-  "G-401-TEMP":    {name:"Main Generator A Temp",        type:"TEMPERATURE",  unit:"°C",     nmin:60,  nmax:110,  al:51,   ah:126.5,asset:"AREA-UTIL:G-401"},
-  "G-401-FREQ":    {name:"Main Generator A Frequency",   type:"FREQUENCY",    unit:"Hz",     nmin:49.5,nmax:50.5, al:42.07,ah:58.07,asset:"AREA-UTIL:G-401"},
-  "G-402-LOAD":    {name:"Main Generator B Load",        type:"LOAD",         unit:"kW",     nmin:500, nmax:2000, al:425,  ah:2300, asset:"AREA-UTIL:G-402"},
-  "G-402-TEMP":    {name:"Main Generator B Temp",        type:"TEMPERATURE",  unit:"°C",     nmin:60,  nmax:110,  al:51,   ah:126.5,asset:"AREA-UTIL:G-402"},
-  "G-402-FREQ":    {name:"Main Generator B Frequency",   type:"FREQUENCY",    unit:"Hz",     nmin:49.5,nmax:50.5, al:42.07,ah:58.07,asset:"AREA-UTIL:G-402"},
-  "G-403-LOAD":    {name:"Emergency Generator Load",     type:"LOAD",         unit:"kW",     nmin:500, nmax:2000, al:425,  ah:2300, asset:"AREA-UTIL:G-403"},
-  "G-403-TEMP":    {name:"Emergency Generator Temp",     type:"TEMPERATURE",  unit:"°C",     nmin:60,  nmax:110,  al:51,   ah:126.5,asset:"AREA-UTIL:G-403"},
-  "G-403-FREQ":    {name:"Emergency Generator Freq",     type:"FREQUENCY",    unit:"Hz",     nmin:49.5,nmax:50.5, al:42.07,ah:58.07,asset:"AREA-UTIL:G-403"},
-  "PT-401-PV":     {name:"IA Header Pressure Tx",        type:"PRESSURE",     unit:"bar",    nmin:30,  nmax:70,   al:25.5, ah:80.5, asset:"AREA-UTIL:PT-401"},
-  "PT-402-PV":     {name:"Fuel Gas Pressure Tx",         type:"PRESSURE",     unit:"bar",    nmin:30,  nmax:70,   al:25.5, ah:80.5, asset:"AREA-UTIL:PT-402"},
-  "PT-145-PV":     {name:"PT-145 Export Pressure",       type:"PRESSURE",     unit:"bar",    nmin:30,  nmax:80,   al:25,   ah:85,   asset:"AREA-UTIL:PT-145"},
-  "PT-146-PV":     {name:"PT-146 Export Pressure B",     type:"PRESSURE",     unit:"bar",    nmin:30,  nmax:70,   al:25.5, ah:80.5, asset:"AREA-UTIL:PT-146"},
-  "TT-401-PV":     {name:"Generator A Exhaust Temp",     type:"TEMPERATURE",  unit:"°C",     nmin:40,  nmax:100,  al:34,   ah:115,  asset:"AREA-UTIL:TT-401"},
-  "TT-402-PV":     {name:"Generator B Exhaust Temp",     type:"TEMPERATURE",  unit:"°C",     nmin:40,  nmax:100,  al:34,   ah:115,  asset:"AREA-UTIL:TT-402"},
-  "F-401-LEVEL":   {name:"Flare KO Drum Level",          type:"LEVEL",        unit:"%",      nmin:0,   nmax:30,   al:0,    ah:34.5, asset:"AREA-UTIL:F-401"},
-  "F-401-PRESS":   {name:"Flare KO Drum Pressure",       type:"PRESSURE",     unit:"bar",    nmin:1,   nmax:5,    al:0.85, ah:5.75, asset:"AREA-UTIL:F-401"},
-  // === METERING & EXPORT ===
-  "V-501-LEVEL":   {name:"Export Tank A Level",          type:"LEVEL",        unit:"%",      nmin:20,  nmax:80,   al:17,   ah:92,   asset:"AREA-EXPORT:V-501"},
-  "V-501-TEMP":    {name:"Export Tank A Temperature",    type:"TEMPERATURE",  unit:"°C",     nmin:30,  nmax:60,   al:25.5, ah:69,   asset:"AREA-EXPORT:V-501"},
-  "V-501-PRESS":   {name:"Export Tank A Pressure",       type:"PRESSURE",     unit:"bar",    nmin:1,   nmax:3,    al:0.85, ah:3.45, asset:"AREA-EXPORT:V-501"},
-  "V-502-LEVEL":   {name:"Export Tank B Level",          type:"LEVEL",        unit:"%",      nmin:20,  nmax:80,   al:17,   ah:92,   asset:"AREA-EXPORT:V-502"},
-  "V-502-TEMP":    {name:"Export Tank B Temperature",    type:"TEMPERATURE",  unit:"°C",     nmin:30,  nmax:60,   al:25.5, ah:69,   asset:"AREA-EXPORT:V-502"},
-  "V-502-PRESS":   {name:"Export Tank B Pressure",       type:"PRESSURE",     unit:"bar",    nmin:1,   nmax:3,    al:0.85, ah:3.45, asset:"AREA-EXPORT:V-502"},
-  "P-501-FLOW":    {name:"Export Pump A Flow",           type:"FLOW",         unit:"m³/h",   nmin:50,  nmax:300,  al:42.5, ah:345,  asset:"AREA-EXPORT:P-501"},
-  "P-501-PRESS":   {name:"Export Pump A Pressure",       type:"PRESSURE",     unit:"bar",    nmin:3,   nmax:12,   al:2.55, ah:13.8, asset:"AREA-EXPORT:P-501"},
-  "P-501-VIB":     {name:"Export Pump A Vibration",      type:"VIBRATION",    unit:"mm/s",   nmin:0,   nmax:3,    al:0,    ah:3.45, asset:"AREA-EXPORT:P-501"},
-  "P-501-CURR":    {name:"Export Pump A Current",        type:"CURRENT",      unit:"A",      nmin:15,  nmax:55,   al:12.75,ah:63.25,asset:"AREA-EXPORT:P-501"},
-  "P-501-TEMP":    {name:"Export Pump A Temperature",    type:"TEMPERATURE",  unit:"°C",     nmin:30,  nmax:65,   al:25.5, ah:74.75,asset:"AREA-EXPORT:P-501"},
-  "P-502-FLOW":    {name:"Export Pump B Flow",           type:"FLOW",         unit:"m³/h",   nmin:50,  nmax:300,  al:42.5, ah:345,  asset:"AREA-EXPORT:P-502"},
-  "P-502-PRESS":   {name:"Export Pump B Pressure",       type:"PRESSURE",     unit:"bar",    nmin:3,   nmax:12,   al:2.55, ah:13.8, asset:"AREA-EXPORT:P-502"},
-  "P-502-VIB":     {name:"Export Pump B Vibration",      type:"VIBRATION",    unit:"mm/s",   nmin:0,   nmax:3,    al:0,    ah:3.45, asset:"AREA-EXPORT:P-502"},
-  "P-502-CURR":    {name:"Export Pump B Current",        type:"CURRENT",      unit:"A",      nmin:15,  nmax:55,   al:12.75,ah:63.25,asset:"AREA-EXPORT:P-502"},
-  "P-502-TEMP":    {name:"Export Pump B Temperature",    type:"TEMPERATURE",  unit:"°C",     nmin:30,  nmax:65,   al:25.5, ah:74.75,asset:"AREA-EXPORT:P-502"},
-  "E-501-TINLET":  {name:"Export Heater Inlet Temp",     type:"TEMPERATURE",  unit:"°C",     nmin:50,  nmax:120,  al:42.5, ah:138,  asset:"AREA-EXPORT:E-501"},
-  "E-501-TOUTLET": {name:"Export Heater Outlet Temp",    type:"TEMPERATURE",  unit:"°C",     nmin:30,  nmax:70,   al:25.5, ah:80.5, asset:"AREA-EXPORT:E-501"},
-  "E-501-PSHELL":  {name:"Export Heater Shell Pressure", type:"PRESSURE",     unit:"bar",    nmin:3,   nmax:15,   al:2.55, ah:17.25,asset:"AREA-EXPORT:E-501"},
-  "E-501-FLOW":    {name:"Export Heater Flow",           type:"FLOW",         unit:"m³/h",   nmin:30,  nmax:150,  al:25.5, ah:172.5,asset:"AREA-EXPORT:E-501"},
-  "FT-501-PV":     {name:"Export Flow Meter A",          type:"FLOW",         unit:"m³/h",   nmin:50,  nmax:300,  al:42.5, ah:345,  asset:"AREA-EXPORT:FT-501"},
-  "FT-502-PV":     {name:"Export Flow Meter B",          type:"FLOW",         unit:"m³/h",   nmin:50,  nmax:300,  al:42.5, ah:345,  asset:"AREA-EXPORT:FT-502"},
-  "PT-501-PV":     {name:"Export Line Pressure Tx A",    type:"PRESSURE",     unit:"bar",    nmin:30,  nmax:70,   al:25.5, ah:80.5, asset:"AREA-EXPORT:PT-501"},
-  "PT-502-PV":     {name:"Export Line Pressure Tx B",    type:"PRESSURE",     unit:"bar",    nmin:30,  nmax:70,   al:25.5, ah:80.5, asset:"AREA-EXPORT:PT-502"},
-  "TT-501-PV":     {name:"Export Crude Temp A",          type:"TEMPERATURE",  unit:"°C",     nmin:40,  nmax:100,  al:34,   ah:115,  asset:"AREA-EXPORT:TT-501"},
-  "TT-502-PV":     {name:"Export Crude Temp B",          type:"TEMPERATURE",  unit:"°C",     nmin:40,  nmax:100,  al:34,   ah:115,  asset:"AREA-EXPORT:TT-502"},
-  "LT-501-PV":     {name:"Export Tank A Level Tx",       type:"LEVEL",        unit:"%",      nmin:20,  nmax:80,   al:17,   ah:92,   asset:"AREA-EXPORT:LT-501"},
-  "LT-502-PV":     {name:"Export Tank B Level Tx",       type:"LEVEL",        unit:"%",      nmin:20,  nmax:80,   al:17,   ah:92,   asset:"AREA-EXPORT:LT-502"},
-};
+let SENSOR_META = {}; // populated in init() from all_sensors.json
 
-const AREAS = [
-  { id:"AREA-HP-SEP", label:"HP Separation Train", deck:"Deck A",
-    assets:[
-      {id:"AREA-HP-SEP:V-101",  tag:"V-101",  name:"HP Production Separator",  sensors:["V-101-PRESS","V-101-LEVEL","V-101-TEMP","V-101-GAS_FLOW","V-101-OIL_FLOW"]},
-      {id:"AREA-HP-SEP:V-102",  tag:"V-102",  name:"Test Separator",           sensors:["V-102-PRESS","V-102-LEVEL","V-102-TEMP","V-102-GAS_FLOW","V-102-OIL_FLOW"]},
-      {id:"AREA-HP-SEP:E-101",  tag:"E-101",  name:"Wellstream Heater",        sensors:["E-101-TINLET","E-101-TOUTLET","E-101-PSHELL","E-101-FLOW"]},
-      {id:"AREA-HP-SEP:E-102",  tag:"E-102",  name:"HP Glycol Reboiler",       sensors:["E-102-TINLET","E-102-TOUTLET","E-102-PSHELL","E-102-FLOW"]},
-      {id:"AREA-HP-SEP:P-101",  tag:"P-101",  name:"HP Sep Drain Pump A",      sensors:["P-101-VIB","P-101-TEMP","P-101-FLOW","P-101-CURR","P-101-PRESS"]},
-      {id:"AREA-HP-SEP:P-102",  tag:"P-102",  name:"HP Sep Drain Pump B",      sensors:["P-102-FLOW","P-102-PRESS","P-102-VIB","P-102-CURR","P-102-TEMP"]},
-      {id:"AREA-HP-SEP:FT-101", tag:"FT-101", name:"HP Sep Gas Flow Meter",    sensors:["FT-101-PV"]},
-      {id:"AREA-HP-SEP:FT-102", tag:"FT-102", name:"HP Sep Oil Flow Meter",    sensors:["FT-102-PV"]},
-      {id:"AREA-HP-SEP:PT-101", tag:"PT-101", name:"HP Sep Pressure Tx A",     sensors:["PT-101-PV"]},
-      {id:"AREA-HP-SEP:PT-102", tag:"PT-102", name:"HP Sep Pressure Tx B",     sensors:["PT-102-PV"]},
-      {id:"AREA-HP-SEP:LT-101", tag:"LT-101", name:"HP Sep Level Tx A",        sensors:["LT-101-PV"]},
-      {id:"AREA-HP-SEP:LT-102", tag:"LT-102", name:"HP Sep Level Tx B",        sensors:["LT-102-PV"]},
-      {id:"AREA-HP-SEP:TT-101", tag:"TT-101", name:"HP Sep Temp Tx A",         sensors:["TT-101-PV"]},
-      {id:"AREA-HP-SEP:TT-102", tag:"TT-102", name:"HP Sep Temp Tx B",         sensors:["TT-102-PV"]},
-    ]
-  },
-  { id:"AREA-LP-COMP", label:"LP Compression Train", deck:"Deck B",
-    assets:[
-      {id:"AREA-LP-COMP:K-201", tag:"K-201",  name:"LP Compressor A",          sensors:["K-201-SPRESS","K-201-DPRESS","K-201-FLOW","K-201-VIBDE","K-201-VIBNDE","K-201-DTEMP"]},
-      {id:"AREA-LP-COMP:K-202", tag:"K-202",  name:"LP Compressor B",          sensors:["K-202-SPRESS","K-202-DPRESS","K-202-FLOW","K-202-VIBDE","K-202-VIBNDE","K-202-DTEMP"]},
-      {id:"AREA-LP-COMP:V-201", tag:"V-201",  name:"LP Suction Scrubber A",    sensors:["V-201-PRESS","V-201-LEVEL","V-201-TEMP"]},
-      {id:"AREA-LP-COMP:V-202", tag:"V-202",  name:"LP Suction Scrubber B",    sensors:["V-202-PRESS","V-202-LEVEL","V-202-TEMP"]},
-      {id:"AREA-LP-COMP:E-201", tag:"E-201",  name:"LP Aftercooler A",         sensors:["E-201-TINLET","E-201-TOUTLET","E-201-PRESS"]},
-      {id:"AREA-LP-COMP:E-202", tag:"E-202",  name:"LP Aftercooler B",         sensors:["E-202-TINLET","E-202-TOUTLET","E-202-PRESS"]},
-      {id:"AREA-LP-COMP:PT-201",tag:"PT-201", name:"LP Suction Pressure Tx A", sensors:["PT-201-PV"]},
-      {id:"AREA-LP-COMP:PT-202",tag:"PT-202", name:"LP Suction Pressure Tx B", sensors:["PT-202-PV"]},
-      {id:"AREA-LP-COMP:PT-203",tag:"PT-203", name:"LP Discharge Pressure Tx A",sensors:["PT-203-PV"]},
-      {id:"AREA-LP-COMP:PT-204",tag:"PT-204", name:"LP Discharge Pressure Tx B",sensors:["PT-204-PV"]},
-      {id:"AREA-LP-COMP:FT-201",tag:"FT-201", name:"LP Suction Flow Tx",       sensors:["FT-201-PV"]},
-      {id:"AREA-LP-COMP:VT-201",tag:"VT-201", name:"K-201 Vibration DE",       sensors:["VT-201-PV"]},
-      {id:"AREA-LP-COMP:VT-202",tag:"VT-202", name:"K-201 Vibration NDE",      sensors:["VT-202-PV"]},
-      {id:"AREA-LP-COMP:VT-203",tag:"VT-203", name:"K-202 Vibration DE",       sensors:["VT-203-PV"]},
-      {id:"AREA-LP-COMP:TT-201",tag:"TT-201", name:"LP Comp A Discharge Temp", sensors:["TT-201-PV"]},
-      {id:"AREA-LP-COMP:TT-202",tag:"TT-202", name:"LP Comp B Discharge Temp", sensors:["TT-202-PV"]},
-      {id:"AREA-LP-COMP:LT-201",tag:"LT-201", name:"LP Scrubber A Level Tx",   sensors:["LT-201-PV"]},
-    ]
-  },
-  { id:"AREA-WATER", label:"Water Treatment", deck:"Deck C",
-    assets:[
-      {id:"AREA-WATER:V-301",   tag:"V-301",  name:"Produced Water Vessel",    sensors:["V-301-LEVEL","V-301-PRESS","V-301-TEMP"]},
-      {id:"AREA-WATER:V-302",   tag:"V-302",  name:"Deoiling Hydrocyclone",    sensors:["V-302-DPRES","V-302-FLOW"]},
-      {id:"AREA-WATER:E-301",   tag:"E-301",  name:"Produced Water Cooler",    sensors:["E-301-TINLET","E-301-TOUTLET","E-301-PSHELL","E-301-FLOW"]},
-      {id:"AREA-WATER:P-301",   tag:"P-301",  name:"PW Transfer Pump A",       sensors:["P-301-FLOW","P-301-PRESS","P-301-VIB","P-301-CURR","P-301-TEMP"]},
-      {id:"AREA-WATER:P-302",   tag:"P-302",  name:"PW Transfer Pump B",       sensors:["P-302-FLOW","P-302-PRESS","P-302-VIB","P-302-CURR","P-302-TEMP"]},
-      {id:"AREA-WATER:P-303",   tag:"P-303",  name:"Cooling Water Pump A",     sensors:["P-303-FLOW","P-303-PRESS","P-303-VIB","P-303-CURR","P-303-TEMP"]},
-      {id:"AREA-WATER:P-304",   tag:"P-304",  name:"Cooling Water Pump B",     sensors:["P-304-FLOW","P-304-PRESS","P-304-VIB","P-304-CURR","P-304-TEMP"]},
-      {id:"AREA-WATER:FT-301",  tag:"FT-301", name:"PW Transfer Flow Meter",   sensors:["FT-301-PV"]},
-      {id:"AREA-WATER:PT-301",  tag:"PT-301", name:"PW Vessel Pressure Tx",    sensors:["PT-301-PV"]},
-      {id:"AREA-WATER:LT-301",  tag:"LT-301", name:"PW Vessel Level Tx A",     sensors:["LT-301-PV"]},
-      {id:"AREA-WATER:LT-302",  tag:"LT-302", name:"PW Vessel Level Tx B",     sensors:["LT-302-PV"]},
-      {id:"AREA-WATER:TT-301",  tag:"TT-301", name:"PW Cooler Outlet Temp A",  sensors:["TT-301-PV"]},
-      {id:"AREA-WATER:TT-302",  tag:"TT-302", name:"PW Cooler Outlet Temp B",  sensors:["TT-302-PV"]},
-      {id:"AREA-WATER:TT-303",  tag:"TT-303", name:"PW Cooler Inlet Temp",     sensors:["TT-303-PV"]},
-      {id:"AREA-WATER:VT-301",  tag:"VT-301", name:"P-301 Pump Vibration",     sensors:["VT-301-PV"]},
-      {id:"AREA-WATER:VT-302",  tag:"VT-302", name:"P-303 CW Pump Vibration",  sensors:["VT-302-PV"]},
-      {id:"AREA-WATER:AT-301",  tag:"AT-301", name:"PW Oil-in-Water Analyser", sensors:["AT-301-PV"]},
-    ]
-  },
-  { id:"AREA-UTIL", label:"Utilities", deck:"Deck D",
-    assets:[
-      {id:"AREA-UTIL:K-401",    tag:"K-401",  name:"Instrument Air Comp A",    sensors:["K-401-PRESS","K-401-VIB","K-401-TEMP"]},
-      {id:"AREA-UTIL:K-402",    tag:"K-402",  name:"Instrument Air Comp B",    sensors:["K-402-PRESS","K-402-VIB","K-402-TEMP"]},
-      {id:"AREA-UTIL:V-401",    tag:"V-401",  name:"Instrument Air Receiver",  sensors:["V-401-PRESS"]},
-      {id:"AREA-UTIL:V-402",    tag:"V-402",  name:"Fuel Gas Scrubber",        sensors:["V-402-PRESS","V-402-LEVEL","V-402-TEMP"]},
-      {id:"AREA-UTIL:P-401",    tag:"P-401",  name:"Fire Water Pump A",        sensors:["P-401-FLOW","P-401-PRESS","P-401-VIB","P-401-CURR","P-401-TEMP"]},
-      {id:"AREA-UTIL:P-402",    tag:"P-402",  name:"Fire Water Pump B",        sensors:["P-402-FLOW","P-402-PRESS","P-402-VIB","P-402-CURR","P-402-TEMP"]},
-      {id:"AREA-UTIL:G-401",    tag:"G-401",  name:"Main Generator A",         sensors:["G-401-LOAD","G-401-TEMP","G-401-FREQ"]},
-      {id:"AREA-UTIL:G-402",    tag:"G-402",  name:"Main Generator B",         sensors:["G-402-LOAD","G-402-TEMP","G-402-FREQ"]},
-      {id:"AREA-UTIL:G-403",    tag:"G-403",  name:"Emergency Generator",      sensors:["G-403-LOAD","G-403-TEMP","G-403-FREQ"]},
-      {id:"AREA-UTIL:PT-401",   tag:"PT-401", name:"IA Header Pressure Tx",    sensors:["PT-401-PV"]},
-      {id:"AREA-UTIL:PT-402",   tag:"PT-402", name:"Fuel Gas Pressure Tx",     sensors:["PT-402-PV"]},
-      {id:"AREA-UTIL:PT-145",   tag:"PT-145", name:"Export Header Press Tx A", sensors:["PT-145-PV"]},
-      {id:"AREA-UTIL:PT-146",   tag:"PT-146", name:"Export Header Press Tx B", sensors:["PT-146-PV"]},
-      {id:"AREA-UTIL:TT-401",   tag:"TT-401", name:"Generator A Exhaust Temp", sensors:["TT-401-PV"]},
-      {id:"AREA-UTIL:TT-402",   tag:"TT-402", name:"Generator B Exhaust Temp", sensors:["TT-402-PV"]},
-      {id:"AREA-UTIL:F-401",    tag:"F-401",  name:"Flare KO Drum",            sensors:["F-401-LEVEL","F-401-PRESS"]},
-    ]
-  },
-  { id:"AREA-EXPORT", label:"Metering & Export", deck:"Deck E",
-    assets:[
-      {id:"AREA-EXPORT:V-501",  tag:"V-501",  name:"Export Buffer Tank A",     sensors:["V-501-LEVEL","V-501-TEMP","V-501-PRESS"]},
-      {id:"AREA-EXPORT:V-502",  tag:"V-502",  name:"Export Buffer Tank B",     sensors:["V-502-LEVEL","V-502-TEMP","V-502-PRESS"]},
-      {id:"AREA-EXPORT:P-501",  tag:"P-501",  name:"Export Crude Pump A",      sensors:["P-501-FLOW","P-501-PRESS","P-501-VIB","P-501-CURR","P-501-TEMP"]},
-      {id:"AREA-EXPORT:P-502",  tag:"P-502",  name:"Export Crude Pump B",      sensors:["P-502-FLOW","P-502-PRESS","P-502-VIB","P-502-CURR","P-502-TEMP"]},
-      {id:"AREA-EXPORT:E-501",  tag:"E-501",  name:"Export Crude Heater",      sensors:["E-501-TINLET","E-501-TOUTLET","E-501-PSHELL","E-501-FLOW"]},
-      {id:"AREA-EXPORT:FT-501", tag:"FT-501", name:"Export Flow Meter A",      sensors:["FT-501-PV"]},
-      {id:"AREA-EXPORT:FT-502", tag:"FT-502", name:"Export Flow Meter B",      sensors:["FT-502-PV"]},
-      {id:"AREA-EXPORT:PT-501", tag:"PT-501", name:"Export Line Pressure Tx A",sensors:["PT-501-PV"]},
-      {id:"AREA-EXPORT:PT-502", tag:"PT-502", name:"Export Line Pressure Tx B",sensors:["PT-502-PV"]},
-      {id:"AREA-EXPORT:TT-501", tag:"TT-501", name:"Export Crude Temp A",      sensors:["TT-501-PV"]},
-      {id:"AREA-EXPORT:TT-502", tag:"TT-502", name:"Export Crude Temp B",      sensors:["TT-502-PV"]},
-      {id:"AREA-EXPORT:LT-501", tag:"LT-501", name:"Export Tank A Level Tx",   sensors:["LT-501-PV"]},
-      {id:"AREA-EXPORT:LT-502", tag:"LT-502", name:"Export Tank B Level Tx",   sensors:["LT-502-PV"]},
-    ]
-  },
-];
+let AREAS = []; // populated in init() from all_assets.json
 
 // ============================================================
 // SCENARIO DATA — 4 failure scenarios with timeseries
@@ -3596,18 +3317,63 @@ window.addEventListener("resize", () => {
 // ============================================================
 async function init() {
   try {
-    const [zRes, pRes, keyRes, ragRes, mhRes] = await Promise.all([
+    const [zRes, pRes, keyRes, ragRes, mhRes, assetsRes, sensorsRes] = await Promise.all([
       fetch("zscore_results.json"),
       fetch("pitch_numbers.json"),
       fetch("/api/key"),
       fetch("rag_documents.json"),
-      fetch("maintenance_history.json")
+      fetch("maintenance_history.json"),
+      fetch("all_assets.json"),
+      fetch("all_sensors.json")
     ]);
     if (zRes.ok)   ZSCORE_DATA         = await zRes.json();
     if (pRes.ok)   PITCH_DATA          = await pRes.json();
     if (keyRes.ok) { const { configured } = await keyRes.json(); apiKey = !!configured; }
     if (ragRes.ok) RAG_DOCS            = await ragRes.json();
     if (mhRes.ok)  MAINTENANCE_HISTORY = await mhRes.json();
+
+    // Build SENSOR_META from all_sensors.json (175 sensors)
+    if (sensorsRes.ok) {
+      const allSensors = await sensorsRes.json();
+      Object.entries(allSensors).forEach(([assetId, sensors]) => {
+        sensors.forEach(s => {
+          SENSOR_META[s.sensor_id] = {
+            name:  s.name,
+            type:  s.sensor_type,
+            unit:  s.unit === 'degC' ? '°C' : s.unit,
+            nmin:  s.normal_min,
+            nmax:  s.normal_max,
+            al:    s.alarm_low,
+            ah:    s.alarm_high,
+            asset: assetId
+          };
+        });
+      });
+    }
+
+    // Build AREAS from all_assets.json (5 areas, 90 assets)
+    if (assetsRes.ok) {
+      const allAssets = await assetsRes.json();
+      const sensorsByAsset = {};
+      Object.keys(SENSOR_META).forEach(sid => {
+        const aid = SENSOR_META[sid].asset;
+        if (!sensorsByAsset[aid]) sensorsByAsset[aid] = [];
+        sensorsByAsset[aid].push(sid);
+      });
+      AREAS = Object.entries(allAssets).map(([areaName, items]) => {
+        const areaEntry = items.find(i => !i.asset_id.includes(':'));
+        const areaId = areaEntry ? areaEntry.asset_id : items[0].asset_id.split(':')[0];
+        const assets = items
+          .filter(i => i.asset_id.includes(':'))
+          .map(i => ({
+            id:      i.asset_id,
+            tag:     i.tag,
+            name:    i.name,
+            sensors: sensorsByAsset[i.asset_id] || []
+          }));
+        return { id: areaId, label: areaName, assets };
+      });
+    }
   } catch (e) {
     console.warn("Could not load data files:", e);
   }
