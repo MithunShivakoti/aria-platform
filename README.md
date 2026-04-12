@@ -13,6 +13,18 @@ A real-time offshore oil & gas platform monitoring dashboard for **North Sea Pla
 
 ---
 
+## Tech Stack
+
+- **Frontend:** HTML, CSS, and vanilla JavaScript dashboards
+- **Backend:** Node.js, Express, and WebSocket streaming
+- **AI:** OpenAI API for operator chat and work order generation
+- **Data processing:** Python, Pandas, and pre-computed Z-score anomaly detection
+- **Streaming:** Kafka-compatible sensor event pipeline with local WebSocket fallback
+- **Operations data:** CSV and JSON asset registries, sensor metadata, maintenance history, SOP context, and failure events
+- **Notifications:** Nodemailer SMTP alerts for critical events
+
+---
+
 ## Setup
 
 ### 1. Install Node dependencies
