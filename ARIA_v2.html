@@ -399,6 +399,29 @@
   .no-alerts .icon { font-size:28px; margin-bottom:8px; opacity:0.4; }
   .no-alerts p { font-family:var(--font-mono); font-size:10px; color:var(--text3); }
 
+  /* RISK SCORE */
+  .asset-risk-bar { margin:3px 0 2px 0; height:3px; background:var(--border); border-radius:2px; overflow:hidden; }
+  .asset-risk-fill { height:100%; border-radius:2px; transition:width 0.4s ease; }
+  .asset-risk-label { font-family:var(--font-mono); font-size:8px; letter-spacing:1px; display:flex; justify-content:space-between; }
+  .risk-score-card { grid-column:1/-1; background:var(--panel); border:1px solid var(--border); padding:16px; margin-bottom:4px; display:flex; gap:20px; align-items:center; }
+  .risk-gauge-wrap { flex-shrink:0; }
+  .risk-score-num { font-family:var(--font-mono); font-size:42px; font-weight:bold; line-height:1; }
+  .risk-score-lbl { font-family:var(--font-ui); font-size:11px; font-weight:700; letter-spacing:2px; margin-top:2px; }
+  .risk-factors { flex:1; display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .risk-factor { background:var(--bg3); padding:8px 10px; border:1px solid var(--border); }
+  .risk-factor-name { font-family:var(--font-mono); font-size:8px; color:var(--text3); letter-spacing:1px; margin-bottom:4px; }
+  .risk-factor-bar { height:4px; background:var(--border); border-radius:2px; overflow:hidden; margin-bottom:3px; }
+  .risk-factor-fill { height:100%; border-radius:2px; }
+  .risk-factor-score { font-family:var(--font-mono); font-size:10px; font-weight:bold; }
+  .risk-tab-row { display:flex; align-items:center; gap:10px; padding:8px 10px; border-bottom:1px solid var(--border); cursor:pointer; transition:background 0.2s; }
+  .risk-tab-row:hover { background:var(--panel2); }
+  .risk-tab-tag { font-family:var(--font-mono); font-size:10px; color:var(--cyan); min-width:60px; }
+  .risk-tab-name { font-family:var(--font-ui); font-size:10px; color:var(--text2); flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .risk-tab-bar { width:80px; height:4px; background:var(--border); border-radius:2px; overflow:hidden; flex-shrink:0; }
+  .risk-tab-fill { height:100%; border-radius:2px; }
+  .risk-tab-score { font-family:var(--font-mono); font-size:10px; font-weight:bold; min-width:28px; text-align:right; }
+  .risk-tab-lbl { font-family:var(--font-mono); font-size:8px; letter-spacing:1px; min-width:80px; }
+
   .api-key-notice {
     padding:8px 12px; background:rgba(255,170,0,0.08); border:1px solid var(--amber);
     margin:8px; font-family:var(--font-mono); font-size:9px; color:var(--amber); line-height:1.5;
@@ -437,6 +460,7 @@
     <div class="hstat"><div class="hstat-val amber" id="hstat-warn">--</div><div class="hstat-label">Warning</div></div>
     <div class="hstat"><div class="hstat-val red" id="hstat-crit">--</div><div class="hstat-label">Critical</div></div>
     <div class="hstat"><div class="hstat-val" style="color:var(--text2)" id="hstat-total">--</div><div class="hstat-label">Sensors</div></div>
+    <div class="hstat"><div class="hstat-val red" id="hstat-risk">--</div><div class="hstat-label">Critical Risk</div></div>
   </div>
   <div class="header-divider"></div>
   <div class="time-display">
@@ -485,8 +509,9 @@
 <div class="right-panel">
   <div class="tabs">
     <div class="tab active" onclick="switchTab('alerts')" id="tab-alerts">🔔 Alerts <span id="alert-count" style="color:var(--red)"></span></div>
-    <div class="tab" onclick="switchTab('correlation')" id="tab-correlation">⚡ Correlation</div>
-    <div class="tab" onclick="switchTab('chat')" id="tab-chat">🤖 AI Assistant</div>
+    <div class="tab" onclick="switchTab('risk')" id="tab-risk">⚠ Risk</div>
+    <div class="tab" onclick="switchTab('correlation')" id="tab-correlation">⚡ Corr</div>
+    <div class="tab" onclick="switchTab('chat')" id="tab-chat">🤖 AI</div>
   </div>
 
   <!-- ALERTS TAB -->
@@ -494,6 +519,10 @@
     <div class="alerts-list" id="alerts-list">
       <div class="no-alerts"><div class="icon">✓</div><p>No active alerts.<br>System nominal.</p></div>
     </div>
+  </div>
+
+  <!-- RISK TAB -->
+  <div class="tab-content" id="content-risk" style="display:none;flex-direction:column;">
   </div>
 
   <!-- CORRELATION TAB -->
@@ -544,6 +573,7 @@ let ZSCORE_DATA = {};
 let PITCH_DATA = {};
 let RAG_DOCS = {};
 let RAG_SYSTEM_PROMPT = "";
+let MAINTENANCE_HISTORY = {};
 const SENSOR_META = {
   // === HP SEPARATION TRAIN ===
   "V-101-PRESS":   {name:"V-101 Pressure",               type:"PRESSURE",     unit:"bar",    nmin:30,  nmax:70,   al:25.5, ah:80.5, asset:"AREA-HP-SEP:V-101"},
@@ -1009,6 +1039,86 @@ function toggleArea(areaId) {
   renderAssetTree();
 }
 
+// ============================================================
+// RISK SCORE ENGINE
+// ============================================================
+function calculateRiskScore(asset) {
+  const assetId = asset.id;
+  const sensors = asset.sensors || [];
+  let alertScore = 0, zScore = 0, maintScore = 0, histScore = 0;
+
+  // Factor 1 — Active alerts (max 40 pts)
+  const assetAlerts = alertLog.filter(a => a.sensor && SENSOR_META[a.sensor]?.asset === assetId);
+  const critCount = assetAlerts.filter(a => a.severity === 'CRITICAL').length;
+  const highCount = assetAlerts.filter(a => a.severity === 'HIGH').length;
+  alertScore = Math.min(40, critCount * 20 + highCount * 10);
+
+  // Factor 2 — Z-score trend (max 30 pts)
+  let rawZ = 0;
+  sensors.forEach(sid => {
+    const zdata = ZSCORE_DATA[sid];
+    if (!zdata || zdata.length === 0) return;
+    const recentZ = zdata.slice(-10).map(d => Math.abs(d.z || 0));
+    const maxZ = Math.max(...recentZ);
+    if (maxZ > 3.5) rawZ += 15;
+    else if (maxZ > 2.5) rawZ += 10;
+    else if (maxZ > 1.5) rawZ += 5;
+  });
+  zScore = Math.min(30, rawZ);
+
+  // Factor 3 — Maintenance overdue (max 20 pts)
+  const history = MAINTENANCE_HISTORY[assetId] || [];
+  if (history.length === 0) {
+    maintScore = 20;
+  } else {
+    const sorted = history.filter(h => h.completed_date).sort((a,b) => new Date(b.completed_date) - new Date(a.completed_date));
+    if (sorted.length === 0) { maintScore = 20; }
+    else {
+      const daysSince = (new Date('2026-04-05') - new Date(sorted[0].completed_date)) / 86400000;
+      if (daysSince > 180) maintScore = 20;
+      else if (daysSince > 90) maintScore = 12;
+      else if (daysSince > 30) maintScore = 5;
+    }
+  }
+
+  // Factor 4 — Historical failure match (max 10 pts)
+  histScore = (ASSET_HISTORY[assetId] && ASSET_HISTORY[assetId].length > 0) ? 10 : 0;
+
+  const total = Math.min(100, Math.round(alertScore + zScore + maintScore + histScore));
+  return { total, alertScore, zScore, maintScore, histScore };
+}
+
+function getRiskColor(score) {
+  if (score >= 75) return { color: '#ff3355', label: 'CRITICAL RISK', bg: 'rgba(255,51,85,0.15)' };
+  if (score >= 50) return { color: '#ffaa00', label: 'HIGH RISK',     bg: 'rgba(255,170,0,0.12)' };
+  if (score >= 25) return { color: '#00d4ff', label: 'MODERATE',      bg: 'rgba(0,212,255,0.08)' };
+  return                   { color: '#00ff88', label: 'LOW RISK',      bg: 'rgba(0,255,136,0.08)' };
+}
+
+function renderRiskTab() {
+  const panel = document.getElementById('content-risk');
+  if (!panel) return;
+  const allAssets = [];
+  AREAS.forEach(area => area.assets.forEach(asset => {
+    const r = calculateRiskScore(asset);
+    allAssets.push({ asset, ...r });
+  }));
+  allAssets.sort((a,b) => b.total - a.total);
+
+  panel.innerHTML = `<div style="padding:8px 10px;font-family:var(--font-mono);font-size:9px;color:var(--text3);letter-spacing:1px;border-bottom:1px solid var(--border)">PLATFORM RISK OVERVIEW — ${allAssets.length} ASSETS</div>
+  <div style="flex:1;overflow-y:auto">` +
+  allAssets.map(({asset, total}) => {
+    const rc = getRiskColor(total);
+    return `<div class="risk-tab-row" onclick="selectAsset(AREAS.flatMap(a=>a.assets).find(a=>a.id==='${asset.id}'))">
+      <span class="risk-tab-tag">${asset.tag}</span>
+      <span class="risk-tab-name">${asset.name}</span>
+      <div class="risk-tab-bar"><div class="risk-tab-fill" style="width:${total}%;background:${rc.color}"></div></div>
+      <span class="risk-tab-score" style="color:${rc.color}">${total}</span>
+      <span class="risk-tab-lbl" style="color:${rc.color}">${rc.label}</span>
+    </div>`;
+  }).join('') + '</div>';
+}
+
 function renderAssetTree() {
   const tree = document.getElementById("asset-tree");
   tree.innerHTML = "";
@@ -1042,7 +1152,18 @@ function renderAssetTree() {
       item.className = `asset-item ${assetStatus !== 'green' ? (assetStatus === 'red' ? 'critical' : 'alert') : ''} ${selectedAsset && selectedAsset.id === asset.id ? 'active' : ''}`;
       item.id = `asset-item-${asset.id.replace(/[^a-z0-9]/gi,'-')}`;
       item.onclick = (e) => { e.stopPropagation(); selectAsset(asset); };
-      item.innerHTML = `<div class="asset-dot ${assetStatus}"></div><span>${asset.tag}</span><span style="color:var(--text3);font-size:9px;margin-left:auto">${asset.name.split(' ').slice(0,2).join(' ')}</span>`;
+      const risk = calculateRiskScore(asset);
+      const rc = getRiskColor(risk.total);
+      item.innerHTML = `
+        <div class="asset-dot ${assetStatus}"></div>
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <span>${asset.tag}</span>
+            <span style="font-family:var(--font-mono);font-size:9px;color:${rc.color}">${risk.total}</span>
+          </div>
+          <div class="asset-risk-bar"><div class="asset-risk-fill" style="width:${risk.total}%;background:${rc.color}"></div></div>
+          <div class="asset-risk-label"><span style="color:var(--text3)">${asset.name.split(' ').slice(0,3).join(' ')}</span><span style="color:${rc.color}">${rc.label}</span></div>
+        </div>`;
       assetsDiv.appendChild(item);
     });
     areaDiv.appendChild(assetsDiv);
@@ -1481,6 +1602,56 @@ function renderSensorGrid() {
   `;
   grid.appendChild(header);
 
+  // Risk score card
+  const risk = calculateRiskScore(selectedAsset);
+  const rc = getRiskColor(risk.total);
+  const arc = risk.total / 100;
+  const r = 36, cx = 44, cy = 44, circ = 2 * Math.PI * r;
+  const dash = arc * circ, gap = circ - dash;
+  const riskCard = document.createElement("div");
+  riskCard.className = "risk-score-card";
+  riskCard.id = "risk-score-card";
+  riskCard.style.borderColor = rc.color;
+  riskCard.style.background = rc.bg;
+  riskCard.innerHTML = `
+    <div class="risk-gauge-wrap">
+      <svg width="88" height="88" viewBox="0 0 88 88">
+        <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="var(--border)" stroke-width="6"/>
+        <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${rc.color}" stroke-width="6"
+          stroke-dasharray="${dash} ${gap}" stroke-linecap="round"
+          transform="rotate(-90 ${cx} ${cy})" style="transition:stroke-dasharray 0.6s ease"/>
+        <text x="${cx}" y="${cy}" text-anchor="middle" dominant-baseline="central"
+          font-family="monospace" font-size="18" font-weight="bold" fill="${rc.color}">${risk.total}</text>
+      </svg>
+    </div>
+    <div style="flex:1">
+      <div class="risk-score-lbl" style="color:${rc.color}">${rc.label}</div>
+      <div style="font-family:var(--font-mono);font-size:9px;color:var(--text3);margin-bottom:10px;letter-spacing:1px">FAILURE PREDICTION RISK SCORE</div>
+      <div class="risk-factors">
+        <div class="risk-factor">
+          <div class="risk-factor-name">ACTIVE ALERTS</div>
+          <div class="risk-factor-bar"><div class="risk-factor-fill" style="width:${(risk.alertScore/40)*100}%;background:${rc.color}"></div></div>
+          <div class="risk-factor-score" style="color:${rc.color}">${risk.alertScore}<span style="color:var(--text3);font-size:8px">/40</span></div>
+        </div>
+        <div class="risk-factor">
+          <div class="risk-factor-name">Z-SCORE TREND</div>
+          <div class="risk-factor-bar"><div class="risk-factor-fill" style="width:${(risk.zScore/30)*100}%;background:var(--amber)"></div></div>
+          <div class="risk-factor-score" style="color:var(--amber)">${risk.zScore}<span style="color:var(--text3);font-size:8px">/30</span></div>
+        </div>
+        <div class="risk-factor">
+          <div class="risk-factor-name">MAINTENANCE CURRENCY</div>
+          <div class="risk-factor-bar"><div class="risk-factor-fill" style="width:${(risk.maintScore/20)*100}%;background:var(--cyan)"></div></div>
+          <div class="risk-factor-score" style="color:var(--cyan)">${risk.maintScore}<span style="color:var(--text3);font-size:8px">/20</span></div>
+        </div>
+        <div class="risk-factor">
+          <div class="risk-factor-name">FAILURE HISTORY</div>
+          <div class="risk-factor-bar"><div class="risk-factor-fill" style="width:${(risk.histScore/10)*100}%;background:var(--green)"></div></div>
+          <div class="risk-factor-score" style="color:var(--green)">${risk.histScore}<span style="color:var(--text3);font-size:8px">/10</span></div>
+        </div>
+      </div>
+    </div>`;
+  grid.appendChild(riskCard);
+
   selectedAsset.sensors.forEach(sid => {
     const meta = SENSOR_META[sid];
     if(!meta) return;
@@ -1553,6 +1724,13 @@ function updateDisplay() {
   document.getElementById("hstat-warn").textContent = warn;
   document.getElementById("hstat-crit").textContent = crit;
   document.getElementById("hstat-total").textContent = total;
+
+  // Critical risk asset count
+  let critRiskCount = 0;
+  AREAS.forEach(area => area.assets.forEach(asset => {
+    if (calculateRiskScore(asset).total >= 75) critRiskCount++;
+  }));
+  document.getElementById("hstat-risk").textContent = critRiskCount;
 
   // Asset tree refresh
   renderAssetTree();
@@ -1910,6 +2088,7 @@ function switchTab(tab) {
   document.querySelectorAll('.tab-content').forEach(t => t.style.display='none');
   document.getElementById('tab-'+tab).classList.add('active');
   document.getElementById('content-'+tab).style.display='flex';
+  if (tab === 'risk') renderRiskTab();
 }
 
 // ============================================================
@@ -2081,16 +2260,18 @@ function scrollChat() {
 // ============================================================
 async function init() {
   try {
-    const [zRes, pRes, keyRes, ragRes] = await Promise.all([
+    const [zRes, pRes, keyRes, ragRes, mhRes] = await Promise.all([
       fetch("zscore_results.json"),
       fetch("pitch_numbers.json"),
       fetch("/api/key"),
-      fetch("rag_documents.json")
+      fetch("rag_documents.json"),
+      fetch("maintenance_history.json")
     ]);
-    if (zRes.ok)   ZSCORE_DATA = await zRes.json();
-    if (pRes.ok)   PITCH_DATA  = await pRes.json();
+    if (zRes.ok)   ZSCORE_DATA         = await zRes.json();
+    if (pRes.ok)   PITCH_DATA          = await pRes.json();
     if (keyRes.ok) { const { configured } = await keyRes.json(); apiKey = !!configured; }
-    if (ragRes.ok) RAG_DOCS    = await ragRes.json();
+    if (ragRes.ok) RAG_DOCS            = await ragRes.json();
+    if (mhRes.ok)  MAINTENANCE_HISTORY = await mhRes.json();
   } catch (e) {
     console.warn("Could not load data files:", e);
   }
