@@ -452,6 +452,66 @@
   .send-btn:hover { background:var(--cyan); color:var(--bg); }
   .send-btn:disabled { opacity:0.4; cursor:not-allowed; }
 
+  /* FLOATING CHAT WIDGET */
+  .floating-chat {
+    position:fixed; right:20px; bottom:20px; z-index:900;
+    display:flex; flex-direction:column; align-items:flex-end; gap:10px;
+    pointer-events:none;
+  }
+  .floating-chat-toggle {
+    pointer-events:auto; width:56px; height:56px; border-radius:8px;
+    border:1px solid var(--cyan); background:var(--panel2); color:var(--cyan);
+    font-family:var(--font-ui); font-size:22px; font-weight:700; cursor:pointer;
+    box-shadow:0 10px 30px rgba(0,0,0,0.35); transition:all 0.2s;
+  }
+  .floating-chat-toggle:hover { background:var(--cyan-dim); transform:translateY(-1px); }
+  .floating-chat-nudge {
+    pointer-events:none; position:absolute; right:66px; bottom:12px;
+    width:max-content; max-width:180px; padding:7px 10px; border-radius:8px;
+    border:1px solid var(--cyan2); background:var(--bg2);
+    color:var(--cyan); font-family:var(--font-mono); font-size:10px; font-weight:600;
+    letter-spacing:0; white-space:nowrap; box-shadow:0 8px 24px rgba(0,0,0,0.28);
+  }
+  .floating-chat-nudge::after {
+    content:''; position:absolute; right:-5px; bottom:13px;
+    width:8px; height:8px; background:var(--bg2);
+    border-top:1px solid var(--cyan2); border-right:1px solid var(--cyan2);
+    transform:rotate(45deg);
+  }
+  .floating-chat.open .floating-chat-nudge { display:none; }
+  .floating-chat-panel {
+    pointer-events:auto; width:min(360px, calc(100vw - 32px)); height:440px;
+    background:var(--bg2); border:1px solid var(--border2); border-radius:8px;
+    box-shadow:0 18px 50px rgba(0,0,0,0.45); display:none; overflow:hidden;
+    flex-direction:column;
+  }
+  .floating-chat.open .floating-chat-panel { display:flex; }
+  .floating-chat.open .floating-chat-toggle { display:none; }
+  .floating-chat-header {
+    min-height:48px; display:flex; align-items:center; justify-content:space-between;
+    padding:10px 12px; border-bottom:1px solid var(--border); background:var(--panel);
+  }
+  .floating-chat-title {
+    font-family:var(--font-ui); color:var(--cyan); font-size:15px; font-weight:700;
+  }
+  .floating-chat-subtitle {
+    font-family:var(--font-mono); color:var(--text3); font-size:8px; letter-spacing:1px;
+  }
+  .floating-chat-close {
+    border:1px solid var(--border2); background:transparent; color:var(--text2);
+    border-radius:6px; width:28px; height:28px; cursor:pointer; font-family:var(--font-ui);
+    font-size:16px;
+  }
+  .floating-chat-close:hover { border-color:var(--cyan); color:var(--cyan); }
+  .floating-chat .chat-area { min-height:0; }
+  .floating-chat .chat-input-area { background:var(--bg2); }
+
+  @media (max-width: 720px) {
+    .floating-chat { right:12px; bottom:12px; }
+    .floating-chat-nudge { right:64px; bottom:13px; font-size:9px; }
+    .floating-chat-panel { height:min(440px, calc(100vh - 40px)); }
+  }
+
   /* WORK ORDER MODAL */
   .modal-overlay {
     position:fixed; inset:0; background:var(--modal-overlay-bg); z-index:1000;
@@ -641,7 +701,6 @@
     <div class="tab active" onclick="switchTab('alerts')" id="tab-alerts">🔔 Alerts <span id="alert-count" style="color:var(--red)"></span></div>
     <div class="tab" onclick="switchTab('risk')" id="tab-risk">⚠ Risk</div>
     <div class="tab" onclick="switchTab('correlation')" id="tab-correlation">⚡ Corr</div>
-    <div class="tab" onclick="switchTab('chat')" id="tab-chat">🤖 AI</div>
   </div>
 
   <!-- ALERTS TAB -->
@@ -660,7 +719,7 @@
     <div class="corr-panel-inner" id="corr-panel"></div>
   </div>
 
-  <!-- CHAT TAB -->
+  <!-- CHAT TAB — kept hidden; floating widget is the visible AI entry point -->
   <div class="tab-content" id="content-chat" style="display:none">
     <div class="api-key-notice" id="api-key-notice"></div>
     <div class="chat-area" id="chat-area">
@@ -670,13 +729,38 @@
       </div>
     </div>
     <div class="chat-input-area">
-      <input type="text" class="chat-input" id="chat-input" placeholder="Ask ARIA anything..." onkeydown="if(event.key==='Enter')sendChat()">
-      <button class="send-btn" id="send-btn" onclick="sendChat()">ASK</button>
+      <input type="text" class="chat-input" id="chat-input" placeholder="Ask ARIA anything..." onkeydown="if(event.key==='Enter')sendChat('panel')">
+      <button class="send-btn" id="send-btn" onclick="sendChat('panel')">ASK</button>
     </div>
   </div>
 </div>
 
 </div>
+</div>
+
+<!-- FLOATING CHAT WIDGET -->
+<div class="floating-chat" id="floating-chat">
+  <div class="floating-chat-panel">
+    <div class="floating-chat-header">
+      <div>
+        <div class="floating-chat-title">ARIA</div>
+        <div class="floating-chat-subtitle">OPERATIONS ASSISTANT</div>
+      </div>
+      <button class="floating-chat-close" onclick="toggleFloatingChat(false)" title="Close chat">×</button>
+    </div>
+    <div class="chat-area" id="floating-chat-area">
+      <div class="chat-msg ai">
+        <div class="chat-label">ARIA</div>
+        <div class="chat-bubble">Ask about assets, alerts, SOP steps, maintenance priority, or handover notes.</div>
+      </div>
+    </div>
+    <div class="chat-input-area">
+      <input type="text" class="chat-input" id="floating-chat-input" placeholder="Ask ARIA..." onkeydown="if(event.key==='Enter')sendChat('floating')">
+      <button class="send-btn" id="floating-send-btn" onclick="sendChat('floating')">ASK</button>
+    </div>
+  </div>
+  <div class="floating-chat-nudge">Ask ARIA anything</div>
+  <button class="floating-chat-toggle" onclick="toggleFloatingChat(true)" title="Open ARIA chat">AI</button>
 </div>
 
 <!-- TREND CHART MODAL -->
@@ -1386,6 +1470,26 @@ function getAssetProdLoss(asset) {
   return { bbl, usd };
 }
 
+function getAssetProdExposure(asset) {
+  const rate = getAssetProdLossRate(asset.id);
+  const usdPerHour = rate * OIL_PRICE;
+  const tag = asset.tag;
+  const isFallback = rate === PROD_LOSS_DEFAULT && !PROD_LOSS_RATES[tag] && !PROD_LOSS_ZERO.includes(tag);
+  return { rate, usdPerHour, isFallback };
+}
+
+function renderProdLossCell(asset) {
+  const liveLoss = getAssetProdLoss(asset);
+  if (liveLoss) {
+    return `<span class="risk-tab-prod">${liveLoss.bbl.toFixed(1)} bbl<br><span style="color:var(--red);opacity:0.85">$${Math.round(liveLoss.usd).toLocaleString()}</span></span>`;
+  }
+  const exposure = getAssetProdExposure(asset);
+  if (exposure.rate === 0) {
+    return `<span class="risk-tab-prod" style="color:var(--text3)">No prod<br>impact</span>`;
+  }
+  return `<span class="risk-tab-prod" style="color:var(--amber)">${exposure.rate.toFixed(exposure.rate >= 10 ? 1 : 2)} bbl/hr<br><span style="color:var(--text3)">$${Math.round(exposure.usdPerHour).toLocaleString()}/hr${exposure.isFallback ? ' est.' : ''}</span></span>`;
+}
+
 function renderRiskTab() {
   const panel = document.getElementById('content-risk');
   if (!panel) return;
@@ -1408,15 +1512,20 @@ function renderRiskTab() {
     : '';
 
   panel.innerHTML = `<div style="padding:8px 10px;font-family:var(--font-mono);font-size:9px;color:var(--text3);letter-spacing:1px;border-bottom:1px solid var(--border)">PLATFORM RISK OVERVIEW — ${allAssets.length} ASSETS${platformSummary}</div>
+  <div style="padding:4px 10px 4px;display:flex;gap:10px;font-family:var(--font-mono);font-size:8px;color:var(--text3);letter-spacing:1px;border-bottom:1px solid var(--border)">
+    <span style="min-width:60px">TAG</span><span style="flex:1">NAME</span><span style="width:80px">RISK</span><span style="min-width:28px"></span><span style="min-width:80px">LEVEL</span><span style="min-width:110px;text-align:right">COST EXPOSURE</span>
+  </div>
   <div style="flex:1;overflow-y:auto">` +
   allAssets.map(({asset, total}) => {
     const rc = getRiskColor(total);
+    const prodCell = renderProdLossCell(asset);
     return `<div class="risk-tab-row" onclick="selectAsset(AREAS.flatMap(a=>a.assets).find(a=>a.id==='${asset.id}'))">
       <span class="risk-tab-tag">${asset.tag}</span>
       <span class="risk-tab-name">${asset.name}</span>
       <div class="risk-tab-bar"><div class="risk-tab-fill" style="width:${total}%;background:${rc.color}"></div></div>
       <span class="risk-tab-score" style="color:${rc.color}">${total}</span>
       <span class="risk-tab-lbl" style="color:${rc.color}">${rc.label}</span>
+      ${prodCell}
     </div>`;
   }).join('') + '</div>';
 }
@@ -1617,12 +1726,309 @@ function getAssetHistory(assetId) {
 }
 
 function getAssetHistoryContext(assetId, tag) {
-  const events = getAssetHistory(assetId);
-  if (events.length === 0) return "";
-  return `\n\nASSET MEMORY — ${tag} has ${events.length} prior failure event(s) on record:\n` +
-    events.map(e =>
+  const { pastEvents, futureEvents, cutoffDate } = getTimeFilteredAssetHistory(assetId);
+  const cutoff = cutoffDate.toISOString().slice(0, 10);
+  if (pastEvents.length === 0) {
+    const futureNote = futureEvents.length
+      ? ` Future-dated demo/reference events are intentionally withheld from this answer: ${futureEvents.map(e => `${e.event_id} on ${e.date}`).join(', ')}.`
+      : "";
+    return `\n\nASSET MEMORY — ${tag}: No prior failure events dated on or before ${cutoff}.${futureNote}`;
+  }
+  return `\n\nASSET MEMORY — ${tag} has ${pastEvents.length} prior failure event(s) on record as of ${cutoff}:\n` +
+    pastEvents.map(e =>
       `[${e.event_id}] ${e.date} | ${e.failure_mode} | Root cause: ${e.root_cause} | Mechanism: ${e.mechanism} | Production loss: ${e.production_loss} bbl | Downtime: ${e.downtime}h | Actions taken: ${e.corrective_action}`
     ).join('\n');
+}
+
+function getAllAssets() {
+  return AREAS.flatMap(area => area.assets);
+}
+
+function getAssetById(assetId) {
+  return getAllAssets().find(asset => asset.id === assetId) || null;
+}
+
+function getAssetForSensor(sid) {
+  const assetId = SENSOR_META[sid]?.asset;
+  return assetId ? getAssetById(assetId) : null;
+}
+
+function getCurrentSimulationDate() {
+  if (liveMode) {
+    const liveTimestamp = Object.values(liveReadings).find(r => r && r.timestamp)?.timestamp;
+    if (liveTimestamp) {
+      const liveDate = new Date(liveTimestamp);
+      if (!Number.isNaN(liveDate.getTime())) return liveDate;
+    }
+  }
+  return new Date(BASE_TIME.getTime() + currentHour * 3600000);
+}
+
+function parseEventDate(dateText) {
+  const parsed = new Date(`${dateText}T23:59:59Z`);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+}
+
+function getTimeFilteredAssetHistory(assetId) {
+  const cutoffDate = getCurrentSimulationDate();
+  const events = getAssetHistory(assetId);
+  const pastEvents = [];
+  const futureEvents = [];
+  events.forEach(event => {
+    const eventDate = parseEventDate(event.date);
+    if (!eventDate || eventDate <= cutoffDate) pastEvents.push(event);
+    else futureEvents.push(event);
+  });
+  return { pastEvents, futureEvents, cutoffDate };
+}
+
+function findAssetMentionedInMessage(message) {
+  return findAssetsMentionedInMessage(message)[0] || null;
+}
+
+function isGlobalPriorityQuestion(message) {
+  return /\b(which|what)\s+asset\b.*\b(priorit|risk|urgent|first)\b|\b(top|highest)\s+risk\b|\bmaintenance\b.*\bpriorit/i.test(message || "");
+}
+
+function isFollowUpQuestion(message) {
+  return /\b(this|that|it|its|asset|alert|alarm|technician|follow first|same)\b/i.test(message || "");
+}
+
+function isCurrentUiSnapshotQuestion(message) {
+  return /\bcurrent selected asset\b|\bselected asset\b.*\blatest alert\b|\blatest alert\b.*\bselected asset\b|\bsummarize\b.*\bcurrent\b.*\b(selected asset|latest alert)\b/i.test(message || "");
+}
+
+function findAssetsMentionedInMessage(message) {
+  const lower = (message || "").toLowerCase();
+  const matches = [];
+  const addMatch = (asset) => {
+    if (asset && !matches.some(match => match.id === asset.id)) matches.push(asset);
+  };
+  for (const asset of getAllAssets()) {
+    if (lower.includes(asset.tag.toLowerCase()) || lower.includes(asset.id.toLowerCase())) addMatch(asset);
+  }
+  for (const sid of Object.keys(SENSOR_META)) {
+    if (lower.includes(sid.toLowerCase())) addMatch(getAssetForSensor(sid));
+  }
+  return matches;
+}
+
+function getAlertForAsset(assetId) {
+  if (!assetId) return null;
+  return alertLog.find(alert => SENSOR_META[alert.sensor]?.asset === assetId) || null;
+}
+
+function hydrateAlertDefinition(def, reason = "scenario reference") {
+  const meta = SENSOR_META[def.sensor];
+  const val = getCurrentValue(def.sensor);
+  return {
+    ...def,
+    contextReason: reason,
+    timestamp: `${getCurrentSimulationDate().toISOString().replace('T', ' ').replace('Z', ' UTC')} (${reason}; not active unless listed under ACTIVE ALERTS)`,
+    sensorVal: val !== null ? formatNumber(val) : "--",
+    sensorUnit: meta ? meta.unit : "",
+  };
+}
+
+function findScenarioAlertForMessage(message, asset) {
+  const lower = (message || "").toLowerCase();
+  const candidateDefs = ALERT_DEFS.filter(def => !asset || SENSOR_META[def.sensor]?.asset === asset.id);
+  const scored = candidateDefs
+    .map(def => {
+      const haystack = `${def.id} ${def.title} ${def.desc} ${def.failureMode} ${def.sop} ${def.sensor}`.toLowerCase();
+      let score = 0;
+      lower.split(/[^a-z0-9-]+/).filter(t => t.length > 2).forEach(token => {
+        if (haystack.includes(token)) score += 1;
+      });
+      if (/surge/.test(lower) && /surge/.test(haystack)) score += 5;
+      if (/vibration|bearing/.test(lower) && /vibration|bearing/.test(haystack)) score += 5;
+      if (/drift|transmitter|diaphragm/.test(lower) && /drift|transmitter|diaphragm/.test(haystack)) score += 5;
+      if (/foul|cooler|scale/.test(lower) && /foul|cooler|scale/.test(haystack)) score += 5;
+      return { def, score };
+    })
+    .filter(item => item.score > 0)
+    .sort((a, b) => b.score - a.score);
+  return scored.length ? hydrateAlertDefinition(scored[0].def, "matched scenario") : null;
+}
+
+function findRelevantAlertForMessage(message) {
+  const lower = (message || "").toLowerCase();
+  const mentionedAssets = findAssetsMentionedInMessage(message);
+  for (const mentionedAsset of mentionedAssets) {
+    const assetAlert = getAlertForAsset(mentionedAsset.id);
+    if (assetAlert) return assetAlert;
+  }
+  if (mentionedAssets.length > 0) return findScenarioAlertForMessage(message, mentionedAssets[0]);
+  if (isCurrentUiSnapshotQuestion(message)) return alertLog[0] || null;
+  const asksAboutAlert = /\b(this|latest|current|active|last|new)\b.*\b(alert|alarm)\b|\b(alert|alarm)\b/.test(lower);
+  if (asksAboutAlert && chatFocusAssetId) {
+    const focusAlert = getAlertForAsset(chatFocusAssetId);
+    if (focusAlert) return focusAlert;
+    const focusAsset = getAssetById(chatFocusAssetId);
+    const focusScenario = findScenarioAlertForMessage(message, focusAsset);
+    if (focusScenario) return focusScenario;
+  }
+  if (asksAboutAlert && selectedAsset) {
+    const selectedAlert = getAlertForAsset(selectedAsset.id);
+    if (selectedAlert) return selectedAlert;
+    const selectedScenario = findScenarioAlertForMessage(message, selectedAsset);
+    if (selectedScenario) return selectedScenario;
+  }
+  return asksAboutAlert ? alertLog[0] : null;
+}
+
+function getPrimaryAssetForChat(message, alert) {
+  const mentionedAsset = findAssetMentionedInMessage(message);
+  if (mentionedAsset) return mentionedAsset;
+  if (isCurrentUiSnapshotQuestion(message)) return selectedAsset;
+  if (alert) return getAssetForSensor(alert.sensor);
+  if (isGlobalPriorityQuestion(message)) return null;
+  if (isFollowUpQuestion(message) && chatFocusAssetId) return getAssetById(chatFocusAssetId);
+  return selectedAsset;
+}
+
+function getRelatedAlertContext(alert) {
+  if (!alert) return "";
+  const text = `${alert.title || ""} ${alert.desc || ""} ${alert.failureMode || ""} ${alert.woPrompt || ""}`;
+  const relatedAssets = getAllAssets().filter(asset => text.toLowerCase().includes(asset.tag.toLowerCase()));
+  if (!relatedAssets.length) return "";
+  return "RELATED ASSET READINGS FROM ALERT CONTEXT:\n" + relatedAssets
+    .slice(0, 3)
+    .map(asset => {
+      const readings = asset.sensors.slice(0, 4).map(sid => {
+        const meta = SENSOR_META[sid];
+        const val = getCurrentValue(sid);
+        return `${sid}=${val !== null ? formatNumber(val) : "--"} ${meta?.unit || ""} (${getSensorStatus(sid).toUpperCase()})`;
+      }).join(", ");
+      return `- ${asset.tag} - ${asset.name}: ${readings}`;
+    })
+    .join("\n");
+}
+
+function formatNumber(value, digits = 2) {
+  const n = Number(value);
+  return Number.isFinite(n) ? n.toFixed(digits) : String(value ?? "--");
+}
+
+function getSensorThresholdContext(sid) {
+  const meta = SENSOR_META[sid];
+  if (!meta) return "";
+  const base = `${sid} (${meta.name}): normal ${meta.nmin}-${meta.nmax} ${meta.unit}, alarm low ${meta.al} ${meta.unit}, alarm high ${meta.ah} ${meta.unit}`;
+  if (meta.type === "VIBRATION" && meta.unit === "mm/s") {
+    return `${base}. Vibration guidance: 0-2.3 mm/s good, 2.3-4.5 mm/s acceptable, Zone C 4.5-7.1 mm/s alert/monitor/plan corrective action/notify supervisor, Zone D >7.1 mm/s danger/isolate and switch to standby if available.`;
+  }
+  return `${base}.`;
+}
+
+function getAssetSensorContext(asset) {
+  if (!asset) return "No primary asset is resolved for this question.";
+  const lines = asset.sensors.map(sid => {
+    const meta = SENSOR_META[sid];
+    const val = getCurrentValue(sid);
+    const status = getSensorStatus(sid).toUpperCase();
+    return `- ${sid}: ${meta?.name || sid} = ${val !== null ? formatNumber(val) : "--"} ${meta?.unit || ""} (${status}); ${getSensorThresholdContext(sid)}`;
+  });
+  const risk = calculateRiskScore(asset);
+  const riskColor = getRiskColor(risk.total);
+  return [
+    `PRIMARY ASSET: ${asset.tag} - ${asset.name} (${asset.id})`,
+    `Risk score: ${risk.total}/100 (${riskColor.label}); factors activeAlerts=${risk.alertScore}/40, zScore=${risk.zScore}/30, maintenance=${risk.maintScore}/20, history=${risk.histScore}/10.`,
+    "Current readings and thresholds:",
+    ...lines
+  ].join("\n");
+}
+
+function formatAlertForChat(alert) {
+  if (!alert) return "No resolved active alert for this question.";
+  const asset = getAssetForSensor(alert.sensor);
+  return [
+    `Alert ID: ${alert.id}`,
+    `Asset: ${asset ? `${asset.tag} - ${asset.name}` : SENSOR_META[alert.sensor]?.asset || "Unknown"}`,
+    `Severity: ${alert.severity}`,
+    `Title: ${alert.title}`,
+    `Description: ${alert.desc}`,
+    `Failure mode: ${alert.failureMode}`,
+    `Timestamp: ${alert.timestamp}`,
+    `Sensor: ${alert.sensor} = ${alert.sensorVal} ${alert.sensorUnit}`,
+    `SOP: ${alert.sop}`,
+    `Thresholds: ${getSensorThresholdContext(alert.sensor)}`
+  ].join("\n");
+}
+
+function getActiveAlertsContext() {
+  if (!alertLog.length) return "ACTIVE ALERTS: none.";
+  return "ACTIVE ALERTS:\n" + alertLog.slice(0, 5).map((alert, i) => `${i + 1}. ${formatAlertForChat(alert).replace(/\n/g, " | ")}`).join("\n");
+}
+
+function getTopRiskAssetsContext(limit = 5) {
+  const rows = getAllAssets()
+    .map(asset => ({ asset, risk: calculateRiskScore(asset) }))
+    .sort((a, b) => b.risk.total - a.risk.total)
+    .slice(0, limit);
+  return "TOP FAILURE RISK ASSETS:\n" + rows.map((row, i) => {
+    const label = getRiskColor(row.risk.total).label;
+    return `${i + 1}. ${row.asset.tag} - ${row.asset.name}: ${row.risk.total}/100 (${label}); activeAlerts=${row.risk.alertScore}, zScore=${row.risk.zScore}, maintenance=${row.risk.maintScore}, history=${row.risk.histScore}`;
+  }).join("\n");
+}
+
+function truncateForPrompt(text, maxChars = 1800) {
+  if (!text) return "";
+  return text.length > maxChars ? text.slice(0, maxChars) + "\n[Document excerpt truncated]" : text;
+}
+
+function getRelevantDocIds(message, alert, asset) {
+  const lower = (message || "").toLowerCase();
+  const ids = new Set();
+  if (alert?.sop) alert.sop.split(/[\/,]/).map(s => s.trim()).filter(Boolean).forEach(id => ids.add(id));
+  const tag = asset?.tag || "";
+  if (/p-10[12]|pump|bearing|vibration|grease|lubricat/.test(lower) || tag.startsWith("P-10")) {
+    ids.add("SOP-MAINT-001");
+    ids.add("MAN-MECH-001");
+  }
+  if (/k-20[12]|v-20[12]|compressor|surge|scrubber|carryover|lcv-101/.test(lower) || tag.startsWith("K-20") || tag.startsWith("V-20")) ids.add("SOP-OPS-010");
+  if (/e-301|foul|cooler|chemical|hcl|scale/.test(lower) || tag === "E-301") ids.add("SOP-MAINT-010");
+  if (/pt-14[56]|transmitter|instrument|drift|diaphragm|hart/.test(lower) || tag === "PT-145" || tag === "PT-146") ids.add("MAN-INST-001");
+  if (/v-101|separator|startup|interlock|pshh|lshh/.test(lower) || tag === "V-101") ids.add("SOP-OPS-001");
+  if (/emergency|esd|shutdown|evacuat|gas|leak/.test(lower)) ids.add("SOP-SAFE-001");
+  return Array.from(ids).filter(id => RAG_DOCS[id]).slice(0, 3);
+}
+
+function getRelevantDocsContext(message, alert, asset) {
+  const docIds = getRelevantDocIds(message, alert, asset);
+  if (!docIds.length) return "RELEVANT DOCUMENT EXCERPTS: none selected for this question.";
+  return "RELEVANT DOCUMENT EXCERPTS:\n\n" + docIds
+    .map(id => `[${id}] ${RAG_DOCS[id].title}\n${truncateForPrompt(RAG_DOCS[id].content)}`)
+    .join("\n\n---\n\n");
+}
+
+function getChatOperationalContext(message) {
+  const alert = findRelevantAlertForMessage(message);
+  const primaryAsset = getPrimaryAssetForChat(message, alert);
+  if (primaryAsset) chatFocusAssetId = primaryAsset.id;
+  if (alert) chatFocusAlertId = alert.id;
+  const simDate = getCurrentSimulationDate();
+  const selectedLine = selectedAsset ? `${selectedAsset.tag} - ${selectedAsset.name}` : "None";
+  const primaryLine = primaryAsset ? `${primaryAsset.tag} - ${primaryAsset.name}` : "None";
+  return [
+    "CURRENT OPERATING CONTEXT",
+    `Simulation time: ${simDate.toISOString().replace('T', ' ').replace('Z', ' UTC')}`,
+    `Live Kafka mode: ${liveMode ? "ON" : "OFF"}`,
+    `Selected asset in UI: ${selectedLine}`,
+    `Primary asset resolved for this question: ${primaryLine}`,
+    "",
+    getActiveAlertsContext(),
+    "",
+    `RESOLVED ALERT FOR THIS QUESTION:\n${formatAlertForChat(alert)}`,
+    "",
+    getRelatedAlertContext(alert),
+    "",
+    getTopRiskAssetsContext(),
+    "",
+    getAssetSensorContext(primaryAsset),
+    primaryAsset ? getAssetHistoryContext(primaryAsset.id, primaryAsset.tag) : "",
+    "",
+    getRelevantDocsContext(message, alert, primaryAsset)
+  ].filter(Boolean).join("\n");
 }
 
 function switchCenterTab(tab) {
@@ -2010,7 +2416,23 @@ function renderSensorGrid() {
       </div>
       ${(() => {
         const pl = getAssetProdLoss(selectedAsset);
-        if (!pl) return '';
+        const exposure = getAssetProdExposure(selectedAsset);
+        if (!pl && exposure.rate === 0) {
+          return `<div style="margin-top:10px;padding:8px 10px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:4px">
+            <div style="font-family:var(--font-mono);font-size:9px;color:var(--text3);letter-spacing:1px;margin-bottom:4px">PRODUCTION LOSS EXPOSURE</div>
+            <div style="font-family:var(--font-mono);font-size:12px;color:var(--green)">No direct production loss impact mapped for ${selectedAsset.tag}</div>
+          </div>`;
+        }
+        if (!pl) {
+          return `<div style="margin-top:10px;padding:8px 10px;background:rgba(255,170,0,0.1);border:1px solid var(--amber);border-radius:4px">
+            <div style="font-family:var(--font-mono);font-size:9px;color:var(--text3);letter-spacing:1px;margin-bottom:4px">PRODUCTION LOSS EXPOSURE</div>
+            <div style="display:flex;gap:16px;align-items:baseline">
+              <span style="font-family:var(--font-mono);font-size:18px;font-weight:bold;color:var(--amber)">${exposure.rate.toFixed(exposure.rate >= 10 ? 1 : 2)}<span style="font-size:11px;margin-left:3px">bbl/hr</span></span>
+              <span style="font-family:var(--font-mono);font-size:15px;color:var(--amber);opacity:0.9">$${Math.round(exposure.usdPerHour).toLocaleString()}/hr</span>
+              <span style="font-family:var(--font-mono);font-size:9px;color:var(--text3);margin-left:auto">@ Brent $${OIL_PRICE}/bbl${exposure.isFallback ? ' · estimate' : ''}</span>
+            </div>
+          </div>`;
+        }
         return `<div style="margin-top:10px;padding:8px 10px;background:rgba(255,51,85,0.12);border:1px solid var(--red);border-radius:4px">
           <div style="font-family:var(--font-mono);font-size:9px;color:var(--text3);letter-spacing:1px;margin-bottom:4px">LIVE PRODUCTION LOSS</div>
           <div style="display:flex;gap:16px;align-items:baseline">
@@ -2784,73 +3206,65 @@ DOCUMENTS AVAILABLE:
 - PID-NPA-001: HP Separation Train P&ID (V-101 interlocks: PSHH 72 barg, LSHH 80%)
 - RPT-INSPECT-001: V-101 Inspection 2020 (corrosion rate 0.25mm/yr, fit for service until AT2024)
 
-KNOWN FAILURE HISTORY:
-COMPLETE FAILURE HISTORY — NORTH SEA PLATFORM ALPHA:
+Use the CURRENT OPERATING CONTEXT supplied with each question as the source of truth for selected asset, active/latest alert, current readings, thresholds, top risk assets, and time-filtered asset history. If the UI selected asset conflicts with a tag or alert in the operator's question, follow the explicitly mentioned tag or resolved alert context.
 
-FE-0002 | P-101 | 2025-11-10 | Severity: HIGH | Safety: NONE
-Failure Mode: Bearing failure
-Root Cause: Grease nipple blocked by debris; lubrication interval exceeded by 3 weeks
-Mechanism: Metal fatigue and spalling on inner race of Drive End bearing
-Immediate Action: P-101A isolated and locked out; standby P-102A started
-Corrective Action: Replace SKF 6316-2RS1 DE and NDE bearings; flush and refill with Shell Gadus S2 V220 2; re-establish 2-weekly lubrication schedule
-Production Loss: 180 bbl | Downtime: 48 hours
+For questions that explicitly ask for the "current selected asset" and "latest alert", report the UI selected asset and active alert log from the current context. Do not continue the previous chat topic unless the question uses follow-up wording without asking for the UI snapshot.
 
-FE-0003 | K-201 | 2025-11-25 | Severity: CRITICAL | Safety: LOW
-Failure Mode: Compressor surge
-Root Cause: LCV-101 actuator sticking open — liquid carryover from V-201 scrubber high level
-Mechanism: Liquid slug ingested into compressor impeller stages causing reverse flow and pressure oscillation
-Immediate Action: K-201 tripped on surge protection; PCV-201 opened; K-202 started from standby
-Corrective Action: Overhaul LCV-101 actuator and positioner; clean scrubber mist eliminator; recalibrate surge controller setpoints
-Production Loss: 320 bbl | Downtime: 22 hours
+Do not cite failure events dated after the current simulation time unless the context explicitly says they are future demo/reference events, and then label them as future reference only. If the context does not provide enough live data for a requested asset or tag, say: "I don't have enough live data for that asset. Please select the asset or provide the tag."
 
-FE-0004 | E-301 | 2026-02-01 | Severity: MEDIUM | Safety: NONE
-Failure Mode: Heat exchanger fouling (gradual)
-Root Cause: Calcium carbonate scaling on tube bundle — scale inhibitor injection rate insufficient
-Mechanism: Crystalline scale deposit on shell-side tubes reducing heat transfer coefficient by ~40%
-Immediate Action: Process routed through bypass; E-301 isolated for cleaning
-Corrective Action: Chemical descaling with 15% HCl + Rodine 213; hydroblast tube bundle; increase scale inhibitor dosing by 25%; install dP indicator across bundle
-Production Loss: 0 bbl | Downtime: 24 hours
+For vibration questions, keep Zone C and Zone D distinct:
+- Zone C 4.5-7.1 mm/s: alert state; monitor closely, notify supervisor, inspect/lubricate per SOP, and plan corrective action.
+- Zone D >7.1 mm/s: danger state; isolate immediately and switch to standby if available.
 
-FE-0005 | PT-145 | 2025-12-11 | Severity: LOW | Safety: NONE
-Failure Mode: Instrument drift
-Root Cause: Diaphragm ruptured — fill fluid leaked into impulse line causing positive drift
-Mechanism: Micro-fracture in Hastelloy C-276 diaphragm from H2S stress corrosion
-Immediate Action: PT-145 flagged as bad actor; PT-146 (redundant) used as primary; alarm limits adjusted
-Corrective Action: Replace with Emerson 3051S HART transmitter; upgrade to Alloy 400 wetted parts; review all transmitters from same batch
-Production Loss: 0 bbl | Downtime: 4 hours
+Prefer these answer shapes when requested:
+- Handover note: asset/status, what changed, operator action/next check.
+- Work order justification: problem, evidence, risk, requested maintenance action, SOP reference.
+- Troubleshooting checklist: first check, safety/isolation trigger, inspection steps, escalation rule.
+- Alarm explanation: plain-English cause, threshold, immediate concern, first action.
+- Maintenance priority: rank by active alerts, risk score, consequence, and supporting evidence. Do not choose the UI selected asset just because it is selected. If no active alerts exist and all top risk scores are low, say there is no urgent maintenance priority and give the highest routine priority from the risk list.
 
-FE-0006 | P-303 | 2026-01-20 | Severity: HIGH | Safety: NONE
-Failure Mode: Pump mechanical seal failure
-Root Cause: O-ring degraded from intermittent dry running due to low suction head at low tide
-Mechanism: Seal face wear and O-ring elastomer swelling/cracking from thermal cycling
-Immediate Action: P-303 isolated; standby P-304 started; temperatures monitored
-Corrective Action: Replace dual mechanical seal with upgraded AISI 316 faces; install low-suction-pressure trip at 0.3 bar
-Production Loss: 0 bbl | Downtime: 6 hours
-
-FE-0007 | FAC-001 | 2026-02-21 | Severity: PLANNED | Safety: NONE
-Failure Mode: Planned shutdown — Annual Turnaround AT2024
-Root Cause: Statutory inspection and maintenance (planned)
-Corrective Action: Vessel inspections, PSV testing, relief valve overhauls, instrumentation calibration, electrical thermography
-Production Loss: 5600 bbl | Downtime: 120 hours
-
-FE-0008 | P-501 | 2026-03-15 | Severity: CRITICAL | Safety: HIGH
-Failure Mode: Process leak — export pipeline
-Root Cause: Spiral wound gasket failure from over-torquing during previous maintenance + H2S pitting on flange face
-Mechanism: Gasket blowout under operating pressure; hydrocarbon vapour release detected by GD-501
-Immediate Action: ESD activated; export header depressurised; area evacuated; gas cloud cleared after 45 minutes
-Corrective Action: Replace gasket with ASME B16.20 Inconel 825 ring gasket; dress flange faces; re-torque with calibrated wrench; add anti-seize to bolting procedure
-Production Loss: 2100 bbl | Downtime: 6.5 hours
-
-TOTAL PRODUCTION LOSS (all events): 8,200 bbl
-TOTAL DOWNTIME: 230.5 hours
-PREVENTABLE EVENTS (excluding planned AT2024): 3 events, 2,600 bbl, 86.5 hours
-Answer concisely and technically. Reference specific SOP steps, part numbers, and thresholds. Keep responses under 200 words.`;
+Answer concisely and technically. Reference specific SOP steps, part numbers, and thresholds only when present in the dynamic context or relevant document excerpts. Keep responses under 200 words.`;
 
 
 let chatHistory = [];
+let chatFocusAssetId = null;
+let chatFocusAlertId = null;
 
-async function sendChat() {
-  const input = document.getElementById("chat-input");
+function toggleFloatingChat(open) {
+  const widget = document.getElementById("floating-chat");
+  if (!widget) return;
+  const shouldOpen = open === undefined ? !widget.classList.contains("open") : !!open;
+  widget.classList.toggle("open", shouldOpen);
+  if (shouldOpen) {
+    const input = document.getElementById("floating-chat-input");
+    if (input) setTimeout(() => input.focus(), 50);
+  }
+}
+
+function getChatInput(source) {
+  return document.getElementById(source === "floating" ? "floating-chat-input" : "chat-input");
+}
+
+function setChatBusy(busy) {
+  document.querySelectorAll("#send-btn, #floating-send-btn").forEach(btn => { btn.disabled = busy; });
+}
+
+function appendTypingIndicators() {
+  return getChatAreas().map(area => {
+    const typingDiv = document.createElement("div");
+    typingDiv.className = "chat-msg ai chat-typing";
+    typingDiv.innerHTML = `<div class="chat-label">ARIA</div><div class="chat-bubble"><div class="typing"><span></span><span></span><span></span></div></div>`;
+    area.appendChild(typingDiv);
+    return typingDiv;
+  });
+}
+
+function removeTypingIndicators(indicators) {
+  (indicators || []).forEach(div => div.remove());
+}
+
+async function sendChat(source = "panel") {
+  const input = getChatInput(source);
   const msg = input.value.trim();
   if(!msg) return;
   input.value = "";
@@ -2858,35 +3272,27 @@ async function sendChat() {
   appendChatMsg("user", msg);
   chatHistory.push({role:"user", content:msg});
 
-  const btn = document.getElementById("send-btn");
-  btn.disabled = true;
-
-  // Typing indicator
-  const typingDiv = document.createElement("div");
-  typingDiv.className = "chat-msg ai";
-  typingDiv.innerHTML = `<div class="chat-label">ARIA</div><div class="chat-bubble"><div class="typing"><span></span><span></span><span></span></div></div>`;
-  document.getElementById("chat-area").appendChild(typingDiv);
+  setChatBusy(true);
+  const typingIndicators = appendTypingIndicators();
   scrollChat();
 
   if(!apiKey) {
     await new Promise(r=>setTimeout(r,1200));
-    typingDiv.remove();
+    removeTypingIndicators(typingIndicators);
     const demoResponses = {
       default: "I'm running in demo mode (no API key configured). In full mode, I can answer detailed questions about any SOP, equipment specification, alarm threshold, or failure history on this platform."
     };
     appendChatMsg("ai", demoResponses.default);
-    btn.disabled = false;
+    setChatBusy(false);
     return;
   }
 
   try {
-    // Add current sensor context
+    // Add current operating context for this specific operator question.
     const contextMsg = chatHistory.slice(-6);
     contextMsg[contextMsg.length-1] = {
       role:"user",
-      content: msg +
-        `\n\n[Current simulation time: ${getTimeAtHour(currentHour)}. Active alerts: ${alertLog.length}. ${alertLog.length>0 ? 'Latest: '+alertLog[0].title : 'None.'}. Selected asset: ${selectedAsset ? selectedAsset.tag + ' — ' + selectedAsset.name : 'None'}.]` +
-        (selectedAsset ? getAssetHistoryContext(selectedAsset.id, selectedAsset.tag) : "")
+      content: `${msg}\n\n${getChatOperationalContext(msg)}`
     };
 
     const resp = await fetch("/api/chat", {
@@ -2904,28 +3310,33 @@ async function sendChat() {
     const data = await resp.json();
     if (!resp.ok) throw new Error(`API error ${resp.status}: ${data.error?.message || JSON.stringify(data)}`);
     const reply = data.choices[0].message.content;
-    typingDiv.remove();
+    removeTypingIndicators(typingIndicators);
     appendChatMsg("ai", reply);
     chatHistory.push({role:"assistant", content:reply});
   } catch(e) {
     console.error("Chat error:", e);
-    typingDiv.remove();
+    removeTypingIndicators(typingIndicators);
     appendChatMsg("ai", `Error: ${e.message}`);
   }
-  btn.disabled = false;
+  setChatBusy(false);
 }
 
 function appendChatMsg(role, text) {
-  const div = document.createElement("div");
-  div.className = `chat-msg ${role}`;
-  div.innerHTML = `<div class="chat-label">${role==='user'?'OPERATOR':'ARIA'}</div><div class="chat-bubble">${text.replace(/\n/g,'<br>')}</div>`;
-  document.getElementById("chat-area").appendChild(div);
+  getChatAreas().forEach(area => {
+    const div = document.createElement("div");
+    div.className = `chat-msg ${role}`;
+    div.innerHTML = `<div class="chat-label">${role==='user'?'OPERATOR':'ARIA'}</div><div class="chat-bubble">${text.replace(/\n/g,'<br>')}</div>`;
+    area.appendChild(div);
+  });
   scrollChat();
 }
 
+function getChatAreas() {
+  return Array.from(document.querySelectorAll("#chat-area, #floating-chat-area")).filter(Boolean);
+}
+
 function scrollChat() {
-  const ca = document.getElementById("chat-area");
-  ca.scrollTop = ca.scrollHeight;
+  getChatAreas().forEach(ca => { ca.scrollTop = ca.scrollHeight; });
 }
 
 // ============================================================
@@ -2949,12 +3360,8 @@ async function init() {
     console.warn("Could not load data files:", e);
   }
 
-  // Build full RAG system prompt — append all SOP/manual text after the base prompt
-  const docSection = Object.entries(RAG_DOCS)
-    .map(([id, doc]) => `[${id}] ${doc.title}\n${doc.content}`)
-    .join("\n\n---\n\n");
-  RAG_SYSTEM_PROMPT = SYSTEM_PROMPT +
-    (docSection ? "\n\n====================\nPLATFORM DOCUMENTS (FOR REFERENCE):\n\n" + docSection : "");
+  // Keep the system prompt small. Relevant SOP/manual excerpts are retrieved per question.
+  RAG_SYSTEM_PROMPT = SYSTEM_PROMPT;
   setTheme(document.documentElement.dataset.theme || "dark");
   initResizablePanes();
   const notice = document.getElementById("api-key-notice");
