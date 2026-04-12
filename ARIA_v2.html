@@ -1099,18 +1099,18 @@ let alertSoundMuted = localStorage.getItem("aria-muted") === "1";
 // PRODUCTION LOSS RATES  (bbl/hr per asset — from failure_events.csv)
 // ============================================================
 const PROD_LOSS_RATES = {
-  "P-101":  3.75,    // 180 bbl / 48 hr
-  "K-201":  14.55,   // 320 bbl / 22 hr
-  "P-501":  323.08,  // 2100 bbl / 6.5 hr
+  "P-101":  3.75,    // 180 bbl / 48 hr  — bearing failure Nov 2025
+  "K-201":  14.55,   // 320 bbl / 22 hr  — compressor surge Nov 2025
+  "P-501":  323.08,  // 2100 bbl / 6.5 hr — export pipeline leak Mar 2026
+  "FAC-001": 46.67,  // 5600 bbl / 120 hr — planned shutdown Feb 2026
 };
-const PROD_LOSS_ZERO = ["E-301", "PT-145", "P-303"]; // no production impact
-const PROD_LOSS_DEFAULT = 5.0; // bbl/hr fallback for any other CRITICAL asset
+const PROD_LOSS_ZERO = ["E-301", "PT-145", "P-303"]; // 0 bbl loss confirmed in failure_events.json
 const OIL_PRICE = 95.20; // USD/bbl — Brent Crude Apr 10 2026
 
 function getAssetProdLossRate(assetId) {
   const tag = (assetId || "").split(":").pop();
   if (PROD_LOSS_ZERO.includes(tag)) return 0;
-  return PROD_LOSS_RATES[tag] ?? PROD_LOSS_DEFAULT;
+  return PROD_LOSS_RATES[tag] ?? null; // null = no real data for this asset
 }
 
 // LIVE MODE (Kafka WebSocket)
@@ -1399,7 +1399,7 @@ function getAssetProdLoss(asset) {
   });
   if (!critAlert) return null;
   const rate = getAssetProdLossRate(asset.id);
-  if (rate === 0) return null;
+  if (!rate) return null; // null or 0 = no loss data
   const hoursElapsed = Math.max(0, currentHour - (critAlert.firedHour ?? currentHour));
   const bbl = rate * hoursElapsed;
   const usd = bbl * OIL_PRICE;
@@ -1408,10 +1408,8 @@ function getAssetProdLoss(asset) {
 
 function getAssetProdExposure(asset) {
   const rate = getAssetProdLossRate(asset.id);
-  const usdPerHour = rate * OIL_PRICE;
-  const tag = asset.tag;
-  const isFallback = rate === PROD_LOSS_DEFAULT && !PROD_LOSS_RATES[tag] && !PROD_LOSS_ZERO.includes(tag);
-  return { rate, usdPerHour, isFallback };
+  if (rate === null) return { rate: null, usdPerHour: null, hasData: false };
+  return { rate, usdPerHour: rate * OIL_PRICE, hasData: true };
 }
 
 function renderRiskTab() {
@@ -2328,10 +2326,10 @@ function renderSensorGrid() {
       ${(() => {
         const pl = getAssetProdLoss(selectedAsset);
         const exposure = getAssetProdExposure(selectedAsset);
-        if (!pl && exposure.rate === 0) {
+        if (!pl && (!exposure.hasData || exposure.rate === 0)) {
           return `<div style="margin-top:10px;padding:8px 10px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:4px">
             <div style="font-family:var(--font-mono);font-size:9px;color:var(--text3);letter-spacing:1px;margin-bottom:4px">PRODUCTION LOSS EXPOSURE</div>
-            <div style="font-family:var(--font-mono);font-size:12px;color:var(--green)">No direct production loss impact mapped for ${selectedAsset.tag}</div>
+            <div style="font-family:var(--font-mono);font-size:12px;color:var(--text3)">No production loss data for ${selectedAsset.tag}</div>
           </div>`;
         }
         if (!pl) {
@@ -2340,7 +2338,7 @@ function renderSensorGrid() {
             <div style="display:flex;gap:16px;align-items:baseline">
               <span style="font-family:var(--font-mono);font-size:18px;font-weight:bold;color:var(--amber)">${exposure.rate.toFixed(exposure.rate >= 10 ? 1 : 2)}<span style="font-size:11px;margin-left:3px">bbl/hr</span></span>
               <span style="font-family:var(--font-mono);font-size:15px;color:var(--amber);opacity:0.9">$${Math.round(exposure.usdPerHour).toLocaleString()}/hr</span>
-              <span style="font-family:var(--font-mono);font-size:9px;color:var(--text3);margin-left:auto">@ Brent $${OIL_PRICE}/bbl${exposure.isFallback ? ' · estimate' : ''}</span>
+              <span style="font-family:var(--font-mono);font-size:9px;color:var(--text3);margin-left:auto">@ Brent $${OIL_PRICE}/bbl</span>
             </div>
           </div>`;
         }
