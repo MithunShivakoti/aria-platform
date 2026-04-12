@@ -435,6 +435,42 @@
     cursor:pointer; font-family:var(--font-ui); font-size:14px; flex-shrink:0;
   }
   .alert-close:hover { border-color:var(--red); color:var(--red); background:var(--red-dim); }
+  .alert-body { overflow:hidden; transition:max-height 0.35s ease, opacity 0.3s ease; max-height:500px; opacity:1; }
+  .alert-body.collapsed { max-height:0; opacity:0; }
+  .alert-card.acked {
+    opacity:0.52; border-left-color:var(--border2) !important;
+    background:var(--panel) !important; border-color:var(--border) !important;
+    transition:opacity 0.4s ease, border-color 0.3s ease;
+  }
+  .ack-btn {
+    margin-left:auto; flex-shrink:0; padding:2px 8px;
+    border:1px solid var(--green2); color:var(--green); background:transparent;
+    font-family:var(--font-mono); font-size:9px; letter-spacing:1px;
+    cursor:pointer; transition:all 0.2s; border-radius:2px;
+  }
+  .ack-btn:hover { background:var(--green-dim); border-color:var(--green); }
+  .ack-stamp {
+    margin-left:auto; font-family:var(--font-mono); font-size:9px;
+    color:var(--green2); letter-spacing:1px; flex-shrink:0;
+    background:transparent; border:none; cursor:pointer; padding:2px 4px;
+    border-radius:2px; transition:all 0.2s;
+  }
+  .ack-stamp:hover { background:rgba(255,51,85,0.08); color:var(--red); }
+  .ack-stamp .ack-stamp-hover { display:none; }
+  .ack-stamp:hover .ack-stamp-default { display:none; }
+  .ack-stamp:hover .ack-stamp-hover { display:inline; }
+  .ack-all-row {
+    display:flex; align-items:center; justify-content:space-between;
+    padding:6px 10px; margin-bottom:6px; border:1px solid var(--border);
+    background:var(--bg3); font-family:var(--font-mono); font-size:9px;
+    color:var(--text3); letter-spacing:1px;
+  }
+  .ack-all-btn {
+    padding:3px 10px; border:1px solid var(--green2); color:var(--green);
+    background:transparent; font-family:var(--font-mono); font-size:9px;
+    letter-spacing:1px; cursor:pointer; transition:all 0.2s; border-radius:2px;
+  }
+  .ack-all-btn:hover { background:var(--green-dim); }
   .alert-title { font-family:var(--font-ui); font-size:12px; font-weight:600; color:var(--text); margin-bottom:4px; }
   .alert-desc { font-size:10px; color:var(--text2); line-height:1.5; }
   .alert-sensor { font-family:var(--font-mono); font-size:9px; color:var(--text3); margin-top:6px; }
@@ -1039,6 +1075,8 @@ let selectedAsset = null;
 let activeAlerts = [];
 let alertLog = [];
 let emailedCriticalAlertIds = new Set();
+let acknowledgedAlerts = new Set();
+let ackTimestamps = {};
 let apiKey = false; // true = key configured server-side, false = demo mode
 let woCounter = 2000;
 function nextWONumber() { return 'WO-' + String(++woCounter).padStart(5,'0'); }
@@ -2779,22 +2817,50 @@ function renderAlerts() {
     return;
   }
   list.innerHTML = "";
-  alertLog.forEach((alert, i) => {
+
+  const unackedCount = alertLog.filter(alert => !acknowledgedAlerts.has(alert.id)).length;
+  if (unackedCount > 1) {
+    const ackAllRow = document.createElement("div");
+    ackAllRow.className = "ack-all-row";
+    ackAllRow.innerHTML = `<span>${unackedCount} UNACKNOWLEDGED</span><button class="ack-all-btn" onclick="acknowledgeAllAlerts(event)">✓ ACK ALL</button>`;
+    list.appendChild(ackAllRow);
+  }
+
+  const sortedAlerts = [
+    ...alertLog.filter(alert => !acknowledgedAlerts.has(alert.id)),
+    ...alertLog.filter(alert => acknowledgedAlerts.has(alert.id)),
+  ];
+
+  sortedAlerts.forEach((alert, sortedIdx) => {
+    const i = alertLog.indexOf(alert);
+    const acked = acknowledgedAlerts.has(alert.id);
+    const isNewestUnacked = !acked && sortedIdx === 0;
     const div = document.createElement("div");
-    div.className = `alert-card ${alert.severity === 'CRITICAL' ? 'critical' : ''} ${i===0 ? 'flicker' : ''}`;
+    div.className = [
+      "alert-card",
+      alert.severity === "CRITICAL" ? "critical" : "",
+      isNewestUnacked ? "flicker" : "",
+      acked ? "acked" : "",
+    ].filter(Boolean).join(" ");
     div.innerHTML = `
       <div class="alert-header">
         <span class="alert-sev ${alert.severity}">${alert.severity}</span>
         <span class="alert-tag">${SENSOR_META[alert.sensor]?.asset?.split(':')[1] || alert.sensor}</span>
         <span class="alert-time">${alert.timestamp.slice(5,16)}</span>
+        ${acked
+          ? `<button class="ack-stamp" onclick='unacknowledgeAlert(${JSON.stringify(alert.id)}, event)' title="Click to unacknowledge"><span class="ack-stamp-default">✓ ACK ${ackTimestamps[alert.id] || ''}</span><span class="ack-stamp-hover">↩ UNACK</span></button>`
+          : `<button class="ack-btn" onclick='acknowledgeAlert(${JSON.stringify(alert.id)}, event)'>✓ ACK</button>`
+        }
         <button class="alert-close" onclick="dismissAlert(${i}, event)" title="Dismiss alert" aria-label="Dismiss alert">×</button>
       </div>
-      <div class="alert-title">${alert.title}</div>
-      <div class="alert-desc">${alert.desc}</div>
-      <div class="alert-sensor">Sensor: <span class="${alert.severity==='CRITICAL'?'red':''}">${alert.sensor} = ${alert.sensorVal} ${alert.sensorUnit}</span> &nbsp;|&nbsp; SOP: ${alert.sop}</div>
-      <div class="alert-actions">
-        <button class="gen-wo-btn" style="flex:1;margin-top:0" onclick="generateWO(${i})">⚙ GENERATE WORK ORDER</button>
-        <button class="ask-aria-btn" onclick="askARIAAboutAlert(${i})">💬 ASK ARIA</button>
+      <div class="alert-body${acked ? ' collapsed' : ''}">
+        <div class="alert-title">${alert.title}</div>
+        <div class="alert-desc">${alert.desc}</div>
+        <div class="alert-sensor">Sensor: <span class="${alert.severity==='CRITICAL'?'red':''}">${alert.sensor} = ${alert.sensorVal} ${alert.sensorUnit}</span> &nbsp;|&nbsp; SOP: ${alert.sop}</div>
+        <div class="alert-actions">
+          <button class="gen-wo-btn" style="flex:1;margin-top:0" onclick="generateWO(${i})">⚙ GENERATE WORK ORDER</button>
+          <button class="ask-aria-btn" onclick="askARIAAboutAlert(${i})">💬 ASK ARIA</button>
+        </div>
       </div>
     `;
     list.appendChild(div);
@@ -2805,6 +2871,8 @@ function renderAlerts() {
 function dismissAlert(index, event) {
   if (event) event.stopPropagation();
   if (index < 0 || index >= alertLog.length) return;
+  acknowledgedAlerts.delete(alertLog[index].id);
+  delete ackTimestamps[alertLog[index].id];
   alertLog.splice(index, 1);
   refreshAlertsAfterDismissal();
 }
@@ -2813,6 +2881,8 @@ function clearAlerts(event) {
   if (event) event.stopPropagation();
   if (!alertLog.length) return;
   alertLog = [];
+  acknowledgedAlerts.clear();
+  ackTimestamps = {};
   refreshAlertsAfterDismissal();
 }
 
@@ -2829,12 +2899,42 @@ function updateClearAlertsButton() {
 
 function updateAlertCount() {
   const el = document.getElementById("alert-count");
-  if(alertLog.length > 0) {
-    el.textContent = ` (${alertLog.length})`;
+  const unackedCount = alertLog.filter(alert => !acknowledgedAlerts.has(alert.id)).length;
+  if(unackedCount > 0) {
+    el.textContent = ` (${unackedCount})`;
   } else {
     el.textContent = '';
   }
   updateClearAlertsButton();
+}
+
+function acknowledgeAlert(alertId, event) {
+  if (event) event.stopPropagation();
+  acknowledgedAlerts.add(alertId);
+  ackTimestamps[alertId] = getTimeAtHour(currentHour).slice(11, 16);
+  renderAlerts();
+  updateAlertCount();
+}
+
+function acknowledgeAllAlerts(event) {
+  if (event) event.stopPropagation();
+  const ackTime = getTimeAtHour(currentHour).slice(11, 16);
+  alertLog.forEach(alert => {
+    if (!acknowledgedAlerts.has(alert.id)) {
+      acknowledgedAlerts.add(alert.id);
+      ackTimestamps[alert.id] = ackTime;
+    }
+  });
+  renderAlerts();
+  updateAlertCount();
+}
+
+function unacknowledgeAlert(alertId, event) {
+  if (event) event.stopPropagation();
+  acknowledgedAlerts.delete(alertId);
+  delete ackTimestamps[alertId];
+  renderAlerts();
+  updateAlertCount();
 }
 
 // ============================================================
