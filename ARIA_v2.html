@@ -2860,7 +2860,7 @@ async function notifyCriticalAlertEmail(alert) {
     });
     const data = await resp.json().catch(() => ({}));
     if (!resp.ok) throw new Error(data.error || `HTTP ${resp.status}`);
-    showToast(`📧 Critical alert email sent → ${data.to || ALERT_EMAIL_TO}`);
+    showToast(`📧 Critical alert email sent → ${data.to || ''}`);
     console.log("Critical alert email sent", data);
   } catch (err) {
     emailedCriticalAlertIds.delete(alert.id);

@@ -89,17 +89,33 @@ app.post("/api/live/scenario", (req, res) => {
   res.json({ ok: true, scenario: digitalTwin.getScenario(), transport: liveTransport });
 });
 
-function getAlertEmailTransporter() {
+// Resolve SMTP host to IPv4 first (same fix as OpenAI proxy — IPv6 unreachable on this network)
+function resolveSmtpHost(host) {
+  return new Promise((resolve) => {
+    dns.resolve4(host, (err, addresses) => {
+      if (err || !addresses || !addresses.length) {
+        console.warn("SMTP DNS resolve failed, using hostname:", err?.message);
+        resolve(host);
+      } else {
+        resolve(addresses[0]);
+      }
+    });
+  });
+}
+
+async function getAlertEmailTransporter() {
   const host = process.env.SMTP_HOST;
   const port = Number(process.env.SMTP_PORT || 587);
   const user = process.env.SMTP_USER;
   const pass = process.env.SMTP_PASS;
   if (!host || !user || !pass) return null;
+  const ip = await resolveSmtpHost(host);
   return nodemailer.createTransport({
-    host,
+    host: ip,
     port,
     secure: port === 465,
     auth: { user, pass },
+    tls: { servername: host }, // keep SNI as original hostname for TLS handshake
   });
 }
 
@@ -150,12 +166,18 @@ app.post("/api/alerts/email", async (req, res) => {
   }
 
   const alertId = alert.id || `${alert.sensor || "unknown"}-${alert.timestamp || Date.now()}`;
+
+  // Only send email for named scenario alerts (AL-*), not generic live threshold breaches (LIVE-*)
+  if (alertId.startsWith("LIVE-")) {
+    return res.json({ ok: true, skipped: true, reason: "generic-live-alert" });
+  }
+
   const lastSentAt = emailedCriticalAlertIds.get(alertId) || 0;
   if (Date.now() - lastSentAt < ALERT_EMAIL_COOLDOWN_MS) {
     return res.json({ ok: true, skipped: true, reason: "cooldown" });
   }
 
-  const transporter = getAlertEmailTransporter();
+  const transporter = await getAlertEmailTransporter();
   if (!transporter) {
     console.warn("Critical alert email not sent: SMTP_HOST, SMTP_USER, or SMTP_PASS is missing.");
     return res.status(503).json({ ok: false, error: "Email is not configured. Set SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, and SMTP_FROM in .env." });
