@@ -1,7 +1,15 @@
 import pandas as pd
 import json
 import time
+import argparse
 from kafka import KafkaProducer
+
+parser = argparse.ArgumentParser(description='ARIA Kafka producer — replays timeseries.csv')
+parser.add_argument('--start-hour', type=float, default=0,
+    help='Simulation hour to start from (e.g. 790 starts just before P-101 failure). Default: 0')
+parser.add_argument('--delay', type=float, default=0.5,
+    help='Seconds between timestamp batches (default 0.5). Lower = faster replay.')
+args = parser.parse_args()
 
 producer = KafkaProducer(
     bootstrap_servers='localhost:9092',
@@ -16,11 +24,18 @@ df = df.sort_values('timestamp')
 groups = df.groupby('timestamp')
 timestamps = sorted(groups.groups.keys())
 
+# Apply --start-hour offset
+BASE_TIME = pd.Timestamp('2025-10-04 07:00:00', tz='UTC')
+if args.start_hour > 0:
+    start_ts = BASE_TIME + pd.Timedelta(hours=args.start_hour)
+    timestamps = [ts for ts in timestamps if ts >= start_ts]
+    print(f'Starting from hour {args.start_hour} ({start_ts})')
+
 print(f'Streaming {len(timestamps)} timestamps, {len(df)} total readings')
+print(f'Replay delay: {args.delay}s per batch')
 print('Producer started. Press Ctrl+C to stop.')
 
-# Replay speed — 0.5 seconds per timestamp batch = 2 batches per second
-REPLAY_DELAY = 0.5
+REPLAY_DELAY = args.delay
 
 while True:  # loop forever for continuous demo
     for ts in timestamps:
@@ -44,3 +59,8 @@ while True:  # loop forever for continuous demo
         producer.flush()
         time.sleep(REPLAY_DELAY)
     print('Reached end of dataset, restarting loop...')
+    # On loop restart, go back to start_hour if specified
+    timestamps = sorted(groups.groups.keys())
+    if args.start_hour > 0:
+        start_ts = BASE_TIME + pd.Timedelta(hours=args.start_hour)
+        timestamps = [ts for ts in timestamps if ts >= start_ts]
