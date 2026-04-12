@@ -539,6 +539,7 @@
   .risk-tab-fill { height:100%; border-radius:2px; }
   .risk-tab-score { font-family:var(--font-mono); font-size:10px; font-weight:bold; min-width:28px; text-align:right; }
   .risk-tab-lbl { font-family:var(--font-mono); font-size:8px; letter-spacing:1px; min-width:80px; }
+  .risk-tab-prod { font-family:var(--font-mono); font-size:9px; color:var(--red); text-align:right; min-width:110px; white-space:nowrap; }
 
   .api-key-notice {
     padding:8px 12px; background:rgba(255,170,0,0.08); border:1px solid var(--amber);
@@ -579,6 +580,8 @@
     <div class="hstat"><div class="hstat-val red" id="hstat-crit">--</div><div class="hstat-label">Critical</div></div>
     <div class="hstat"><div class="hstat-val" style="color:var(--text2)" id="hstat-total">--</div><div class="hstat-label">Sensors</div></div>
     <div class="hstat"><div class="hstat-val red" id="hstat-risk">--</div><div class="hstat-label">Critical Risk</div></div>
+    <div class="hstat" id="hstat-prod-wrap" style="display:none"><div class="hstat-val red" id="hstat-prod-bbl">--</div><div class="hstat-label">Prod Loss (bbl)</div></div>
+    <div class="hstat" id="hstat-prod-usd-wrap" style="display:none"><div class="hstat-val red" id="hstat-prod-usd">--</div><div class="hstat-label">Loss · Brent $95.20/bbl</div></div>
   </div>
   <div class="header-divider"></div>
   <div class="time-display">
@@ -1092,6 +1095,24 @@ let woCounter = 2000;
 function nextWONumber() { return 'WO-' + String(++woCounter).padStart(5,'0'); }
 let shownAlertHours = new Set();
 
+// ============================================================
+// PRODUCTION LOSS RATES  (bbl/hr per asset — from failure_events.csv)
+// ============================================================
+const PROD_LOSS_RATES = {
+  "P-101":  3.75,    // 180 bbl / 48 hr
+  "K-201":  14.55,   // 320 bbl / 22 hr
+  "P-501":  323.08,  // 2100 bbl / 6.5 hr
+};
+const PROD_LOSS_ZERO = ["E-301", "PT-145", "P-303"]; // no production impact
+const PROD_LOSS_DEFAULT = 5.0; // bbl/hr fallback for any other CRITICAL asset
+const OIL_PRICE = 95.20; // USD/bbl — Brent Crude Apr 10 2026
+
+function getAssetProdLossRate(assetId) {
+  const tag = (assetId || "").split(":").pop();
+  if (PROD_LOSS_ZERO.includes(tag)) return 0;
+  return PROD_LOSS_RATES[tag] ?? PROD_LOSS_DEFAULT;
+}
+
 // LIVE MODE (Kafka WebSocket)
 let liveMode = false;
 let ws = null;
@@ -1350,6 +1371,21 @@ function getRiskColor(score) {
   return                   { color: '#00ff88', label: 'LOW RISK',      bg: 'rgba(0,255,136,0.08)' };
 }
 
+function getAssetProdLoss(asset) {
+  // Returns { bbl, usd } for this asset if it has an active CRITICAL alert with sensor in red
+  const critAlert = alertLog.find(a => {
+    if (a.severity !== 'CRITICAL') return false;
+    return SENSOR_META[a.sensor]?.asset === asset.id && getSensorStatus(a.sensor) === 'red';
+  });
+  if (!critAlert) return null;
+  const rate = getAssetProdLossRate(asset.id);
+  if (rate === 0) return null;
+  const hoursElapsed = Math.max(0, currentHour - (critAlert.firedHour ?? currentHour));
+  const bbl = rate * hoursElapsed;
+  const usd = bbl * OIL_PRICE;
+  return { bbl, usd };
+}
+
 function renderRiskTab() {
   const panel = document.getElementById('content-risk');
   if (!panel) return;
@@ -1360,16 +1396,35 @@ function renderRiskTab() {
   }));
   allAssets.sort((a,b) => b.total - a.total);
 
-  panel.innerHTML = `<div style="padding:8px 10px;font-family:var(--font-mono);font-size:9px;color:var(--text3);letter-spacing:1px;border-bottom:1px solid var(--border)">PLATFORM RISK OVERVIEW — ${allAssets.length} ASSETS</div>
+  // Platform-level production loss summary
+  let platformBbl = 0;
+  allAssets.forEach(({asset}) => {
+    const pl = getAssetProdLoss(asset);
+    if (pl) platformBbl += pl.bbl;
+  });
+  const platformUsd = platformBbl * OIL_PRICE;
+  const platformSummary = platformBbl > 0
+    ? `<span style="color:var(--red);margin-left:12px">⚠ ${platformBbl.toFixed(1)} bbl lost · $${Math.round(platformUsd).toLocaleString()} @ Brent $${OIL_PRICE}/bbl</span>`
+    : '';
+
+  panel.innerHTML = `<div style="padding:8px 10px;font-family:var(--font-mono);font-size:9px;color:var(--text3);letter-spacing:1px;border-bottom:1px solid var(--border)">PLATFORM RISK OVERVIEW — ${allAssets.length} ASSETS${platformSummary}</div>
+  <div style="padding:4px 10px 4px;display:grid;grid-template-columns:60px 1fr 80px 28px 80px 110px;gap:6px;font-family:var(--font-mono);font-size:8px;color:var(--text3);letter-spacing:1px;border-bottom:1px solid var(--border)">
+    <span>TAG</span><span>NAME</span><span>RISK</span><span></span><span>LEVEL</span><span style="text-align:right">PROD LOSS</span>
+  </div>
   <div style="flex:1;overflow-y:auto">` +
   allAssets.map(({asset, total}) => {
     const rc = getRiskColor(total);
+    const pl = getAssetProdLoss(asset);
+    const prodCell = pl
+      ? `<span class="risk-tab-prod">${pl.bbl.toFixed(1)} bbl<br><span style="color:var(--red);opacity:0.8">$${Math.round(pl.usd).toLocaleString()}</span></span>`
+      : `<span class="risk-tab-prod" style="color:var(--text3)">—</span>`;
     return `<div class="risk-tab-row" onclick="selectAsset(AREAS.flatMap(a=>a.assets).find(a=>a.id==='${asset.id}'))">
       <span class="risk-tab-tag">${asset.tag}</span>
       <span class="risk-tab-name">${asset.name}</span>
       <div class="risk-tab-bar"><div class="risk-tab-fill" style="width:${total}%;background:${rc.color}"></div></div>
       <span class="risk-tab-score" style="color:${rc.color}">${total}</span>
       <span class="risk-tab-lbl" style="color:${rc.color}">${rc.label}</span>
+      ${prodCell}
     </div>`;
   }).join('') + '</div>';
 }
@@ -2055,12 +2110,45 @@ function updateDisplay() {
   }));
   document.getElementById("hstat-risk").textContent = critRiskCount;
 
+  // Production loss ticker — cumulative bbl lost for assets still in active alarm
+  // Only count CRITICAL alerts where the sensor is currently reading red (still in fault)
+  const seenAssets = new Set();
+  const activeCritAlerts = alertLog.filter(a => {
+    if (a.severity !== 'CRITICAL') return false;
+    const assetId = SENSOR_META[a.sensor]?.asset || '';
+    if (seenAssets.has(assetId)) return false; // deduplicate per asset
+    const inAlarm = getSensorStatus(a.sensor) === 'red';
+    if (inAlarm) seenAssets.add(assetId);
+    return inAlarm;
+  });
+  if (activeCritAlerts.length > 0) {
+    let totalBbl = 0;
+    activeCritAlerts.forEach(a => {
+      const assetId = SENSOR_META[a.sensor]?.asset || '';
+      const rate = getAssetProdLossRate(assetId);
+      const hoursElapsed = Math.max(0, currentHour - (a.firedHour ?? currentHour));
+      totalBbl += rate * hoursElapsed;
+    });
+    const totalUsd = totalBbl * OIL_PRICE;
+    document.getElementById("hstat-prod-bbl").textContent = totalBbl.toFixed(1);
+    document.getElementById("hstat-prod-usd").textContent = '$' + Math.round(totalUsd).toLocaleString();
+    document.getElementById("hstat-prod-wrap").style.display = '';
+    document.getElementById("hstat-prod-usd-wrap").style.display = '';
+  } else {
+    document.getElementById("hstat-prod-wrap").style.display = 'none';
+    document.getElementById("hstat-prod-usd-wrap").style.display = 'none';
+  }
+
   // Asset tree refresh
   renderAssetTree();
 
   // Check alerts
   checkAlerts();
   renderCorrelation();
+
+  // Refresh risk tab if it's visible (keeps production loss numbers live)
+  const riskPanel = document.getElementById('content-risk');
+  if (riskPanel && riskPanel.style.display !== 'none') renderRiskTab();
 }
 
 // ============================================================
@@ -2334,6 +2422,7 @@ function fireAlert(def) {
   const alert = {
     ...def,
     timestamp: getTimeAtHour(currentHour),
+    firedHour: currentHour,
     sensorVal: val ? val.toFixed(2) : '--',
     sensorUnit: meta ? meta.unit : '',
   };
