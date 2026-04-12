@@ -255,18 +255,10 @@ async function startKafkaLiveStream() {
       connectionTimeout: 2500,
       retry: { retries: 2 },
     });
-    const admin = kafka.admin();
-    const producer = kafka.producer();
+
+    // Consumer only — kafka_producer.py is the data source
     const consumer = kafka.consumer({ groupId: `aria-dashboard-${Date.now()}` });
 
-    await admin.connect();
-    await admin.createTopics({
-      waitForLeaders: false,
-      topics: [{ topic: LIVE_TOPIC, numPartitions: 1, replicationFactor: 1 }],
-    });
-    await admin.disconnect();
-
-    await producer.connect();
     await consumer.connect();
     await consumer.subscribe({ topic: LIVE_TOPIC, fromBeginning: false });
     liveTransport = "kafka";
@@ -274,23 +266,20 @@ async function startKafkaLiveStream() {
     await consumer.run({
       eachMessage: async ({ message }) => {
         if (!message.value) return;
-        const payload = JSON.parse(message.value.toString("utf8"));
-        payload.transport = "kafka";
-        broadcast(payload);
+        try {
+          const payload = JSON.parse(message.value.toString("utf8"));
+          payload.transport = "kafka";
+          broadcast(payload);
+        } catch (parseErr) {
+          console.warn("Kafka message parse error:", parseErr.message);
+        }
       },
     });
 
-    if (liveTimer) clearInterval(liveTimer);
-    liveTimer = setInterval(async () => {
-      const batch = digitalTwin.nextBatch();
-      await producer.send({
-        topic: LIVE_TOPIC,
-        messages: [{ key: batch.scenario, value: JSON.stringify(batch) }],
-      });
-    }, LIVE_INTERVAL_MS);
-    console.log(`Kafka live stream connected: ${KAFKA_BROKERS.join(", ")} topic=${LIVE_TOPIC}`);
+    console.log(`Kafka consumer ready: ${KAFKA_BROKERS.join(", ")} topic=${LIVE_TOPIC}`);
+    console.log(`Waiting for data from kafka_producer.py...`);
   } catch (err) {
-    console.error("Kafka live stream unavailable, falling back to internal stream:", err.message);
+    console.error("Kafka unavailable, falling back to internal stream:", err.message);
     startInternalLiveStream("internal-fallback");
   }
 }
