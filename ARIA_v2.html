@@ -390,6 +390,22 @@
   .alerts-list { flex:1; overflow-y:auto; padding:8px; }
   .alerts-list::-webkit-scrollbar { width:3px; }
   .alerts-list::-webkit-scrollbar-thumb { background:var(--border2); }
+  .alerts-toolbar {
+    display:flex; align-items:center; justify-content:space-between; gap:8px;
+    padding:8px 10px; border-bottom:1px solid var(--border);
+    background:var(--bg2);
+  }
+  .alerts-toolbar-label {
+    font-family:var(--font-mono); font-size:9px; color:var(--text3);
+    letter-spacing:1px; text-transform:uppercase;
+  }
+  .clear-alerts-btn {
+    border:1px solid var(--border2); background:transparent; color:var(--text2);
+    border-radius:6px; padding:5px 9px; font-family:var(--font-ui);
+    font-size:10px; letter-spacing:1px; cursor:pointer; text-transform:uppercase;
+  }
+  .clear-alerts-btn:hover:not(:disabled) { border-color:var(--red); color:var(--red); background:var(--red-dim); }
+  .clear-alerts-btn:disabled { opacity:0.4; cursor:not-allowed; }
 
   .alert-card {
     background:var(--panel); border:1px solid var(--border);
@@ -413,6 +429,12 @@
   .alert-sev.LOW { background:rgba(100,100,100,0.2); color:var(--text2); border:1px solid var(--border2); }
   .alert-tag { font-family:var(--font-mono); font-size:10px; color:var(--cyan); }
   .alert-time { font-family:var(--font-mono); font-size:9px; color:var(--text3); margin-left:auto; }
+  .alert-close {
+    border:1px solid var(--border2); background:transparent; color:var(--text3);
+    border-radius:6px; width:22px; height:22px; line-height:18px;
+    cursor:pointer; font-family:var(--font-ui); font-size:14px; flex-shrink:0;
+  }
+  .alert-close:hover { border-color:var(--red); color:var(--red); background:var(--red-dim); }
   .alert-title { font-family:var(--font-ui); font-size:12px; font-weight:600; color:var(--text); margin-bottom:4px; }
   .alert-desc { font-size:10px; color:var(--text2); line-height:1.5; }
   .alert-sensor { font-family:var(--font-mono); font-size:9px; color:var(--text3); margin-top:6px; }
@@ -822,6 +844,10 @@
 
   <!-- ALERTS TAB -->
   <div class="tab-content" id="content-alerts">
+    <div class="alerts-toolbar">
+      <span class="alerts-toolbar-label">Active Alert Feed</span>
+      <button class="clear-alerts-btn" id="clear-alerts-btn" onclick="clearAlerts(event)" disabled>Clear All</button>
+    </div>
     <div class="alerts-list" id="alerts-list">
       <div class="no-alerts"><div class="icon">✓</div><p>No active alerts.<br>System nominal.</p></div>
     </div>
@@ -1012,6 +1038,7 @@ let playInterval = null;
 let selectedAsset = null;
 let activeAlerts = [];
 let alertLog = [];
+let emailedCriticalAlertIds = new Set();
 let apiKey = false; // true = key configured server-side, false = demo mode
 let woCounter = 2000;
 function nextWONumber() { return 'WO-' + String(++woCounter).padStart(5,'0'); }
@@ -1041,6 +1068,7 @@ function getAssetProdLossRate(assetId) {
 let liveMode = false;
 let ws = null;
 const liveReadings = {}; // sensor_id -> { value, unit, quality, timestamp }
+const liveAlertThrottle = new Map(); // sensor_id -> last alert timestamp ms
 
 // ============================================================
 // THEME
@@ -2691,10 +2719,10 @@ function fireAlert(def) {
   const meta = SENSOR_META[def.sensor];
   const alert = {
     ...def,
-    timestamp: getTimeAtHour(currentHour),
-    firedHour: currentHour,
-    sensorVal: val ? val.toFixed(2) : '--',
-    sensorUnit: meta ? meta.unit : '',
+    timestamp: def.timestamp || getTimeAtHour(currentHour),
+    firedHour: def.firedHour ?? currentHour,
+    sensorVal: def.sensorVal ?? (val ? val.toFixed(2) : '--'),
+    sensorUnit: def.sensorUnit || (meta ? meta.unit : ''),
   };
   alertLog.unshift(alert);
   renderAlerts();
@@ -2706,12 +2734,48 @@ function fireAlert(def) {
   switchTab('alerts');
   // Update count
   updateAlertCount();
+  notifyCriticalAlertEmail(alert);
+}
+
+async function notifyCriticalAlertEmail(alert) {
+  if (!alert || alert.severity !== "CRITICAL" || emailedCriticalAlertIds.has(alert.id)) return;
+  emailedCriticalAlertIds.add(alert.id);
+  const meta = SENSOR_META[alert.sensor];
+  const asset = meta ? getAssetById(meta.asset) : null;
+  try {
+    const resp = await fetch("/api/alerts/email", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        alert: {
+          id: alert.id,
+          severity: alert.severity,
+          title: alert.title,
+          desc: alert.desc,
+          failureMode: alert.failureMode,
+          sop: alert.sop,
+          sensor: alert.sensor,
+          sensorVal: alert.sensorVal,
+          sensorUnit: alert.sensorUnit,
+          timestamp: alert.timestamp,
+        },
+        asset: asset ? { id: asset.id, tag: asset.tag, name: asset.name } : null,
+      }),
+    });
+    const data = await resp.json().catch(() => ({}));
+    if (!resp.ok) throw new Error(data.error || `HTTP ${resp.status}`);
+    console.log("Critical alert email sent", data);
+  } catch (err) {
+    emailedCriticalAlertIds.delete(alert.id);
+    console.warn("Critical alert email not sent:", err.message);
+  }
 }
 
 function renderAlerts() {
   const list = document.getElementById("alerts-list");
   if(alertLog.length === 0) {
     list.innerHTML = `<div class="no-alerts"><div class="icon">✓</div><p>No active alerts.<br>System nominal.</p></div>`;
+    updateClearAlertsButton();
     return;
   }
   list.innerHTML = "";
@@ -2723,6 +2787,7 @@ function renderAlerts() {
         <span class="alert-sev ${alert.severity}">${alert.severity}</span>
         <span class="alert-tag">${SENSOR_META[alert.sensor]?.asset?.split(':')[1] || alert.sensor}</span>
         <span class="alert-time">${alert.timestamp.slice(5,16)}</span>
+        <button class="alert-close" onclick="dismissAlert(${i}, event)" title="Dismiss alert" aria-label="Dismiss alert">×</button>
       </div>
       <div class="alert-title">${alert.title}</div>
       <div class="alert-desc">${alert.desc}</div>
@@ -2734,6 +2799,32 @@ function renderAlerts() {
     `;
     list.appendChild(div);
   });
+  updateClearAlertsButton();
+}
+
+function dismissAlert(index, event) {
+  if (event) event.stopPropagation();
+  if (index < 0 || index >= alertLog.length) return;
+  alertLog.splice(index, 1);
+  refreshAlertsAfterDismissal();
+}
+
+function clearAlerts(event) {
+  if (event) event.stopPropagation();
+  if (!alertLog.length) return;
+  alertLog = [];
+  refreshAlertsAfterDismissal();
+}
+
+function refreshAlertsAfterDismissal() {
+  renderAlerts();
+  updateAlertCount();
+  updateDisplay();
+}
+
+function updateClearAlertsButton() {
+  const btn = document.getElementById("clear-alerts-btn");
+  if (btn) btn.disabled = alertLog.length === 0;
 }
 
 function updateAlertCount() {
@@ -2743,6 +2834,7 @@ function updateAlertCount() {
   } else {
     el.textContent = '';
   }
+  updateClearAlertsButton();
 }
 
 // ============================================================
@@ -3589,25 +3681,41 @@ function toggleLiveMode() {
 }
 
 function connectKafka() {
-  ws = new WebSocket('ws://localhost:8765');
+  const protocol = location.protocol === "https:" ? "wss:" : "ws:";
+  ws = new WebSocket(`${protocol}//${location.host}/ws/live`);
   ws.onopen = () => {
-    console.log('Connected to Kafka bridge');
+    console.log('Connected to ARIA live bridge');
     document.getElementById('live-btn').textContent = '🔴 LIVE ●';
   };
   ws.onmessage = (event) => {
-    const data = JSON.parse(event.data);
+    let data;
+    try {
+      data = JSON.parse(event.data);
+    } catch (err) {
+      console.warn('Invalid live bridge message:', err.message);
+      return;
+    }
+    if (data.type === "live_status") {
+      document.getElementById('live-btn').textContent = `🔴 LIVE ${String(data.transport || '').toUpperCase()}`;
+      return;
+    }
+    if (data.type === "live_error") {
+      console.warn('Live bridge error:', data.error);
+      return;
+    }
+    if (!Array.isArray(data.readings)) return;
     // data = { timestamp, readings: [{sensor_id, value, unit, quality_flag, asset_id, ...}] }
     data.readings.forEach(r => {
       liveReadings[r.sensor_id] = {
         value: r.value,
         unit: r.unit,
         quality: r.quality_flag,
-        timestamp: data.timestamp
+        timestamp: r.timestamp || data.timestamp
       };
     });
     // Update sim clock to show Kafka timestamp
     const clockEl = document.getElementById('tc-time-label');
-    if (clockEl) clockEl.textContent = data.timestamp.slice(0, 19) + ' [LIVE]';
+    if (clockEl && data.timestamp) clockEl.textContent = data.timestamp.slice(0, 19) + ' [LIVE]';
     // Re-render sensor grid with live values
     renderSensorGrid();
     // Check for live alarms
@@ -3635,8 +3743,9 @@ function checkAlertsLive(readings) {
     if (!meta) return;
     if (r.value > meta.ah || r.value < meta.al) {
       // Don't re-fire the same sensor alert within 5 minutes
-      const recent = alertLog.find(a => a.sensor === r.sensor_id && (now - (a.firedAt || 0)) < 300000);
-      if (recent) return;
+      const lastFiredAt = liveAlertThrottle.get(r.sensor_id) || 0;
+      if (now - lastFiredAt < 300000) return;
+      liveAlertThrottle.set(r.sensor_id, now);
       const isCritical = r.value > (meta.ah * 1.1) || r.value < (meta.al * 0.9);
       const alertDef = {
         id: 'LIVE-' + r.sensor_id + '-' + now,

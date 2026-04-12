@@ -32,6 +32,18 @@ OPENAI_API_KEY=your-openai-api-key-here
 PORT=3000
 ```
 
+Optional critical alert email notifications:
+```
+ALERT_EMAIL_TO=madumita240912@gmail.com
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=your-gmail-address@gmail.com
+SMTP_PASS=your-gmail-app-password
+SMTP_FROM=ARIA Alerts <your-gmail-address@gmail.com>
+ALERT_EMAIL_COOLDOWN_MS=300000
+```
+For Gmail, use an app password for `SMTP_PASS`; do not use your normal account password. `ALERT_EMAIL_COOLDOWN_MS` prevents repeat emails for the same critical alert ID for 5 minutes by default.
+
 ### 4. Download Kafka (first time only)
 ```bash
 curl -L -o kafka.tgz "https://archive.apache.org/dist/kafka/3.7.0/kafka_2.13-3.7.0.tgz"

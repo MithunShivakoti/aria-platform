@@ -10,9 +10,10 @@ try {
     if (eq === -1) return;
     const key = trimmed.slice(0, eq).trim();
     const val = trimmed.slice(eq + 1).trim();
+    if (process.env[key] !== undefined) return;
     process.env[key] = val;
   });
-  console.log("Loaded .env directly. Key ends in:", process.env.OPENAI_API_KEY?.slice(-6));
+  console.log("Loaded .env directly.");
 } catch(e) {
   console.warn("Could not read .env:", e.message);
 }
@@ -24,6 +25,7 @@ dns.setDefaultResultOrder("ipv4first");
 const express = require("express");
 const https = require("https");
 const http = require("http");
+const nodemailer = require("nodemailer");
 const { WebSocket, WebSocketServer } = require("ws");
 const { Kafka } = require("kafkajs");
 const { createDigitalTwin, loadSensorMetadata } = require("./simulator/digitalTwin");
@@ -36,10 +38,13 @@ const LIVE_TOPIC = process.env.KAFKA_SENSOR_TOPIC || "aria.sensor-readings";
 const KAFKA_BROKERS = (process.env.KAFKA_BROKERS || "127.0.0.1:9092").split(",").map(s => s.trim()).filter(Boolean);
 const KAFKA_ENABLED = process.env.KAFKA_ENABLED === "true";
 const LIVE_INTERVAL_MS = Number(process.env.LIVE_INTERVAL_MS || 1000);
+const ALERT_EMAIL_TO = process.env.ALERT_EMAIL_TO || "madumita240912@gmail.com";
 
 const sensorMetadata = loadSensorMetadata(SENSOR_METADATA_PATH);
 const digitalTwin = createDigitalTwin(sensorMetadata, { scenario: process.env.LIVE_SCENARIO || "normal" });
 const wsClients = new Set();
+const emailedCriticalAlertIds = new Map();
+const ALERT_EMAIL_COOLDOWN_MS = Number(process.env.ALERT_EMAIL_COOLDOWN_MS || 5 * 60 * 1000);
 let liveTransport = KAFKA_ENABLED ? "kafka-starting" : "internal";
 let liveTimer = null;
 
@@ -82,6 +87,97 @@ app.post("/api/live/scenario", (req, res) => {
     timestamp: new Date().toISOString(),
   });
   res.json({ ok: true, scenario: digitalTwin.getScenario(), transport: liveTransport });
+});
+
+function getAlertEmailTransporter() {
+  const host = process.env.SMTP_HOST;
+  const port = Number(process.env.SMTP_PORT || 587);
+  const user = process.env.SMTP_USER;
+  const pass = process.env.SMTP_PASS;
+  if (!host || !user || !pass) return null;
+  return nodemailer.createTransport({
+    host,
+    port,
+    secure: port === 465,
+    auth: { user, pass },
+  });
+}
+
+function escapeHtml(value) {
+  return String(value ?? "").replace(/[&<>"']/g, char => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;",
+  }[char]));
+}
+
+function formatCriticalAlertEmail(alert, asset) {
+  const safeAlert = alert || {};
+  const safeAsset = asset || {};
+  const lines = [
+    `Severity: ${safeAlert.severity || "CRITICAL"}`,
+    `Asset: ${safeAsset.tag || "Unknown"}${safeAsset.name ? ` - ${safeAsset.name}` : ""}`,
+    `Sensor: ${safeAlert.sensor || "Unknown"} = ${safeAlert.sensorVal ?? "--"} ${safeAlert.sensorUnit || ""}`,
+    `Time: ${safeAlert.timestamp || new Date().toISOString()}`,
+    `Title: ${safeAlert.title || "Critical ARIA alert"}`,
+    `Description: ${safeAlert.desc || "No description provided."}`,
+    `Failure mode: ${safeAlert.failureMode || "Not specified"}`,
+    `SOP: ${safeAlert.sop || "Not specified"}`,
+  ];
+  const htmlRows = lines.map(line => {
+    const [label, ...rest] = line.split(":");
+    return `<tr><td style="padding:6px 10px;color:#64748b;font-weight:700">${escapeHtml(label)}</td><td style="padding:6px 10px">${escapeHtml(rest.join(":").trim())}</td></tr>`;
+  }).join("");
+  return {
+    text: `ARIA Critical Alert\n\n${lines.join("\n")}`,
+    html: `
+      <div style="font-family:Arial,sans-serif;color:#0f172a">
+        <h2 style="color:#c92846;margin:0 0 12px">ARIA Critical Alert</h2>
+        <table style="border-collapse:collapse;border:1px solid #d8e1ea">${htmlRows}</table>
+        <p style="margin-top:14px;color:#475569">Review the dashboard and generate the required work order if this alert is still active.</p>
+      </div>
+    `,
+  };
+}
+
+app.post("/api/alerts/email", async (req, res) => {
+  const alert = req.body?.alert || {};
+  const asset = req.body?.asset || {};
+  if (alert.severity !== "CRITICAL") {
+    return res.status(400).json({ ok: false, error: "Only CRITICAL alerts trigger email." });
+  }
+
+  const alertId = alert.id || `${alert.sensor || "unknown"}-${alert.timestamp || Date.now()}`;
+  const lastSentAt = emailedCriticalAlertIds.get(alertId) || 0;
+  if (Date.now() - lastSentAt < ALERT_EMAIL_COOLDOWN_MS) {
+    return res.json({ ok: true, skipped: true, reason: "cooldown" });
+  }
+
+  const transporter = getAlertEmailTransporter();
+  if (!transporter) {
+    console.warn("Critical alert email not sent: SMTP_HOST, SMTP_USER, or SMTP_PASS is missing.");
+    return res.status(503).json({ ok: false, error: "Email is not configured. Set SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, and SMTP_FROM in .env." });
+  }
+
+  const subjectTag = asset.tag || alert.sensor || "ARIA";
+  const content = formatCriticalAlertEmail(alert, asset);
+  try {
+    await transporter.sendMail({
+      from: process.env.SMTP_FROM || process.env.SMTP_USER,
+      to: ALERT_EMAIL_TO,
+      subject: `[ARIA CRITICAL] ${subjectTag} - ${alert.title || "Critical alert"}`,
+      text: content.text,
+      html: content.html,
+    });
+    emailedCriticalAlertIds.set(alertId, Date.now());
+    console.log(`Critical alert email sent to ${ALERT_EMAIL_TO}: ${alertId}`);
+    res.json({ ok: true, to: ALERT_EMAIL_TO });
+  } catch (err) {
+    console.error("Critical alert email failed:", err.message);
+    res.status(502).json({ ok: false, error: err.message });
+  }
 });
 
 app.post("/api/chat", (req, res) => {
