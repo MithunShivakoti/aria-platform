@@ -1003,7 +1003,7 @@ function generateTimeseries() {
 // ============================================================
 // APP STATE
 // ============================================================
-const TS = generateTimeseries();
+let TS = {}; // populated in init() after SENSOR_META is built
 const TOTAL_HOURS = 1008;
 let currentHour = 0;
 let playing = false;
@@ -3531,6 +3531,9 @@ async function init() {
   } catch (e) {
     console.warn("Could not load data files:", e);
   }
+
+  // Generate timeseries now that SENSOR_META has all 175 sensors
+  TS = generateTimeseries();
 
   // Keep the system prompt small. Relevant SOP/manual excerpts are retrieved per question.
   RAG_SYSTEM_PROMPT = SYSTEM_PROMPT;
