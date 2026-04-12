@@ -5,12 +5,12 @@ import websockets
 from kafka import KafkaConsumer
 
 # Shared async queue — Kafka thread puts messages here, WebSocket coroutine reads them
-message_queue = asyncio.Queue()
+message_queue = None
 
 # All connected browser clients
 connected_clients = set()
 
-async def ws_handler(websocket, path):
+async def ws_handler(websocket, path=None):
     connected_clients.add(websocket)
     print(f'Browser connected. Total clients: {len(connected_clients)}')
     try:
@@ -50,7 +50,9 @@ def kafka_consumer_thread(loop):
         )
 
 async def main():
+    global message_queue
     loop = asyncio.get_event_loop()
+    message_queue = asyncio.Queue()
 
     # Start Kafka consumer in a background thread
     t = threading.Thread(target=kafka_consumer_thread, args=(loop,), daemon=True)
