@@ -16,6 +16,7 @@
   })();
 </script>
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&family=Exo+2:wght@300;400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
 <style>
   :root {
     --bg: #040d14;
@@ -204,6 +205,29 @@
   .area-assets { overflow:hidden; transition:max-height 0.3s ease; max-height:0; }
   .area-assets.open { max-height:2000px; }
   .area-indicator { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+
+  .asset-search-wrap { padding:8px 12px; border-bottom:1px solid var(--border); flex-shrink:0; position:relative; }
+  .asset-search {
+    width:100%; background:var(--panel); border:1px solid var(--border2);
+    color:var(--text); padding:6px 10px 6px 28px; font-family:var(--font-mono); font-size:10px;
+    outline:none; transition:border 0.2s; box-sizing:border-box;
+  }
+  .asset-search:focus { border-color:var(--cyan); }
+  .asset-search::placeholder { color:var(--text3); }
+  .asset-search-icon {
+    position:absolute; left:20px; top:50%; transform:translateY(-50%);
+    font-size:10px; color:var(--text3); pointer-events:none;
+  }
+  .area-badge {
+    font-family:var(--font-mono); font-size:8px; font-weight:bold; padding:1px 5px;
+    border-radius:2px; letter-spacing:1px; margin-left:4px;
+  }
+  .area-badge.red { background:var(--red-dim); color:var(--red); border:1px solid var(--red); }
+  .area-badge.amber { background:var(--amber-dim); color:var(--amber); border:1px solid var(--amber); }
+  .asset-search-empty {
+    padding:16px; color:var(--text3); font-family:var(--font-mono); font-size:10px;
+    line-height:1.5; text-align:center;
+  }
   .area-indicator.green { background:var(--green); box-shadow:0 0 6px var(--green); }
   .area-indicator.amber { background:var(--amber); box-shadow:0 0 6px var(--amber); }
   .area-indicator.red { background:var(--red); box-shadow:0 0 6px var(--red); animation:pulse 1s infinite; }
@@ -276,6 +300,7 @@
   .sc-bar-fill.amber { background:var(--amber); }
   .sc-bar-fill.red { background:var(--red); }
   .sc-limits { display:flex; justify-content:space-between; margin-top:3px; font-family:var(--font-mono); font-size:8px; color:var(--text3); }
+  .sc-sparkline { margin-top:6px; line-height:0; }
 
   /* SELECTED ASSET DETAIL VIEW */
   .asset-detail { flex:1; overflow-y:auto; padding:16px 20px; }
@@ -569,6 +594,10 @@
 <!-- LEFT: ASSET TREE -->
 <div class="left-panel">
   <div class="panel-header">Asset Hierarchy</div>
+  <div class="asset-search-wrap">
+    <span class="asset-search-icon">🔍</span>
+    <input class="asset-search" id="asset-search" placeholder="Search assets..." oninput="filterAssets(this.value)">
+  </div>
   <div class="asset-list" id="asset-tree"></div>
 </div>
 
@@ -645,6 +674,19 @@
 </div>
 
 </div>
+</div>
+
+<!-- TREND CHART MODAL -->
+<div class="modal-overlay" id="chart-modal" style="display:none" onclick="closeTrendChart(event)">
+  <div class="modal" style="max-width:820px;width:90%" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-title" id="chart-modal-title">SENSOR TREND</div>
+      <button class="modal-close" onclick="closeTrendChart()">✕</button>
+    </div>
+    <div class="modal-body" style="padding:16px 20px 20px">
+      <canvas id="trend-chart-canvas" style="width:100%;height:320px"></canvas>
+    </div>
+  </div>
 </div>
 
 <!-- WORK ORDER MODAL -->
@@ -1226,6 +1268,26 @@ const ALERT_DEFS = [
 // RENDER ASSET TREE
 // ============================================================
 const areaCollapsed = {};
+let searchQuery = '';
+
+function filterAssets(query) {
+  searchQuery = query.toLowerCase().trim();
+  if (searchQuery) AREAS.forEach(area => { areaCollapsed[area.id] = false; });
+  renderAssetTree();
+}
+
+function getAreaAlertCounts(area) {
+  let crit = 0;
+  let warn = 0;
+  area.assets.forEach(asset => {
+    asset.sensors.forEach(sid => {
+      const status = getSensorStatus(sid);
+      if (status === 'red') crit++;
+      else if (status === 'amber') warn++;
+    });
+  });
+  return { crit, warn };
+}
 
 function toggleArea(areaId) {
   areaCollapsed[areaId] = !areaCollapsed[areaId];
@@ -1315,11 +1377,25 @@ function renderRiskTab() {
 function renderAssetTree() {
   const tree = document.getElementById("asset-tree");
   tree.innerHTML = "";
+  let renderedAreas = 0;
   AREAS.forEach((area, idx) => {
     // Default: first area open, rest collapsed
     if (areaCollapsed[area.id] === undefined) areaCollapsed[area.id] = idx !== 0;
+    const filteredAssets = searchQuery
+      ? area.assets.filter(asset =>
+          asset.tag.toLowerCase().includes(searchQuery) ||
+          asset.name.toLowerCase().split(' ').some(word => word.startsWith(searchQuery)))
+      : area.assets;
+    if (searchQuery && filteredAssets.length === 0) return;
+
     const isOpen = !areaCollapsed[area.id];
     const areaStatus = getAreaStatus(area);
+    const { crit, warn } = getAreaAlertCounts(area);
+    const badgeHTML = crit > 0
+      ? `<span class="area-badge red">⚠ ${crit}</span>`
+      : warn > 0
+        ? `<span class="area-badge amber">△ ${warn}</span>`
+        : '';
     const areaDiv = document.createElement("div");
     areaDiv.className = "area-group";
 
@@ -1333,13 +1409,14 @@ function renderAssetTree() {
         <div style="font-size:11px">${area.label}</div>
         <div style="font-size:9px;color:var(--text3);font-family:var(--font-mono)">${area.deck}</div>
       </div>
+      ${badgeHTML}
       <div class="area-chevron ${isOpen ? 'open' : ''}">▶</div>`;
     areaDiv.appendChild(header);
 
     // Assets container (collapsible)
     const assetsDiv = document.createElement("div");
     assetsDiv.className = `area-assets ${isOpen ? 'open' : ''}`;
-    area.assets.forEach(asset => {
+    filteredAssets.forEach(asset => {
       const assetStatus = getAssetStatus(asset);
       const item = document.createElement("div");
       item.className = `asset-item ${assetStatus !== 'green' ? (assetStatus === 'red' ? 'critical' : 'alert') : ''} ${selectedAsset && selectedAsset.id === asset.id ? 'active' : ''}`;
@@ -1361,7 +1438,11 @@ function renderAssetTree() {
     });
     areaDiv.appendChild(assetsDiv);
     tree.appendChild(areaDiv);
+    renderedAreas++;
   });
+  if (searchQuery && renderedAreas === 0) {
+    tree.innerHTML = `<div class="asset-search-empty">No assets matched "${searchQuery}"</div>`;
+  }
 }
 
 function getAssetStatus(asset) {
@@ -1780,6 +1861,44 @@ function renderSparkline(card, sid) {
   card.appendChild(wrap);
 }
 
+// ============================================================
+// ROLLING SENSOR SPARKLINE
+// ============================================================
+const sensorHistory = {};
+
+function pushHistory(sid, val) {
+  if (!sensorHistory[sid]) sensorHistory[sid] = [];
+  sensorHistory[sid].push(val);
+  if (sensorHistory[sid].length > 24) sensorHistory[sid].shift();
+}
+
+function buildRollingSparklineSVG(sid, status) {
+  const meta = SENSOR_META[sid];
+  const hist = sensorHistory[sid];
+  if (!meta || !hist || hist.length < 2) return '';
+
+  const width = 160;
+  const height = 30;
+  const pad = 2;
+  const lo = meta.nmin;
+  const hi = meta.nmax;
+  const range = hi - lo || 1;
+  const color = status === 'red' ? '#ff3355' : status === 'amber' ? '#ffaa00' : '#00ff88';
+  const points = hist.map((value, index) => {
+    const x = pad + (index / (hist.length - 1)) * (width - pad * 2);
+    const bounded = Math.min(hi, Math.max(lo, value));
+    const y = height - pad - ((bounded - lo) / range) * (height - pad * 2);
+    return `${x.toFixed(1)},${y.toFixed(1)}`;
+  }).join(' ');
+  const bottom = height - pad;
+  const fillPoints = `${pad},${bottom} ${points} ${(pad + (width - pad * 2)).toFixed(1)},${bottom}`;
+
+  return `<svg viewBox="0 0 ${width} ${height}" width="100%" height="${height}" preserveAspectRatio="none">
+    <polygon points="${fillPoints}" fill="${color}" opacity="0.08"></polygon>
+    <polyline points="${points}" fill="none" stroke="${color}" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" opacity="0.9"></polyline>
+  </svg>`;
+}
+
 function renderSensorGrid() {
   if(!selectedAsset) return;
   const grid = document.getElementById("sensor-grid");
@@ -1855,11 +1974,15 @@ function renderSensorGrid() {
     const card = document.createElement("div");
     card.className = `sensor-card ${status}`;
     card.id = `sc-${sid.replace(/[^a-z0-9]/gi,'-')}`;
+    card.style.cursor = "pointer";
+    card.title = "Click to view trend";
+    card.onclick = () => openTrendChart(sid);
     card.innerHTML = `
       <div class="sc-asset">${meta.type}</div>
       <div class="sc-name">${meta.name}</div>
       <div class="sc-value ${status}">${val !== null ? val.toFixed(2) : '--'}</div>
       <div class="sc-unit">${meta.unit}</div>
+      <div class="sc-sparkline">${buildRollingSparklineSVG(sid, status)}</div>
       <div class="sc-bar"><div class="sc-bar-fill ${status}" style="width:${pct}%"></div></div>
       <div class="sc-limits"><span>${meta.nmin}</span><span style="color:var(--text2);font-size:9px">${status==='red'?'⚠ ALARM':status==='amber'?'△ WARN':'✓ NORMAL'}</span><span>${meta.nmax}</span></div>
     `;
@@ -1882,6 +2005,11 @@ function updateDisplay() {
   document.getElementById("tc-time-label").textContent = getTimeAtHour(currentHour);
   document.getElementById("time-slider").value = (currentHour/TOTAL_HOURS)*100;
 
+  Object.keys(SENSOR_META).forEach(sid => {
+    const value = getCurrentValue(sid);
+    if (value !== null) pushHistory(sid, value);
+  });
+
   // Update sensor cards
   if(selectedAsset) {
     selectedAsset.sensors.forEach(sid => {
@@ -1897,6 +2025,8 @@ function updateDisplay() {
       card.querySelector('.sc-value').className = `sc-value ${status}`;
       card.querySelector('.sc-bar-fill').style.width = pct+'%';
       card.querySelector('.sc-bar-fill').className = `sc-bar-fill ${status}`;
+      const sparkline = card.querySelector('.sc-sparkline');
+      if (sparkline) sparkline.innerHTML = buildRollingSparklineSVG(sid, status);
       const lim = card.querySelector('.sc-limits');
       const spans = lim.querySelectorAll('span');
       spans[1].textContent = status==='red'?'⚠ ALARM':status==='amber'?'△ WARN':'✓ NORMAL';
@@ -1931,6 +2061,262 @@ function updateDisplay() {
   // Check alerts
   checkAlerts();
   renderCorrelation();
+}
+
+// ============================================================
+// TREND CHART
+// ============================================================
+let trendChart = null;
+
+function openTrendChart(sid) {
+  const meta = SENSOR_META[sid];
+  if (!meta) return;
+
+  const title = document.getElementById("chart-modal-title");
+  const modal = document.getElementById("chart-modal");
+  const canvas = document.getElementById("trend-chart-canvas");
+  title.textContent = `${meta.name} · ${sid} · ${meta.unit}`;
+  modal.style.display = "flex";
+
+  if (trendChart) {
+    trendChart.destroy();
+    trendChart = null;
+  }
+
+  const labels = [];
+  const values = [];
+  for (let hour = 0; hour < TOTAL_HOURS; hour++) {
+    const timestamp = new Date(BASE_TIME.getTime() + hour * 3600000);
+    const day = Math.floor(hour / 24) + 1;
+    labels.push(`D${day} ${timestamp.toISOString().slice(11, 16)}`);
+    const value = TS[hour] && TS[hour][sid] !== undefined ? TS[hour][sid] : null;
+    values.push(value !== null ? Number(value.toFixed(3)) : null);
+  }
+
+  const isDark = document.documentElement.dataset.theme !== "light";
+  const gridColor = isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.08)";
+  const textColor = isDark ? "#8899aa" : "#556677";
+  const markerColor = isDark ? "rgba(255,255,255,0.55)" : "rgba(0,0,0,0.42)";
+  const context = canvas.getContext("2d");
+
+  if (typeof Chart === "undefined") {
+    drawFallbackTrendChart(canvas, meta, labels, values, { gridColor, textColor, markerColor });
+    return;
+  }
+
+  trendChart = new Chart(context, {
+    type: "line",
+    data: {
+      labels,
+      datasets: [{
+        label: meta.name,
+        data: values,
+        borderColor: "#00d4ff",
+        borderWidth: 1.5,
+        pointRadius: 0,
+        tension: 0.3,
+        fill: { target: "origin", above: "rgba(0,212,255,0.06)" },
+        spanGaps: true,
+      }],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: { duration: 250 },
+      interaction: { mode: "index", intersect: false },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: isDark ? "#0d1f2d" : "#ffffff",
+          titleColor: isDark ? "#00d4ff" : "#0077aa",
+          bodyColor: isDark ? "#ccd8e0" : "#334455",
+          borderColor: isDark ? "#1a3a4a" : "#ccddee",
+          borderWidth: 1,
+          callbacks: {
+            label: ctx => `${ctx.parsed.y !== null ? ctx.parsed.y.toFixed(3) : '--'} ${meta.unit}`,
+          },
+        },
+      },
+      scales: {
+        x: {
+          ticks: {
+            color: textColor,
+            font: { family: "Share Tech Mono", size: 9 },
+            maxRotation: 0,
+            maxTicksLimit: 14,
+          },
+          grid: { color: gridColor },
+        },
+        y: {
+          ticks: {
+            color: textColor,
+            font: { family: "Share Tech Mono", size: 10 },
+          },
+          grid: { color: gridColor },
+        },
+      },
+    },
+    plugins: [{
+      id: "thresholds",
+      afterDraw(chart) {
+        const { ctx, chartArea: { left, right, top, bottom }, scales: { x, y } } = chart;
+        ctx.save();
+        [
+          { value: meta.nmin, color: "#ffaa00", dash: [4, 3], label: `WARN LO ${meta.nmin}` },
+          { value: meta.nmax, color: "#ffaa00", dash: [4, 3], label: `WARN HI ${meta.nmax}` },
+          { value: meta.al, color: "#ff4466", dash: [2, 3], label: `ALARM LO ${meta.al}` },
+          { value: meta.ah, color: "#ff4466", dash: [2, 3], label: `ALARM HI ${meta.ah}` },
+        ].forEach(({ value, color, dash, label }) => {
+          if (value === undefined || value === null) return;
+          const yPx = y.getPixelForValue(value);
+          if (yPx < top || yPx > bottom) return;
+          ctx.beginPath();
+          ctx.strokeStyle = color;
+          ctx.lineWidth = 1;
+          ctx.setLineDash(dash);
+          ctx.moveTo(left, yPx);
+          ctx.lineTo(right, yPx);
+          ctx.stroke();
+          ctx.setLineDash([]);
+          ctx.fillStyle = color;
+          ctx.font = "9px 'Share Tech Mono'";
+          ctx.fillText(label, left + 4, yPx - 3);
+        });
+
+        const nowX = x.getPixelForValue(Math.floor(currentHour));
+        if (nowX >= left && nowX <= right) {
+          ctx.beginPath();
+          ctx.strokeStyle = markerColor;
+          ctx.lineWidth = 1.5;
+          ctx.setLineDash([3, 3]);
+          ctx.moveTo(nowX, top);
+          ctx.lineTo(nowX, bottom);
+          ctx.stroke();
+          ctx.setLineDash([]);
+          ctx.fillStyle = markerColor;
+          ctx.font = "bold 9px 'Share Tech Mono'";
+          ctx.fillText("NOW", nowX + 3, top + 10);
+        }
+        ctx.restore();
+      },
+    }],
+  });
+}
+
+function drawFallbackTrendChart(canvas, meta, labels, values, colors) {
+  const rect = canvas.getBoundingClientRect();
+  const pixelRatio = window.devicePixelRatio || 1;
+  const width = Math.max(720, rect.width || 720);
+  const height = 320;
+  canvas.width = width * pixelRatio;
+  canvas.height = height * pixelRatio;
+  canvas.style.width = "100%";
+  canvas.style.height = `${height}px`;
+
+  const ctx = canvas.getContext("2d");
+  ctx.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+  ctx.clearRect(0, 0, width, height);
+
+  const pad = { left: 56, right: 18, top: 24, bottom: 42 };
+  const plotW = width - pad.left - pad.right;
+  const plotH = height - pad.top - pad.bottom;
+  const valid = values.filter(value => value !== null && Number.isFinite(value));
+  const minValue = Math.min(meta.al ?? Infinity, meta.nmin ?? Infinity, ...valid);
+  const maxValue = Math.max(meta.ah ?? -Infinity, meta.nmax ?? -Infinity, ...valid);
+  const span = Math.max(1, maxValue - minValue);
+  const yFor = value => pad.top + plotH - ((value - minValue) / span) * plotH;
+  const xFor = index => pad.left + (index / Math.max(1, values.length - 1)) * plotW;
+
+  ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue("--chart-bg") || "rgba(0,0,0,0.35)";
+  ctx.fillRect(0, 0, width, height);
+
+  ctx.strokeStyle = colors.gridColor;
+  ctx.lineWidth = 1;
+  for (let i = 0; i <= 4; i++) {
+    const y = pad.top + (plotH / 4) * i;
+    ctx.beginPath();
+    ctx.moveTo(pad.left, y);
+    ctx.lineTo(width - pad.right, y);
+    ctx.stroke();
+  }
+
+  const drawThreshold = (value, color, label, dash) => {
+    if (value === undefined || value === null) return;
+    const y = yFor(value);
+    if (y < pad.top || y > pad.top + plotH) return;
+    ctx.save();
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 1;
+    ctx.setLineDash(dash);
+    ctx.beginPath();
+    ctx.moveTo(pad.left, y);
+    ctx.lineTo(width - pad.right, y);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = color;
+    ctx.font = "9px 'Share Tech Mono'";
+    ctx.fillText(label, pad.left + 4, y - 4);
+    ctx.restore();
+  };
+
+  drawThreshold(meta.nmin, "#ffaa00", `WARN LO ${meta.nmin}`, [4, 3]);
+  drawThreshold(meta.nmax, "#ffaa00", `WARN HI ${meta.nmax}`, [4, 3]);
+  drawThreshold(meta.al, "#ff4466", `ALARM LO ${meta.al}`, [2, 3]);
+  drawThreshold(meta.ah, "#ff4466", `ALARM HI ${meta.ah}`, [2, 3]);
+
+  ctx.strokeStyle = "#00d4ff";
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  let startedLine = false;
+  values.forEach((value, index) => {
+    if (value === null || !Number.isFinite(value)) return;
+    const x = xFor(index);
+    const y = yFor(value);
+    if (!startedLine) {
+      ctx.moveTo(x, y);
+      startedLine = true;
+    }
+    else ctx.lineTo(x, y);
+  });
+  ctx.stroke();
+
+  const nowX = xFor(Math.floor(currentHour));
+  if (nowX >= pad.left && nowX <= width - pad.right) {
+    ctx.save();
+    ctx.strokeStyle = colors.markerColor;
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([3, 3]);
+    ctx.beginPath();
+    ctx.moveTo(nowX, pad.top);
+    ctx.lineTo(nowX, pad.top + plotH);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = colors.markerColor;
+    ctx.font = "bold 9px 'Share Tech Mono'";
+    ctx.fillText("NOW", nowX + 3, pad.top + 10);
+    ctx.restore();
+  }
+
+  ctx.fillStyle = colors.textColor;
+  ctx.font = "10px 'Share Tech Mono'";
+  ctx.fillText(maxValue.toFixed(2), 6, pad.top + 4);
+  ctx.fillText(minValue.toFixed(2), 6, pad.top + plotH);
+  ctx.textAlign = "center";
+  for (let i = 0; i <= 6; i++) {
+    const index = Math.round((values.length - 1) * (i / 6));
+    ctx.fillText(labels[index] || "", xFor(index), height - 16);
+  }
+  ctx.textAlign = "left";
+}
+
+function closeTrendChart(event) {
+  if (event && event.target !== document.getElementById("chart-modal")) return;
+  const modal = document.getElementById("chart-modal");
+  modal.style.display = "none";
+  if (trendChart) {
+    trendChart.destroy();
+    trendChart = null;
+  }
 }
 
 function checkAlerts() {
@@ -2481,6 +2867,12 @@ async function init() {
   if (notice) {
     notice.textContent = apiKey ? "✓ AI responses enabled." : "⚠ No API key — demo mode.";
     notice.style.color = apiKey ? "var(--green)" : "var(--amber)";
+  }
+  for (let hour = 0; hour < Math.min(20, TOTAL_HOURS); hour++) {
+    Object.keys(SENSOR_META).forEach(sid => {
+      const value = TS[hour] && TS[hour][sid] !== undefined ? TS[hour][sid] : null;
+      if (value !== null) pushHistory(sid, value);
+    });
   }
   selectAsset(AREAS[0].assets[0]);
   updateDisplay();
