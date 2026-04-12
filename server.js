@@ -185,13 +185,10 @@ app.post("/api/alerts/email", async (req, res) => {
   }
 
   const alertId = alert.id || `${alert.sensor || "unknown"}-${alert.timestamp || Date.now()}`;
-
-  // Only send email for named scenario alerts (AL-*), not generic live threshold breaches (LIVE-*)
-  if (alertId.startsWith("LIVE-")) {
-    return res.json({ ok: true, skipped: true, reason: "generic-live-alert" });
-  }
-
-  const lastSentAt = emailedCriticalAlertIds.get(alertId) || 0;
+  const cooldownKey = alertId.startsWith("LIVE-")
+    ? `LIVE-${alert.sensor || "unknown"}`
+    : alertId;
+  const lastSentAt = emailedCriticalAlertIds.get(cooldownKey) || 0;
   if (Date.now() - lastSentAt < ALERT_EMAIL_COOLDOWN_MS) {
     return res.json({ ok: true, skipped: true, reason: "cooldown" });
   }
@@ -213,8 +210,8 @@ app.post("/api/alerts/email", async (req, res) => {
       text: content.text,
       html: content.html,
     });
-    emailedCriticalAlertIds.set(alertId, Date.now());
-    console.log(`Critical alert email sent to ${ALERT_EMAIL_TO}: ${alertId}`);
+    emailedCriticalAlertIds.set(cooldownKey, Date.now());
+    console.log(`Alert email sent to ${ALERT_EMAIL_TO}: ${alertId}`);
     res.json({ ok: true, to: ALERT_EMAIL_TO });
   } catch (err) {
     console.error("Critical alert email failed:", err.message);
