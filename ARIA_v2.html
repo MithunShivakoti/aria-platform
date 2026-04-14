@@ -2014,41 +2014,29 @@ function renderHistory() {
 }
 
 // ============================================================
-// CORRELATION GROUPS — sensors that should move together
+// CORRELATION GROUPS — dynamically built from all assets
 // ============================================================
-const CORRELATION_GROUPS = [
-  {
-    asset:"AREA-HP-SEP:P-101", tag:"P-101", name:"HP Sep Drain Pump A",
-    sensors:[
-      {id:"P-101-VIB",  label:"Vibration DE",   unit:"mm/s"},
-      {id:"P-101-TEMP", label:"Bearing Temp",    unit:"°C"},
-      {id:"P-101-CURR", label:"Motor Current",   unit:"A"},
-      {id:"P-101-FLOW", label:"Flow",            unit:"m³/h"},
-    ]
-  },
-  {
-    asset:"AREA-LP-COMP:K-201", tag:"K-201", name:"LP Compressor A",
-    sensors:[
-      {id:"K-201-VIBDE",  label:"Vibration DE",   unit:"mm/s"},
-      {id:"K-201-VIBNDE", label:"Vibration NDE",  unit:"mm/s"},
-      {id:"K-201-DTEMP",  label:"Discharge Temp", unit:"°C"},
-      {id:"V-201-LEVEL",  label:"Scrubber Level", unit:"%"},
-    ]
-  },
-  {
-    asset:"AREA-WATER:E-301", tag:"E-301", name:"Produced Water Cooler",
-    sensors:[
-      {id:"E-301-TOUTLET", label:"Outlet Temp", unit:"°C"},
-      {id:"E-301-TINLET",  label:"Inlet Temp",  unit:"°C"},
-    ]
-  },
-  {
-    asset:"AREA-UTIL:PT-145", tag:"PT-145", name:"Export Header Pressure Tx",
-    sensors:[
-      {id:"PT-145-PV", label:"Pressure", unit:"bar"},
-    ]
-  }
-];
+function getCorrelationGroups() {
+  const groups = [];
+  (AREAS || []).forEach(area => {
+    (area.assets || []).forEach(asset => {
+      if (!asset.sensors || asset.sensors.length < 2) return;
+      groups.push({
+        asset: asset.id,
+        tag:   asset.tag,
+        name:  asset.name,
+        sensors: asset.sensors.map(sid => {
+          const meta     = SENSOR_META[sid] || {};
+          const fullName = meta.name || sid;
+          // Strip "Asset Name - " prefix to get short label e.g. "VIBRATION"
+          const label    = fullName.includes(' - ') ? fullName.split(' - ').slice(1).join(' - ') : fullName;
+          return { id: sid, label, unit: meta.unit || '' };
+        })
+      });
+    });
+  });
+  return groups;
+}
 
 function getCurrentZScore(sid) {
   if (liveMode) {
@@ -2084,7 +2072,15 @@ function renderCorrelation() {
   if (!panel) return;
   panel.innerHTML = "";
 
-  CORRELATION_GROUPS.forEach(group => {
+  const groups = getCorrelationGroups();
+  // Sort: most anomalous sensors first, then alphabetically by tag
+  groups.sort((a, b) => {
+    const aAnom = a.sensors.filter(s => { const st = getSensorStatus(s.id); return st === 'red' || st === 'amber'; }).length;
+    const bAnom = b.sensors.filter(s => { const st = getSensorStatus(s.id); return st === 'red' || st === 'amber'; }).length;
+    return bAnom - aAnom || a.tag.localeCompare(b.tag);
+  });
+
+  groups.forEach(group => {
     const rows = group.sensors.map(s => {
       const val    = getCurrentValue(s.id);
       const status = getSensorStatus(s.id);
